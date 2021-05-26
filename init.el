@@ -92,8 +92,8 @@
   (setq doom-modeline-major-mode-icon nil)
   (set-face-attribute 'mode-line nil :family "Iosevka" :height 100)
   (set-face-attribute 'mode-line-inactive nil :family "Iosevka" :height 100)
-  :config
-  (doom-modeline-mode 1))
+  :hook
+  (after-init . doom-modeline-mode))
 (use-package projectile ;; Project management
   :init
   (when (file-directory-p "~/Documents/Code") ;; Projectile will search this path for projects
@@ -104,7 +104,11 @@
   :custom ((projectile-completion-system 'ivy))
   :bind-keymap
   ("C-c p" . projectile-command-map))
+<<<<<<< HEAD
 (use-package magit) ;; Git managment within Emacs
+=======
+;;(use-package magit) ;; Git managment within Emacs (Very slow on Windows)
+>>>>>>> ce6363ae7cd1db28841c92e7e4d6e7cb85031a59
 (use-package dashboard ;; Improved start screen
   :init
   (setq dashboard-items '((recents  . 5)(projects . 5)(bookmarks . 5)))
@@ -116,6 +120,7 @@
 (set-frame-font "Iosevka-12" nil t)
 (tool-bar-mode 0) ;; Hide the tool bar
 (scroll-bar-mode 0) ;; Hide the scroll bar
+(add-hook 'emacs-startup-hook 'toggle-frame-maximized) ;; Start Emacs maximized
 (recentf-mode 1) ;; Keep a list of recently opened files
 (global-hl-line-mode) ;; Highlight the current line
 (delete-selection-mode t) ;; Whatever is highlighted will be replaced with whatever is typed or pasted
@@ -155,8 +160,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   (quote
-    (eglot projectile dashboard doom-modeline counsel which-key use-package magit ivy gruvbox-theme flycheck evil-collection company async))))
+   '(eglot projectile dashboard doom-modeline counsel which-key use-package ivy gruvbox-theme flycheck evil-collection company async)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
