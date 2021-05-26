@@ -104,11 +104,8 @@
   :custom ((projectile-completion-system 'ivy))
   :bind-keymap
   ("C-c p" . projectile-command-map))
-<<<<<<< HEAD
 (use-package magit) ;; Git managment within Emacs
-=======
 ;;(use-package magit) ;; Git managment within Emacs (Very slow on Windows)
->>>>>>> ce6363ae7cd1db28841c92e7e4d6e7cb85031a59
 (use-package dashboard ;; Improved start screen
   :init
   (setq dashboard-items '((recents  . 5)(projects . 5)(bookmarks . 5)))
