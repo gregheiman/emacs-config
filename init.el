@@ -19,13 +19,18 @@
   (setq evil-want-keybinding nil)
   :config
   (evil-mode 1)
-  (define-key evil-normal-state-map "L" 'evil-window-right)
-  (define-key evil-normal-state-map "K" 'evil-window-up)
-  (define-key evil-normal-state-map "J" 'evil-window-down)
-  (define-key evil-normal-state-map "H" 'evil-window-left))
+  (evil-set-leader 'normal (kbd "SPC"))
+  (evil-define-key 'normal 'global (kbd "<leader>bn") 'next-buffer)
+  (evil-define-key 'normal 'global (kbd "<leader>bp") 'previous-buffer)
+  (evil-define-key 'normal 'global (kbd "<leader>bl") 'list-buffers)
+  (evil-define-key 'normal 'global (kbd "<leader>bg") 'switch-to-buffer)
+  (evil-define-key 'normal 'global (kbd "L") 'evil-window-right)
+  (evil-define-key 'normal 'global (kbd "K") 'evil-window-up)
+  (evil-define-key 'normal 'global (kbd "J") 'evil-window-down)
+  (evil-define-key 'normal 'global (kbd "H") 'evil-window-left))
 (use-package evil-collection ;; Extend default evil mode keybindings to more modes
   :after evil
-  :custom (evil-collection-company-use-tng nil)
+  :custom (evil-collection-company-use-tng nil) ;; Don't autocomplete like vim
   :custom (evil-collection-setup-minibuffer t)
   :config
   (evil-collection-init))
@@ -41,9 +46,24 @@
          ("<backtab>" . company-select-previous-or-abort))
   :hook (after-init . global-company-mode))
 (use-package eglot ;; Language server mode
-  :hook ((c++-mode . eglot-ensure)
+  :hook (c++-mode . eglot-ensure)
 	 (c-mode . eglot-ensure)
-	 (java-mode . eglot-ensure)))
+	 (java-mode . eglot-ensure)
+	 (python-mode . eglot-ensure)
+	 (tex-mode . eglot-ensure)
+  :config
+  (add-to-list 'eglot-server-programs '((c++-mode c-mode) . ("clangd")))
+  (add-hook 'eglot--managed-mode-hook (lambda () (flymake-mode -1))) ;; turn off flymake mode
+  (defconst my-eglot-eclipse-jdt-home ;; Set up Eglot to work with eclipse.jdt.ls
+     "/home/greg/Programs/eclipse.jdt.ls/org.eclipse.jdt.ls.product/target/repository/plugins/org.eclipse.equinox.launcher_1.6.100.v20201223-0822.jar"
+     "Point to eclipse jdt jar.")
+   (defun my-eglot-eclipse-jdt-contact (interactive)
+     "Contact with the jdt server input INTERACTIVE."
+     (let ((cp (getenv "CLASSPATH")))
+       (setenv "CLASSPATH" (concat cp ":" my-eglot-eclipse-jdt-home))
+       (unwind-protect (eglot--eclipse-jdt-contact nil)
+	 (setenv "CLASSPATH" cp))))
+   (setcdr (assq 'java-mode eglot-server-programs) #'my-eglot-eclipse-jdt-contact)) 
 (use-package ivy ;; Auto completion for everything else
   :bind (("C-s" . swiper)
          :map ivy-minibuffer-map
@@ -62,7 +82,7 @@
 (use-package flycheck ;; Improved linting and checking
   :config
   (setq flycheck-display-error-function #'flycheck-display-error-messages) ;; Show error messages in echo area
-  :hook (prog-mode . flycheck-mode))
+  :hook (prog-mode . global-flycheck-mode))
 (use-package doom-modeline ;; Improved modeline
   :init
   (setq doom-modeline-height 23)
@@ -84,7 +104,7 @@
   :custom ((projectile-completion-system 'ivy))
   :bind-keymap
   ("C-c p" . projectile-command-map))
-  (use-package magit) ;; Git managment within Emacs
+(use-package magit) ;; Git managment within Emacs
 (use-package dashboard ;; Improved start screen
   :init
   (setq dashboard-items '((recents  . 5)(projects . 5)(bookmarks . 5)))
@@ -98,16 +118,33 @@
 (scroll-bar-mode 0) ;; Hide the scroll bar
 (recentf-mode 1) ;; Keep a list of recently opened files
 (global-hl-line-mode) ;; Highlight the current line
-(delete-selection-mode t) ;; Whatever is highlighted will be replaced iwth whatever is typed or pasted
+(delete-selection-mode t) ;; Whatever is highlighted will be replaced with whatever is typed or pasted
 (global-display-line-numbers-mode 1) ;; Line numbers
 (electric-pair-mode 1) ;; Auto pair delimeters
 (show-paren-mode t) ;; Highlight matching delimeter pair
+(auto-save-visited-mode) ;; Auto save files without the #filename#
+(defun full-auto-save () ;; Auto save all buffers when autosave fires
+  (interactive)
+  (save-excursion
+    (dolist (buf (buffer-list))
+      (set-buffer buf)
+      (if (and (buffer-file-name) (buffer-modified-p))
+          (basic-save-buffer)))))
+(add-hook 'auto-save-hook 'full-auto-save)
+(setq path-to-ctags "/usr/bin/ctags-universal")
+(defun create-tags (dir-name) ;; Run m-x create-tags to create tags
+    "Create tags file."
+    (interactive "DDirectory: ")
+    (shell-command
+     (format "%s -f TAGS -e -R %s" path-to-ctags (directory-file-name dir-name)))
+)
 (setq show-paren-style 'parenthesis)
 (setq indent-tabs-mode nil) ;; Use spaces for tabs instead of tab characters
 (setq tab-width 4) ;; Set the tab width to 4 characters
 (setq electric-indent-inhibit t) ;; Make return key indent to current indent level
 (setq backward-delete-char-untabify-method 'hungry) ;; Have Emacs backspace the entire tab at a time
-(setq c-basic-offset 4) ;; Set the width of tab in C/C++/Obj. C
+(setq c-default-style "k&r"
+      c-basic-offset 4) ;; Set the width of tab in C/C++/Obj. C
 
 ;; Emacs Keybindings
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit) ;; Make ESC quit prompts
