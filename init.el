@@ -19,6 +19,7 @@
   (setq evil-want-keybinding nil)
   :config
   (evil-mode 1)
+  (evil-set-undo-system 'undo-tree)
   (evil-set-leader 'normal (kbd "SPC"))
   (evil-define-key 'normal 'global (kbd "<leader>bn") 'next-buffer)
   (evil-define-key 'normal 'global (kbd "<leader>bp") 'previous-buffer)
@@ -34,6 +35,8 @@
   :custom (evil-collection-setup-minibuffer t)
   :config
   (evil-collection-init))
+(use-package undo-tree ;; Undo tree to enable redoing with Evil
+  :hook (after-init . global-undo-tree-mode))
 (use-package gruvbox-theme ;; Color theme
   :init
   (load-theme 'gruvbox t))
@@ -45,25 +48,34 @@
          ("S-TAB" . compnay-select-previous-or-abort)
          ("<backtab>" . company-select-previous-or-abort))
   :hook (after-init . global-company-mode))
-(use-package eglot ;; Language server mode
-  :hook (c++-mode . eglot-ensure)
-	 (c-mode . eglot-ensure)
-	 (java-mode . eglot-ensure)
-	 (python-mode . eglot-ensure)
-	 (tex-mode . eglot-ensure)
-  :config
-  (add-to-list 'eglot-server-programs '((c++-mode c-mode) . ("clangd")))
-  (add-hook 'eglot--managed-mode-hook (lambda () (flymake-mode -1))) ;; turn off flymake mode
-  (defconst my-eglot-eclipse-jdt-home ;; Set up Eglot to work with eclipse.jdt.ls
-     "/home/greg/Programs/eclipse.jdt.ls/org.eclipse.jdt.ls.product/target/repository/plugins/org.eclipse.equinox.launcher_1.6.100.v20201223-0822.jar"
-     "Point to eclipse jdt jar.")
-   (defun my-eglot-eclipse-jdt-contact (interactive)
-     "Contact with the jdt server input INTERACTIVE."
-     (let ((cp (getenv "CLASSPATH")))
-       (setenv "CLASSPATH" (concat cp ":" my-eglot-eclipse-jdt-home))
-       (unwind-protect (eglot--eclipse-jdt-contact nil)
-	 (setenv "CLASSPATH" cp))))
-   (setcdr (assq 'java-mode eglot-server-programs) #'my-eglot-eclipse-jdt-contact)) 
+(use-package lsp-mode
+  :init
+  (setq lsp-keymap-prefix "C-c l")
+  :hook
+  (java-mode . lsp)
+  (lsp-mode . lsp-enable-which-key-integration)
+  :commands
+  lsp)
+(use-package lsp-java)
+;;(use-package eglot ;; Language server mode
+;;  :hook (c++-mode . eglot-ensure)
+;;	 (c-mode . eglot-ensure)
+;;	 (java-mode . eglot-ensure)
+;;	 (python-mode . eglot-ensure)
+;;	 (tex-mode . eglot-ensure)
+;;  :config
+;;  (add-to-list 'eglot-server-programs '((c++-mode c-mode) . ("clangd")))
+;;  (add-hook 'eglot--managed-mode-hook (lambda () (flymake-mode -1))) ;; turn off flymake mode
+;;  (defconst my-eglot-eclipse-jdt-home ;; Set up Eglot to work with eclipse.jdt.ls
+;;     "~/.emacs.d/.cache/lsp/eclipse.jdt.ls/plugins/org.eclipse.equinox.launcher_1.6.100.v20201223-0822.jar"
+;;     "Point to eclipse jdt jar.")
+;;   (defun my-eglot-eclipse-jdt-contact (interactive)
+;;     "Contact with the jdt server input INTERACTIVE."
+;;     (let ((cp (getenv "CLASSPATH")))
+;;       (setenv "CLASSPATH" (concat cp ":" my-eglot-eclipse-jdt-home))
+;;       (unwind-protect (eglot--eclipse-jdt-contact nil)
+;;	 (setenv "CLASSPATH" cp))))
+;;   (setcdr (assq 'java-mode eglot-server-programs) #'my-eglot-eclipse-jdt-contact)) 
 (use-package ivy ;; Auto completion for everything else
   :bind (("C-s" . swiper)
          :map ivy-minibuffer-map
@@ -88,12 +100,12 @@
   (setq doom-modeline-height 23)
   (setq doom-modeline-buffer-file-name-style 'file-name)
   (setq doom-modeline-percent-position nil)
-  (setq all-the-icons-scale-factor 1.1)
   (setq doom-modeline-major-mode-icon nil)
+  (setq all-the-icons-scale-factor 1.0)
   (set-face-attribute 'mode-line nil :family "Iosevka" :height 100)
   (set-face-attribute 'mode-line-inactive nil :family "Iosevka" :height 100)
   :hook
-  (after-init . doom-modeline-mode))
+  (window-setup . doom-modeline-mode))
 (use-package projectile ;; Project management
   :init
   (when (file-directory-p "~/Documents/Code") ;; Projectile will search this path for projects
@@ -104,7 +116,6 @@
   :custom ((projectile-completion-system 'ivy))
   :bind-keymap
   ("C-c p" . projectile-command-map))
-(use-package magit) ;; Git managment within Emacs
 ;;(use-package magit) ;; Git managment within Emacs (Very slow on Windows)
 (use-package dashboard ;; Improved start screen
   :init
@@ -133,7 +144,7 @@
       (if (and (buffer-file-name) (buffer-modified-p))
           (basic-save-buffer)))))
 (add-hook 'auto-save-hook 'full-auto-save)
-(setq path-to-ctags "/usr/bin/ctags-universal")
+(setq path-to-ctags "c:/Users/heimangreg/Universal-Ctags/ctags.exe")
 (defun create-tags (dir-name) ;; Run m-x create-tags to create tags
     "Create tags file."
     (interactive "DDirectory: ")
@@ -145,8 +156,23 @@
 (setq tab-width 4) ;; Set the tab width to 4 characters
 (setq electric-indent-inhibit t) ;; Make return key indent to current indent level
 (setq backward-delete-char-untabify-method 'hungry) ;; Have Emacs backspace the entire tab at a time
-(setq c-default-style "k&r"
-      c-basic-offset 4) ;; Set the width of tab in C/C++/Obj. C
+(add-hook 'java-mode-hook (lambda() ;; Setup custom java indent
+			    (setq c-default-style "java")
+			    (c-set-offset 'arglist-intro '+)
+                            (c-set-offset 'arglist-close '0)
+                            (c-set-offset 'case-label '+)))
+(add-hook 'c++-mode-hook c-mode-hook (lambda() ;; Setup custom C/C++ indent
+				       (setq c-default-style "k&r")
+				       (setq c-basic-offset 4)))
+(setq backup-directory-alist '(("." . "~/.emacs.d/backup")) ;; Write backups to ~/.emacs.d/backup/
+      backup-by-copying      t  ; Don't de-link hard links
+      version-control        t  ; Use version numbers on backups
+      delete-old-versions    t  ; Automatically delete excess backups:
+      kept-new-versions      5 ; how many of the newest versions to keep
+      kept-old-versions      2) ; and how many of the old
+(add-hook 'dired-mode-hook (lambda()
+			     (auto-revert-mode 1) ;; Automatically update Dired
+			     (setq auto-revert-verbose nil))) ;; Be quiet about updating Dired
 
 ;; Emacs Keybindings
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit) ;; Make ESC quit prompts
@@ -157,7 +183,8 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(eglot projectile dashboard doom-modeline counsel which-key use-package ivy gruvbox-theme flycheck evil-collection company async)))
+   '(undo-tree lsp-mode lsp-java eglot projectile dashboard doom-modeline counsel which-key use-package ivy gruvbox-theme flycheck evil-collection company async))
+ '(tab-stop-list '(4 8 12)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
