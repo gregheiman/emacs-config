@@ -57,25 +57,6 @@
   :commands
   lsp)
 (use-package lsp-java)
-;;(use-package eglot ;; Language server mode
-;;  :hook (c++-mode . eglot-ensure)
-;;	 (c-mode . eglot-ensure)
-;;	 (java-mode . eglot-ensure)
-;;	 (python-mode . eglot-ensure)
-;;	 (tex-mode . eglot-ensure)
-;;  :config
-;;  (add-to-list 'eglot-server-programs '((c++-mode c-mode) . ("clangd")))
-;;  (add-hook 'eglot--managed-mode-hook (lambda () (flymake-mode -1))) ;; turn off flymake mode
-;;  (defconst my-eglot-eclipse-jdt-home ;; Set up Eglot to work with eclipse.jdt.ls
-;;     "~/.emacs.d/.cache/lsp/eclipse.jdt.ls/plugins/org.eclipse.equinox.launcher_1.6.100.v20201223-0822.jar"
-;;     "Point to eclipse jdt jar.")
-;;   (defun my-eglot-eclipse-jdt-contact (interactive)
-;;     "Contact with the jdt server input INTERACTIVE."
-;;     (let ((cp (getenv "CLASSPATH")))
-;;       (setenv "CLASSPATH" (concat cp ":" my-eglot-eclipse-jdt-home))
-;;       (unwind-protect (eglot--eclipse-jdt-contact nil)
-;;	 (setenv "CLASSPATH" cp))))
-;;   (setcdr (assq 'java-mode eglot-server-programs) #'my-eglot-eclipse-jdt-contact)) 
 (use-package ivy ;; Auto completion for everything else
   :bind (("C-s" . swiper)
          :map ivy-minibuffer-map
@@ -156,11 +137,29 @@
 (setq tab-width 4) ;; Set the tab width to 4 characters
 (setq electric-indent-inhibit t) ;; Make return key indent to current indent level
 (setq backward-delete-char-untabify-method 'hungry) ;; Have Emacs backspace the entire tab at a time
+(defun fix-c-indent-offset-according-to-syntax-context (key val)
+  ;; remove the old element
+  (setq c-offsets-alist (delq (assoc key c-offsets-alist) c-offsets-alist))
+  ;; new value
+  (add-to-list 'c-offsets-alist '(key . val)))
 (add-hook 'java-mode-hook (lambda() ;; Setup custom java indent
 			    (setq c-default-style "java")
-			    (c-set-offset 'arglist-intro '+)
-                            (c-set-offset 'arglist-close '0)
-                            (c-set-offset 'case-label '+)))
+			    (fix-c-indent-offset-according-to-syntax-context 'substatement 0)
+			    (fix-c-indent-offset-according-to-syntax-context 'func-decl-cont 0)
+			    (c-offsets-alist . ((inline-open . 0)
+				(topmost-intro-cont    . +)
+				(statement-block-intro . +)
+				(knr-argdecl-intro     . 5)
+				(substatement-open     . +)
+				(substatement-label    . +)
+				(label                 . +)
+				(statement-case-open   . +)
+				(statement-cont        . ++)
+				(arglist-intro  . c-lineup-arglist-intro-after-paren)
+				(arglist-close  . c-lineup-arglist)
+				(access-label   . 0)
+				(inher-cont     . ++)
+				(func-decl-cont . ++)))))
 (add-hook 'c++-mode-hook c-mode-hook (lambda() ;; Setup custom C/C++ indent
 				       (setq c-default-style "k&r")
 				       (setq c-basic-offset 4)))
