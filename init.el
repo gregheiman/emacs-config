@@ -21,16 +21,22 @@
   (evil-mode 1)
   (evil-set-undo-system 'undo-tree)
   (evil-set-leader 'normal (kbd "SPC"))
-  (evil-define-key 'normal 'global (kbd "<leader>bn") 'next-buffer)
-  (evil-define-key 'normal 'global (kbd "<leader>bp") 'previous-buffer)
   (evil-define-key 'normal 'global (kbd "<leader>bl") 'list-buffers)
   (evil-define-key 'normal 'global (kbd "<leader>bg") 'switch-to-buffer)
+  (evil-define-key 'normal 'global (kbd "]q") 'flycheck-next-error)
+  (evil-define-key 'normal 'global (kbd "[q") 'flycheck-previous-error)
+  (evil-define-key 'normal 'global (kbd "]Q") 'flycheck-last-error)
+  (evil-define-key 'normal 'global (kbd "[Q") 'flycheck-first-error)
+  (evil-define-key 'normal 'global (kbd "gc") 'comment-dwim)
   (evil-define-key 'normal 'global (kbd "L") 'evil-window-right)
   (evil-define-key 'normal 'global (kbd "K") 'evil-window-up)
   (evil-define-key 'normal 'global (kbd "J") 'evil-window-down)
   (evil-define-key 'normal 'global (kbd "H") 'evil-window-left)
-  (eval-after-load 'evil-ex
-  '(evil-ex-define-cmd "fin[d]" 'projectile-find-file)))
+  (eval-after-load 'projectile
+    (eval-after-load 'evil-ex
+        '(evil-ex-define-cmd "fin[d]" 'projectile-find-file))
+    (eval-after-load 'evil-ex
+        '(evil-ex-define-cmd "gre[p]" 'projectile-grep)))
 (use-package evil-collection ;; Extend default evil mode keybindings to more modes
   :after evil
   :custom (evil-collection-company-use-tng nil) ;; Don't autocomplete like vim
@@ -55,9 +61,11 @@
   (setq lsp-keymap-prefix "C-c l")
   :hook
   (java-mode . lsp)
+  (c-mode . lsp)
   (lsp-mode . lsp-enable-which-key-integration)
   :config
   (setq lsp-headerline-breadcrumb-enable nil) ;; Remove top header line
+  (setq lsp-signature-auto-activate nil) ;; Stop signature definitions popping up
   :commands
   lsp)
 (use-package lsp-java) ;; Support for the Eclipse.jdt.ls LSP
@@ -178,7 +186,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(custom-safe-themes
-   '("171d1ae90e46978eb9c342be6658d937a83aaa45997b1d7af7657546cae5985b" default))
+   '("6bdcff29f32f85a2d99f48377d6bfa362768e86189656f63adbf715ac5c1340b" "171d1ae90e46978eb9c342be6658d937a83aaa45997b1d7af7657546cae5985b" default))
  '(package-selected-packages
    '(atom-one-dark-theme undo-tree lsp-mode lsp-java eglot projectile dashboard doom-modeline counsel which-key use-package ivy gruvbox-theme flycheck evil-collection company async))
  '(tab-stop-list '(4 8 12)))
