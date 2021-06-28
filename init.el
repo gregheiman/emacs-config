@@ -28,7 +28,9 @@
   (evil-define-key 'normal 'global (kbd "L") 'evil-window-right)
   (evil-define-key 'normal 'global (kbd "K") 'evil-window-up)
   (evil-define-key 'normal 'global (kbd "J") 'evil-window-down)
-  (evil-define-key 'normal 'global (kbd "H") 'evil-window-left))
+  (evil-define-key 'normal 'global (kbd "H") 'evil-window-left)
+  (eval-after-load 'evil-ex
+  '(evil-ex-define-cmd "fin[d]" 'projectile-find-file)))
 (use-package evil-collection ;; Extend default evil mode keybindings to more modes
   :after evil
   :custom (evil-collection-company-use-tng nil) ;; Don't autocomplete like vim
@@ -37,9 +39,9 @@
   (evil-collection-init))
 (use-package undo-tree ;; Undo tree to enable redoing with Evil
   :hook (after-init . global-undo-tree-mode))
-(use-package gruvbox-theme ;; Color theme
+(use-package atom-one-dark-theme ;; Color theme
   :init
-  (load-theme 'gruvbox t))
+  (load-theme 'atom-one-dark t))
 (use-package company ;; Text auto completion framework
   :bind (("TAB" . company-indent-or-complete-common)
          :map company-active-map
@@ -48,34 +50,17 @@
          ("S-TAB" . compnay-select-previous-or-abort)
          ("<backtab>" . company-select-previous-or-abort))
   :hook (after-init . global-company-mode))
-(use-package lsp-mode
+(use-package lsp-mode ;; Enable LSP support in Emacs
   :init
   (setq lsp-keymap-prefix "C-c l")
   :hook
   (java-mode . lsp)
   (lsp-mode . lsp-enable-which-key-integration)
+  :config
+  (setq lsp-headerline-breadcrumb-enable nil) ;; Remove top header line
   :commands
   lsp)
-(use-package lsp-java)
-;;(use-package eglot ;; Language server mode
-;;  :hook (c++-mode . eglot-ensure)
-;;	 (c-mode . eglot-ensure)
-;;	 (java-mode . eglot-ensure)
-;;	 (python-mode . eglot-ensure)
-;;	 (tex-mode . eglot-ensure)
-;;  :config
-;;  (add-to-list 'eglot-server-programs '((c++-mode c-mode) . ("clangd")))
-;;  (add-hook 'eglot--managed-mode-hook (lambda () (flymake-mode -1))) ;; turn off flymake mode
-;;  (defconst my-eglot-eclipse-jdt-home ;; Set up Eglot to work with eclipse.jdt.ls
-;;     "~/.emacs.d/.cache/lsp/eclipse.jdt.ls/plugins/org.eclipse.equinox.launcher_1.6.100.v20201223-0822.jar"
-;;     "Point to eclipse jdt jar.")
-;;   (defun my-eglot-eclipse-jdt-contact (interactive)
-;;     "Contact with the jdt server input INTERACTIVE."
-;;     (let ((cp (getenv "CLASSPATH")))
-;;       (setenv "CLASSPATH" (concat cp ":" my-eglot-eclipse-jdt-home))
-;;       (unwind-protect (eglot--eclipse-jdt-contact nil)
-;;	 (setenv "CLASSPATH" cp))))
-;;   (setcdr (assq 'java-mode eglot-server-programs) #'my-eglot-eclipse-jdt-contact)) 
+(use-package lsp-java) ;; Support for the Eclipse.jdt.ls LSP
 (use-package ivy ;; Auto completion for everything else
   :bind (("C-s" . swiper)
          :map ivy-minibuffer-map
@@ -94,6 +79,7 @@
 (use-package flycheck ;; Improved linting and checking
   :config
   (setq flycheck-display-error-function #'flycheck-display-error-messages) ;; Show error messages in echo area
+  (setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc)) ;; Stop flycheck from treating init.el as package file
   :hook (prog-mode . global-flycheck-mode))
 (use-package doom-modeline ;; Improved modeline
   :init
@@ -104,6 +90,15 @@
   (setq all-the-icons-scale-factor 1.0)
   (set-face-attribute 'mode-line nil :family "Iosevka" :height 100)
   (set-face-attribute 'mode-line-inactive nil :family "Iosevka" :height 100)
+  :config
+ (with-eval-after-load 'evil ;; Define custom evil state icon for modeline
+    (doom-modeline-def-segment evil-state-seg
+      "Display current Evil State."
+      (propertize (format " <%s>" (upcase (substring (symbol-name evil-state) 0 1)))
+                  'face '(:weight bold))))
+  (doom-modeline-def-modeline 'main
+    '(bar evil-state-seg matches buffer-info remote-host buffer-position parrot selection-info)
+    '(misc-info minor-modes checker lsp input-method buffer-encoding major-mode process vcs " "))
   :hook
   (window-setup . doom-modeline-mode))
 (use-package projectile ;; Project management
@@ -116,7 +111,7 @@
   :custom ((projectile-completion-system 'ivy))
   :bind-keymap
   ("C-c p" . projectile-command-map))
-;;(use-package magit) ;; Git managment within Emacs (Very slow on Windows)
+(use-package magit) ;; Git managment within Emacs (Very slow on Windows)
 (use-package dashboard ;; Improved start screen
   :init
   (setq dashboard-items '((recents  . 5)(projects . 5)(bookmarks . 5)))
@@ -151,8 +146,8 @@
     (shell-command
      (format "%s -f TAGS -e -R %s" path-to-ctags (directory-file-name dir-name)))
 )
-(setq show-paren-style 'parenthesis)
-(setq indent-tabs-mode nil) ;; Use spaces for tabs instead of tab characters
+(setq-default show-paren-style 'parenthesis)
+(setq-default indent-tabs-mode nil) ;; Use spaces for tabs instead of tab characters
 (setq tab-width 4) ;; Set the tab width to 4 characters
 (setq electric-indent-inhibit t) ;; Make return key indent to current indent level
 (setq backward-delete-char-untabify-method 'hungry) ;; Have Emacs backspace the entire tab at a time
@@ -182,8 +177,10 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(custom-safe-themes
+   '("171d1ae90e46978eb9c342be6658d937a83aaa45997b1d7af7657546cae5985b" default))
  '(package-selected-packages
-   '(undo-tree lsp-mode lsp-java eglot projectile dashboard doom-modeline counsel which-key use-package ivy gruvbox-theme flycheck evil-collection company async))
+   '(atom-one-dark-theme undo-tree lsp-mode lsp-java eglot projectile dashboard doom-modeline counsel which-key use-package ivy gruvbox-theme flycheck evil-collection company async))
  '(tab-stop-list '(4 8 12)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
