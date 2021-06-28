@@ -1,6 +1,7 @@
 (require 'package) ;; Add MELPA package repo
 (setq package-archives '(("melpa" . "https://melpa.org/packages/")
-             ("elpa" . "https://elpa.gnu.org/packages/")))
+             ("elpa" . "https://elpa.gnu.org/packages/")
+             ("melpa-stable" . "https://stable.melpa.org/packages/")))
 (package-initialize)
 (unless package-archive-contents ;; Auto download package archive repository manifest if not present
   (package-refresh-contents))
@@ -32,7 +33,6 @@
   (evil-define-key 'normal 'global (kbd "K") 'evil-window-up)
   (evil-define-key 'normal 'global (kbd "J") 'evil-window-down)
   (evil-define-key 'normal 'global (kbd "H") 'evil-window-left)
-  (eval-after-load 'projectile
     (eval-after-load 'evil-ex
         '(evil-ex-define-cmd "fin[d]" 'projectile-find-file))
     (eval-after-load 'evil-ex
@@ -59,20 +59,16 @@
 (use-package lsp-mode ;; Enable LSP support in Emacs
   :init
   (setq lsp-keymap-prefix "C-c l")
-  :hook
-  (java-mode . lsp)
-  (c-mode . lsp)
-  (lsp-mode . lsp-enable-which-key-integration)
+  :hook (
+  (java-mode . lsp-deferred)
+  (lsp-mode . lsp-enable-which-key-integration))
   :config
   (setq lsp-headerline-breadcrumb-enable nil) ;; Remove top header line
   (setq lsp-signature-auto-activate nil) ;; Stop signature definitions popping up
+  (setq lsp-enable-snippet nil) ;; Disable snippets (Snippets require YASnippet)
   :commands
-  lsp)
-<<<<<<< HEAD
-(use-package lsp-java)
-=======
+  lsp lsp-deferred)
 (use-package lsp-java) ;; Support for the Eclipse.jdt.ls LSP
->>>>>>> 498024088c4e23ade2bcf824eccae73435584a12
 (use-package ivy ;; Auto completion for everything else
   :bind (("C-s" . swiper)
          :map ivy-minibuffer-map
@@ -93,14 +89,14 @@
   (setq flycheck-display-error-function #'flycheck-display-error-messages) ;; Show error messages in echo area
   (setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc)) ;; Stop flycheck from treating init.el as package file
   :hook (prog-mode . global-flycheck-mode))
-(use-package doom-modeline ;; Improved modeline
-  :init
-  (setq doom-modeline-height 23)
-  (setq doom-modeline-buffer-file-name-style 'file-name)
-  (setq doom-modeline-percent-position nil)
-  (setq doom-modeline-major-mode-icon nil)
-  (setq all-the-icons-scale-factor 1.0)
-  (set-face-attribute 'mode-line nil :family "Iosevka" :height 100)
+ (use-package doom-modeline ;; Improved modeline
+   :init
+   (setq doom-modeline-height 23)
+   (setq doom-modeline-buffer-file-name-style 'file-name)
+   (setq doom-modeline-percent-position nil)
+   (setq doom-modeline-major-mode-icon nil)
+   (setq all-the-icons-scale-factor 1.0)
+   (set-face-attribute 'mode-line nil :family "Iosevka" :height 100)
   (set-face-attribute 'mode-line-inactive nil :family "Iosevka" :height 100)
   :config
  (with-eval-after-load 'evil ;; Define custom evil state icon for modeline
@@ -111,8 +107,8 @@
   (doom-modeline-def-modeline 'main
     '(bar evil-state-seg matches buffer-info remote-host buffer-position parrot selection-info)
     '(misc-info minor-modes checker lsp input-method buffer-encoding major-mode process vcs " "))
-  :hook
-  (window-setup . doom-modeline-mode))
+  :hook (
+  (window-setup . doom-modeline-mode)))
 (use-package projectile ;; Project management
   :init
   (when (file-directory-p "~/Documents/Code") ;; Projectile will search this path for projects
@@ -120,10 +116,11 @@
   (setq projectile-switch-project-action #'projectile-dired) ;; Auto open dired when opening project
   :config
   (projectile-mode)
+  (add-to-list 'projectile-globally-ignored-files "*.class") ;; Ignore class files in projectile
   :custom ((projectile-completion-system 'ivy))
   :bind-keymap
   ("C-c p" . projectile-command-map))
-(use-package magit) ;; Git managment within Emacs (Very slow on Windows)
+;;(use-package magit) ;; Git managment within Emacs (Very slow on Windows)
 (use-package dashboard ;; Improved start screen
   :init
   (setq dashboard-items '((recents  . 5)(projects . 5)(bookmarks . 5)))
@@ -168,25 +165,25 @@
   (setq c-offsets-alist (delq (assoc key c-offsets-alist) c-offsets-alist))
   ;; new value
   (add-to-list 'c-offsets-alist '(key . val)))
-(add-hook 'java-mode-hook (lambda() ;; Setup custom java indent
-			    (setq c-default-style "java")
-			    (fix-c-indent-offset-according-to-syntax-context 'substatement 0)
-			    (fix-c-indent-offset-according-to-syntax-context 'func-decl-cont 0)
-			    (c-offsets-alist . ((inline-open . 0)
-				(topmost-intro-cont    . +)
-				(statement-block-intro . +)
-				(knr-argdecl-intro     . 5)
-				(substatement-open     . +)
-				(substatement-label    . +)
-				(label                 . +)
-				(statement-case-open   . +)
-				(statement-cont        . ++)
-				(arglist-intro  . c-lineup-arglist-intro-after-paren)
-				(arglist-close  . c-lineup-arglist)
-				(access-label   . 0)
-				(inher-cont     . ++)
-				(func-decl-cont . ++)))))
-(add-hook 'c++-mode-hook c-mode-hook (lambda() ;; Setup custom C/C++ indent
+;; (add-hook 'java-mode-hook (lambda() ;; Setup custom java indent
+;; 			    (setq c-default-style "java")
+;; 			    (fix-c-indent-offset-according-to-syntax-context 'substatement 0)
+;; 			    (fix-c-indent-offset-according-to-syntax-context 'func-decl-cont 0)
+;; 			    (c-offsets-alist . ((inline-open . 0)
+;; 				(topmost-intro-cont    . +)
+;; 				(statement-block-intro . +)
+;; 				(knr-argdecl-intro     . 5)
+;; 				(substatement-open     . +)
+;; 				(substatement-label    . +)
+;; 				(label                 . +)
+;; 				(statement-case-open   . +)
+;; 				(statement-cont        . ++)
+;; 				(arglist-intro  . c-lineup-arglist-intro-after-paren)
+;; 				(arglist-close  . c-lineup-arglist)
+;; 				(access-label   . 0)
+;; 				(inher-cont     . ++)
+;; 				(func-decl-cont . ++)))))
+(add-hook 'c++-mode-hook (lambda() ;; Setup custom C/C++ indent
 				       (setq c-default-style "k&r")
 				       (setq c-basic-offset 4)))
 (setq backup-directory-alist '(("." . "~/.emacs.d/backup")) ;; Write backups to ~/.emacs.d/backup/
@@ -202,19 +199,3 @@
 ;; Emacs Keybindings
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit) ;; Make ESC quit prompts
 
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(custom-safe-themes
-   '("6bdcff29f32f85a2d99f48377d6bfa362768e86189656f63adbf715ac5c1340b" "171d1ae90e46978eb9c342be6658d937a83aaa45997b1d7af7657546cae5985b" default))
- '(package-selected-packages
-   '(atom-one-dark-theme undo-tree lsp-mode lsp-java eglot projectile dashboard doom-modeline counsel which-key use-package ivy gruvbox-theme flycheck evil-collection company async))
- '(tab-stop-list '(4 8 12)))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
