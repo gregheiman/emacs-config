@@ -28,7 +28,6 @@
   (evil-define-key 'normal 'global (kbd "[q") 'flycheck-previous-error)
   (evil-define-key 'normal 'global (kbd "]Q") 'flycheck-last-error)
   (evil-define-key 'normal 'global (kbd "[Q") 'flycheck-first-error)
-  (evil-define-key 'normal 'global (kbd "gc") 'comment-dwim)
   (evil-define-key 'normal 'global (kbd "L") 'evil-window-right)
   (evil-define-key 'normal 'global (kbd "K") 'evil-window-up)
   (evil-define-key 'normal 'global (kbd "J") 'evil-window-down)
@@ -36,13 +35,20 @@
     (eval-after-load 'evil-ex
         '(evil-ex-define-cmd "fin[d]" 'projectile-find-file))
     (eval-after-load 'evil-ex
-        '(evil-ex-define-cmd "gre[p]" 'projectile-grep)))
+      '(evil-ex-define-cmd "gre[p]" 'projectile-grep))
+    (eval-after-load 'swiper ;; Use swiper for / search if loaded
+      (evil-define-key 'normal 'global (kbd "/") 'swiper)))
 (use-package evil-collection ;; Extend default evil mode keybindings to more modes
   :after evil
-  :custom (evil-collection-company-use-tng nil) ;; Don't autocomplete like vim
-  :custom (evil-collection-setup-minibuffer t)
   :config
-  (evil-collection-init))
+  (evil-collection-init)
+  :custom ((evil-collection-company-use-tng nil)) ;; Don't autocomplete like vim
+  :custom ((evil-collection-setup-minibuffer t)))
+(use-package evil-surround ;; Port of vim-surround to emacs
+  :config
+  (global-evil-surround-mode 1))
+(use-package evil-commentary ;; Port of vim-commentary to emacs 
+  :hook (after-evil evil-commentary-mode))
 (use-package undo-tree ;; Undo tree to enable redoing with Evil
   :hook (after-init . global-undo-tree-mode))
 (use-package atom-one-dark-theme ;; Color theme
@@ -60,14 +66,14 @@
   :init
   (setq lsp-keymap-prefix "C-c l")
   :hook (
-  (java-mode . lsp-deferred)
+  (java-mode . lsp)
   (lsp-mode . lsp-enable-which-key-integration))
   :config
   (setq lsp-headerline-breadcrumb-enable nil) ;; Remove top header line
   (setq lsp-signature-auto-activate nil) ;; Stop signature definitions popping up
   (setq lsp-enable-snippet nil) ;; Disable snippets (Snippets require YASnippet)
   :commands
-  lsp lsp-deferred)
+  lsp)
 (use-package lsp-java) ;; Support for the Eclipse.jdt.ls LSP
 (use-package ivy ;; Auto completion for everything else
   :bind (("C-s" . swiper)
@@ -79,6 +85,9 @@
          ("C-d" . ivy-switch-buffer-kill)
          :map ivy-reverse-i-search-map
          ("C-d" . ivy-reverse-i-search-kill))
+  :config
+  (setq ivy-use-virtual-buffers t)
+  (setq enable-recursive-minibuffers t)
   :hook (after-init . ivy-mode))
 (use-package counsel ;; Extend ivy completion to more Emacs functions
   :hook (after-init . counsel-mode))
@@ -97,7 +106,7 @@
    (setq doom-modeline-major-mode-icon nil)
    (setq all-the-icons-scale-factor 1.0)
    (set-face-attribute 'mode-line nil :family "Iosevka" :height 100)
-  (set-face-attribute 'mode-line-inactive nil :family "Iosevka" :height 100)
+   (set-face-attribute 'mode-line-inactive nil :family "Iosevka" :height 100)
   :config
  (with-eval-after-load 'evil ;; Define custom evil state icon for modeline
     (doom-modeline-def-segment evil-state-seg
@@ -116,11 +125,10 @@
   (setq projectile-switch-project-action #'projectile-dired) ;; Auto open dired when opening project
   :config
   (projectile-mode)
-  (add-to-list 'projectile-globally-ignored-files "*.class") ;; Ignore class files in projectile
   :custom ((projectile-completion-system 'ivy))
   :bind-keymap
   ("C-c p" . projectile-command-map))
-;;(use-package magit) ;; Git managment within Emacs (Very slow on Windows)
+(use-package magit) ;; Git managment within Emacs (Very slow on Windows)
 (use-package dashboard ;; Improved start screen
   :init
   (setq dashboard-items '((recents  . 5)(projects . 5)(bookmarks . 5)))
@@ -140,6 +148,8 @@
 (electric-pair-mode 1) ;; Auto pair delimeters
 (show-paren-mode t) ;; Highlight matching delimeter pair
 (auto-save-visited-mode) ;; Auto save files without the #filename#
+(set-default 'truncate-lines t) ;; Disable wrapping of lines
+(setq-default buffer-file-coding-system 'utf-8-unix) ;; Automatically use unix line endings and utf-8
 (defun full-auto-save () ;; Auto save all buffers when autosave fires
   (interactive)
   (save-excursion
@@ -199,3 +209,27 @@
 ;; Emacs Keybindings
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit) ;; Make ESC quit prompts
 
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(custom-safe-themes
+   '("171d1ae90e46978eb9c342be6658d937a83aaa45997b1d7af7657546cae5985b" "7661b762556018a44a29477b84757994d8386d6edee909409fabe0631952dad9" default))
+ '(fci-rule-color "#3E4451")
+ '(package-selected-packages
+   '(evil-commentary evil-surround magit with-editor which-key use-package undo-tree transient projectile lsp-java gruvbox-theme flycheck evil-collection eglot doom-modeline dashboard counsel company atom-one-dark-theme atom-dark-theme))
+ '(tetris-x-colors
+   [[229 192 123]
+    [97 175 239]
+    [209 154 102]
+    [224 108 117]
+    [152 195 121]
+    [198 120 221]
+    [86 182 194]]))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
