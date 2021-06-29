@@ -140,6 +140,7 @@
 (set-frame-font "Iosevka-12" nil t)
 (tool-bar-mode 0) ;; Hide the tool bar
 (scroll-bar-mode 0) ;; Hide the scroll bar
+(menu-bar-mode 0) ;; Hide the menu bar
 (add-hook 'emacs-startup-hook 'toggle-frame-maximized) ;; Start Emacs maximized
 (recentf-mode 1) ;; Keep a list of recently opened files
 (global-hl-line-mode) ;; Highlight the current line
@@ -158,41 +159,15 @@
       (if (and (buffer-file-name) (buffer-modified-p))
           (basic-save-buffer)))))
 (add-hook 'auto-save-hook 'full-auto-save)
-(setq path-to-ctags "c:/Users/heimangreg/Universal-Ctags/ctags.exe")
-(defun create-tags (dir-name) ;; Run m-x create-tags to create tags
-    "Create tags file."
-    (interactive "DDirectory: ")
-    (shell-command
-     (format "%s -f TAGS -e -R %s" path-to-ctags (directory-file-name dir-name)))
-)
 (setq-default show-paren-style 'parenthesis)
 (setq-default indent-tabs-mode nil) ;; Use spaces for tabs instead of tab characters
 (setq tab-width 4) ;; Set the tab width to 4 characters
 (setq electric-indent-inhibit t) ;; Make return key indent to current indent level
 (setq backward-delete-char-untabify-method 'hungry) ;; Have Emacs backspace the entire tab at a time
-(defun fix-c-indent-offset-according-to-syntax-context (key val)
-  ;; remove the old element
-  (setq c-offsets-alist (delq (assoc key c-offsets-alist) c-offsets-alist))
-  ;; new value
-  (add-to-list 'c-offsets-alist '(key . val)))
-;; (add-hook 'java-mode-hook (lambda() ;; Setup custom java indent
-;; 			    (setq c-default-style "java")
-;; 			    (fix-c-indent-offset-according-to-syntax-context 'substatement 0)
-;; 			    (fix-c-indent-offset-according-to-syntax-context 'func-decl-cont 0)
-;; 			    (c-offsets-alist . ((inline-open . 0)
-;; 				(topmost-intro-cont    . +)
-;; 				(statement-block-intro . +)
-;; 				(knr-argdecl-intro     . 5)
-;; 				(substatement-open     . +)
-;; 				(substatement-label    . +)
-;; 				(label                 . +)
-;; 				(statement-case-open   . +)
-;; 				(statement-cont        . ++)
-;; 				(arglist-intro  . c-lineup-arglist-intro-after-paren)
-;; 				(arglist-close  . c-lineup-arglist)
-;; 				(access-label   . 0)
-;; 				(inher-cont     . ++)
-;; 				(func-decl-cont . ++)))))
+(add-hook 'java-mode-hook (lambda() ;; Setup custom java indent
+ 			    (setq c-default-style "java")
+ 			    (fix-c-indent-offset-according-to-syntax-context 'substatement 0)
+ 			    (fix-c-indent-offset-according-to-syntax-context 'func-decl-cont 0)))
 (add-hook 'c++-mode-hook (lambda() ;; Setup custom C/C++ indent
 				       (setq c-default-style "k&r")
 				       (setq c-basic-offset 4)))
