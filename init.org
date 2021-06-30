@@ -1,0 +1,78 @@
+#+TITLE: Emacs Configuration
+#+DESCRIPTION: An org-babel based Emacs configuration
+#+LANGUAGE: en
+#+PROPERTY: results silent
+
+* Package Setup
+  Sets up package.el.
+  
+  #+BEGIN_SRC emacs-lisp
+    (require 'package) ;; Add MELPA package repo
+    (setq package-archives
+      '(("melpa" . "https://melpa.org/packages/")
+        ("elpa" . "https://elpa.gnu.org/packages/")
+        ("melpa-stable" . "https://stable.melpa.org/packages/")))
+    (package-initialize) ;; Initialize package.el
+    (unless package-archive-contents ;; Auto download package archive repository manifest if not present
+      (package-refresh-contents))
+  #+END_SRC
+
+* Use-Package Setup
+  Sets up Use-Package which allows for easier configuration of packages.
+
+  #+BEGIN_SRC emacs-lisp
+    (unless (package-installed-p 'use-package) ;; Download use-package if not present
+        (package-install 'use-package))
+
+    (eval-when-compile ;; Use use-package to manage packages
+        (require 'use-package))
+
+    (require 'use-package)
+        (setq use-package-always-ensure t) ;; Always download packages that are marked under use-package if they aren't installed
+  #+END_SRC
+
+* Evil Mode
+  Evil mode is an extensible Vi emulation layer.
+
+  #+BEGIN_SRC emacs-lisp
+    (use-package evil ;; Vim keybindings
+    :init
+    (setq evil-want-keybinding nil)
+    :config
+    (evil-mode 1)
+    (evil-set-undo-system 'undo-tree)
+    (evil-set-leader 'normal (kbd "SPC"))
+    (evil-define-key 'normal 'global (kbd "<leader>bl") 'list-buffers)
+    (evil-define-key 'normal 'global (kbd "<leader>bg") 'switch-to-buffer)
+    (evil-define-key 'normal 'global (kbd "]q") 'flycheck-next-error)
+    (evil-define-key 'normal 'global (kbd "[q") 'flycheck-previous-error)
+    (evil-define-key 'normal 'global (kbd "]Q") 'flycheck-last-error)
+    (evil-define-key 'normal 'global (kbd "[Q") 'flycheck-first-error)
+    (evil-define-key 'normal 'global (kbd "L") 'evil-window-right)
+    (evil-define-key 'normal 'global (kbd "K") 'evil-window-up)
+    (evil-define-key 'normal 'global (kbd "J") 'evil-window-down)
+    (evil-define-key 'normal 'global (kbd "H") 'evil-window-left)
+    (eval-after-load 'evil-ex
+        '(evil-ex-define-cmd "fin[d]" 'projectile-find-file))
+    (eval-after-load 'evil-ex
+        '(evil-ex-define-cmd "bro[wse] ol[d]" 'recentf))
+    (eval-after-load 'swiper ;; Use swiper for / search if loaded
+      (evil-define-key 'normal 'global (kbd "/") 'swiper)))
+
+    (use-package evil-collection ;; Extend default evil mode keybindings to more modes
+    :after evil
+    :config
+    (evil-collection-init)
+    :custom ((evil-collection-company-use-tng nil)) ;; Don't autocomplete like vim
+    :custom ((evil-collection-setup-minibuffer t)))
+
+    (use-package evil-surround ;; Port of vim-surround to emacs
+    :config
+    (global-evil-surround-mode 1))
+
+    (use-package evil-commentary ;; Port of vim-commentary to emacs 
+      :hook (after-evil evil-commentary-mode))
+
+    (use-package undo-tree ;; Undo tree to enable redoing with Evil
+    :hook (after-init . global-undo-tree-mode))
+  #+END_SRC
