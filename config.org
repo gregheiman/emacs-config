@@ -107,19 +107,21 @@
    The easiest and best language server client available to Emacs. I do not use lsp-ui seeing as I
    find many of the additions unnessacary and distracting.
    #+BEGIN_SRC emacs-lisp :tangle yes
-     (use-package lsp-mode ;; Enable LSP support in Emacs
-         :hook (
-        (java-mode . lsp-deferred)
+    (use-package lsp-mode ;; Enable LSP support in Emacs
+        :hook (
         (lsp-mode . lsp-enable-which-key-integration))
-         :config
-         (setq lsp-keymap-prefix "C-c l")
-         (setq lsp-headerline-breadcrumb-enable nil) ;; Remove top header line
-         (setq lsp-signature-auto-activate nil) ;; Stop signature definitions popping up
-         (setq lsp-enable-snippet nil) ;; Disable snippets (Snippets require YASnippet)
-         (setq lsp-enable-symbol-highlighting nil) ;; Disable highlighting of symbols
-         :commands (lsp lsp-deffered))
+        :config
+        (setq lsp-keymap-prefix "C-c l")
+        (setq lsp-headerline-breadcrumb-enable nil) ;; Remove top header line
+        (setq lsp-signature-auto-activate nil) ;; Stop signature definitions popping up
+        (setq lsp-enable-snippet nil) ;; Disable snippets (Snippets require YASnippet)
+        (setq lsp-enable-symbol-highlighting nil) ;; Disable highlighting of symbols
+        :commands (lsp lsp-deffered))
 
-     (use-package lsp-java) ;; Support for the Eclipse.jdt.ls LSP
+    (use-package lsp-java ;; Support for the Eclipse.jdt.ls language server
+        :hook ((java-mode . lsp))
+        :config
+        (setq lsp-enable-dap-auto-configure nil))
    #+END_SRC
 
 ** Ivy Mode
