@@ -1,6 +1,7 @@
 #+TITLE: Emacs Configuration
 #+DESCRIPTION: An org-babel based Emacs configuration
 #+LANGUAGE: en
+#+STARTUP: overview
 #+PROPERTY: results silent
 
 * Package Setup
@@ -16,7 +17,7 @@
     (unless package-archive-contents ;; Auto download package archive repository manifest if not present
       (package-refresh-contents))
   #+END_SRC
-
+  
 ** Use-Package Setup
   Sets up Use-Package which allows for easier configuration of packages.
   #+BEGIN_SRC emacs-lisp :tangle yes
@@ -30,7 +31,7 @@
         (setq use-package-always-ensure t) ;; Always download packages that are marked under use-package if they aren't installed
         (setq use-package-always-defer t) ;; Always defer package loading. If absolutely nessacary use :demand to override
   #+END_SRC
-
+  
   
 * Packages
 ** Evil Mode
@@ -107,23 +108,27 @@
    The easiest and best language server client available to Emacs. I do not use lsp-ui seeing as I
    find many of the additions unnessacary and distracting.
    #+BEGIN_SRC emacs-lisp :tangle yes
-    (use-package lsp-mode ;; Enable LSP support in Emacs
-        :hook (
-        (lsp-mode . lsp-enable-which-key-integration))
-        :config
-        (setq lsp-keymap-prefix "C-c l")
-        (setq lsp-headerline-breadcrumb-enable nil) ;; Remove top header line
-        (setq lsp-signature-auto-activate nil) ;; Stop signature definitions popping up
-        (setq lsp-enable-snippet nil) ;; Disable snippets (Snippets require YASnippet)
-        (setq lsp-enable-symbol-highlighting nil) ;; Disable highlighting of symbols
-        :commands (lsp lsp-deffered))
+     (use-package lsp-mode ;; Enable LSP support in Emacs
+       :interpreter "c"
+       :hook ((lsp-mode . lsp-enable-which-key-integration)
+              (c-mode . lsp-deferred))
+       :config
+       (setq-default lsp-keymap-prefix "C-c l")
+       (setq-default lsp-headerline-breadcrumb-enable nil) ;; Remove top header line
+       (setq-default lsp-signature-auto-activate nil) ;; Stop signature definitions popping up
+       (setq-default lsp-enable-snippet nil) ;; Disable snippets (Snippets require YASnippet)
+       (setq-default lsp-enable-symbol-highlighting nil) ;; Disable highlighting of symbols
+       :bind-keymap
+       ("C-c l" . lsp-command-map)
+       :commands (lsp lsp-deferred))
 
-    (use-package lsp-java ;; Support for the Eclipse.jdt.ls language server
-        :hook ((java-mode . lsp))
-        :config
-        (setq lsp-enable-dap-auto-configure nil))
+     (use-package lsp-java ;; Support for the Eclipse.jdt.ls language server
+       :interpreter "java"
+       :hook ((java-mode . lsp-deferred))
+       :config
+       (setq-default lsp-enable-dap-auto-configure nil))
    #+END_SRC
-
+   
 ** Ivy Mode
    Ivy mode provides an easy to use completion interface for pretty much everything in Emacs.
    This is greatly expanded upon through the use of Counsel Mode.
@@ -228,10 +233,9 @@
    Org mode is a versatile and powerful mode for all sorts of use cases.
    #+BEGIN_SRC emacs-lisp :tangle yes
      (use-package org
-         :hook ((org-mode . org-indent-mode)) ;; Start org-mode-indent upon starting org-mode
-         :config
-         (add-hook 'after-save-hook (lambda ()(if (y-or-n-p "Reload?")(load-file user-init-file))) nil t) ;; Offer to reload org-mode file after save
-         (add-hook 'after-save-hook (lambda ()(if (y-or-n-p "Tangle?")(org-babel-tangle))) nil t)) ;; Offer to tangle org-mode file after save
+       :interpreter "org"
+       :hook ((org-mode . org-indent-mode)
+              (org-mode . turn-on-flyspell)))
   #+END_SRC
 
   
@@ -271,7 +275,6 @@
      (setq electric-indent-inhibit t) ;; Make return key indent to current indent level
      (setq backward-delete-char-untabify-method 'hungry) ;; Have Emacs backspace the entire tab at a time
      (setq-default buffer-file-coding-system 'utf-8-unix) ;; Automatically use unix line endings and utf-8
-     (setq vc-follow-symlinks t) ;; Don't prompt to follow symlinks
      (setq gc-cons-threshold 10000000) ;; Set GC threshold to 10 MB
      (setq read-process-output-max (* 1024 1024)) ;; 1MB
    #+END_SRC
@@ -309,6 +312,11 @@
     (add-hook 'dired-mode-hook (lambda()
                                 (auto-revert-mode 1) ;; Automatically update Dired
                                 (setq auto-revert-verbose nil))) ;; Be quiet about updating Dired
+   #+END_SRC
+
+** Grep Configuration
+   #+BEGIN_SRC emacs-lisp :tangle yes
+     (setq-default grep-template "rg --no-heading -H -uu -g <F> <R> <D>")
    #+END_SRC
 
    

@@ -77,19 +77,24 @@
     :hook (after-init . global-company-mode))
 
 (use-package lsp-mode ;; Enable LSP support in Emacs
-    :hook ((lsp-mode . lsp-enable-which-key-integration))
-    :config
-    (setq-default lsp-keymap-prefix "C-c l")
-    (setq-default lsp-headerline-breadcrumb-enable nil) ;; Remove top header line
-    (setq-default lsp-signature-auto-activate nil) ;; Stop signature definitions popping up
-    (setq-default lsp-enable-snippet nil) ;; Disable snippets (Snippets require YASnippet)
-    (setq-default lsp-enable-symbol-highlighting nil) ;; Disable highlighting of symbols
-    :commands (lsp lsp-deferred))
+  :interpreter "c"
+  :hook ((lsp-mode . lsp-enable-which-key-integration)
+         (c-mode . lsp-deferred))
+  :config
+  (setq-default lsp-keymap-prefix "C-c l")
+  (setq-default lsp-headerline-breadcrumb-enable nil) ;; Remove top header line
+  (setq-default lsp-signature-auto-activate nil) ;; Stop signature definitions popping up
+  (setq-default lsp-enable-snippet nil) ;; Disable snippets (Snippets require YASnippet)
+  (setq-default lsp-enable-symbol-highlighting nil) ;; Disable highlighting of symbols
+  :bind-keymap
+  ("C-c l" . lsp-command-map)
+  :commands (lsp lsp-deferred))
 
 (use-package lsp-java ;; Support for the Eclipse.jdt.ls language server
-    :hook ((java-mode . lsp-deferred))
-    :config
-    (setq-default lsp-enable-dap-auto-configure nil))
+  :interpreter "java"
+  :hook ((java-mode . lsp-deferred))
+  :config
+  (setq-default lsp-enable-dap-auto-configure nil))
 
 (use-package ivy ;; Auto completion for everything else
     :bind (("C-s" . swiper)
@@ -159,9 +164,9 @@
     (dashboard-setup-startup-hook))
 
 (use-package org
-    :config
-    (add-hook 'after-save-hook (lambda ()(if (y-or-n-p "Reload?")(load-file user-init-file))) nil t) ;; Offer to reload org-mode file after save
-    (add-hook 'after-save-hook (lambda ()(if (y-or-n-p "Tangle?")(org-babel-tangle))) nil t)) ;; Offer to tangle org-mode file after save
+  :interpreter "org"
+  :hook ((org-mode . org-indent-mode)
+         (org-mode . turn-on-flyspell)))
 
 (set-face-attribute 'default nil :font "Iosevka-12" ) ;; Set font options
 (set-frame-font "Iosevka-12" nil t)
@@ -184,7 +189,6 @@
 (setq electric-indent-inhibit t) ;; Make return key indent to current indent level
 (setq backward-delete-char-untabify-method 'hungry) ;; Have Emacs backspace the entire tab at a time
 (setq-default buffer-file-coding-system 'utf-8-unix) ;; Automatically use unix line endings and utf-8
-(setq vc-follow-symlinks t) ;; Don't prompt to follow symlinks
 (setq gc-cons-threshold 10000000) ;; Set GC threshold to 10 MB
 (setq read-process-output-max (* 1024 1024)) ;; 1MB
 
@@ -210,6 +214,6 @@
                             (auto-revert-mode 1) ;; Automatically update Dired
                             (setq auto-revert-verbose nil))) ;; Be quiet about updating Dired
 
-(grep-apply-setting 'grep-template "rg --no-heading -H -uu -g <F> <R> <D>")
+(setq-default grep-template "rg --no-heading -H -uu -g <F> <R> <D>")
 
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit) ;; Make ESC quit prompts
