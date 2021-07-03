@@ -112,7 +112,20 @@
     :hook (after-init . ivy-mode))
 
 (use-package counsel ;; Extend ivy completion to more Emacs functions
-    :hook (after-init . counsel-mode))
+  :hook (after-init . counsel-mode))
+
+(use-package counsel-etags ;; Easy tags support (ONLY supports ctags despite name. No more etags support)
+  :after counsel
+  :bind (("C-]" . counsel-etags-find-tag-at-point))
+  :init
+  (add-hook 'prog-mode-hook
+        (lambda ()
+          (add-hook 'after-save-hook
+            'counsel-etags-virtual-update-tags 'append 'local)))
+  :config
+  (setq counsel-etags-update-interval 60)
+  (setq counsel-etags-ctags-options-file "~/.ctags.d/default.ctags")
+  (push "build" counsel-etags-ignore-directories))
 
 (use-package which-key ;; Show possible keybindings when you pause a keycord
     :hook (after-init . which-key-mode))
@@ -215,5 +228,46 @@
                             (setq auto-revert-verbose nil))) ;; Be quiet about updating Dired
 
 (setq-default grep-template "rg --no-heading -H -uu -g <F> <R> <D>")
+
+;; Function to build ctags tags file
+(defun create-tags-ctags (dir-name)
+    "Create tags file."
+    (interactive "DDirectory: ")
+    (shell-command
+     (format "ctags -f TAGS -e -R %s" (directory-file-name dir-name)))
+    )
+
+;; Function to built etags tags file
+(defun create-tags-etags (dir-name)
+    "Create tags file."
+    (interactive "DDirectory: ")
+    (eshell-command 
+     (format "find %s -type f -name \"*.[ch]\" | etags -" dir-name)))
+
+;;;  Jonas.Jarnestrom<at>ki.ericsson.se A smarter               
+;;;  find-tag that automagically reruns etags when it cant find a               
+;;;  requested item and then makes a new try to locate it.                      
+;;;  Fri Mar 15 09:52:14 2002    
+(defadvice find-tag (around refresh-etags activate)
+"Rerun etags and reload tags if tag not found and redo find-tag.              
+If buffer is modified, ask about save before running etags."
+(let ((extension (file-name-extension (buffer-file-name))))
+(condition-case err
+ad-do-it
+    (error (and (buffer-modified-p)
+        (not (ding))
+        (y-or-n-p "Buffer is modified, save it? ")
+        (save-buffer))
+        (er-refresh-etags extension)
+        ad-do-it))))
+(defun er-refresh-etags (&optional extension)
+"Run etags on all peer files in current dir and reload them silently."
+(interactive)
+(shell-command (format "etags *.%s" (or extension "el")))
+(let ((tags-revert-without-query t))  ; don't query, revert silently          
+(visit-tags-table default-directory nil)))
+
+;; Don't ask before rereading the TAGS files if they have changed
+(setq tags-revert-without-query t)
 
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit) ;; Make ESC quit prompts
