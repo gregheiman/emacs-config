@@ -227,7 +227,10 @@
                             (auto-revert-mode 1) ;; Automatically update Dired
                             (setq auto-revert-verbose nil))) ;; Be quiet about updating Dired
 
-(setq-default grep-template "rg --no-heading -H -uu -g <F> <R> <D>")
+(when (executable-find "rg")
+    (setq-default grep-template "rg -n -H --no-heading <R> <F>")
+)
+;; Set default format for :lgrep and :rgrep
 
 ;; Function to build ctags tags file
 (defun create-tags-ctags (dir-name)
@@ -269,5 +272,12 @@ ad-do-it
 
 ;; Don't ask before rereading the TAGS files if they have changed
 (setq tags-revert-without-query t)
+
+(when (executable-find "pandoc")
+    ;; Set pandoc as the program that gets called when
+    ;; you issue a markdown command
+    (custom-set-variables
+    '(markdown-command "pandoc"))
+)
 
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit) ;; Make ESC quit prompts

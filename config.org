@@ -253,7 +253,7 @@
 
   
 * Emacs Options
-  Options that are configured that have nothing to do with packages.
+  Options that are configured using built in Emacs options.
   
 ** Font
    Currently I am using Iosevka for most if not all development focused programs.
@@ -329,7 +329,10 @@
 
 ** Grep Configuration
    #+BEGIN_SRC emacs-lisp :tangle yes
-     (setq-default grep-template "rg --no-heading -H -uu -g <F> <R> <D>")
+     (when (executable-find "rg")
+         (setq-default grep-template "rg -n -H --no-heading <R> <F>")
+     )
+     ;; Set default format for :lgrep and :rgrep
    #+END_SRC
 
 ** Tags Configuration
@@ -375,6 +378,16 @@ Ctags are a useful and easy way to have basic completion and go-to file features
  
   ;; Don't ask before rereading the TAGS files if they have changed
   (setq tags-revert-without-query t)
+#+END_SRC
+
+** Markdown Configuration
+#+BEGIN_SRC emacs-lisp :tangle yes
+  (when (executable-find "pandoc")
+      ;; Set pandoc as the program that gets called when
+      ;; you issue a markdown command
+      (custom-set-variables
+      '(markdown-command "pandoc"))
+  )
 #+END_SRC
 
 
