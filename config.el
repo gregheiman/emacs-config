@@ -20,21 +20,17 @@
 (use-package evil ;; Vim keybindings
    :demand
    :init
-   (setq evil-want-keybinding nil)
+   (setq evil-want-keybinding nil) ;; Needed to use evil-collection
    :config
    (evil-mode 1)
    (evil-set-undo-system 'undo-tree)
-   (evil-set-leader 'normal (kbd "SPC"))
+   (evil-set-leader 'normal (kbd "\\"))
    (evil-define-key 'normal 'global (kbd "<leader>bl") 'list-buffers)
    (evil-define-key 'normal 'global (kbd "<leader>bg") 'switch-to-buffer)
    (evil-define-key 'normal 'global (kbd "]q") 'flycheck-next-error)
    (evil-define-key 'normal 'global (kbd "[q") 'flycheck-previous-error)
    (evil-define-key 'normal 'global (kbd "]Q") 'flycheck-last-error)
    (evil-define-key 'normal 'global (kbd "[Q") 'flycheck-first-error)
-   (evil-define-key 'normal 'global (kbd "L") 'evil-window-right)
-   (evil-define-key 'normal 'global (kbd "K") 'evil-window-up)
-   (evil-define-key 'normal 'global (kbd "J") 'evil-window-down)
-   (evil-define-key 'normal 'global (kbd "H") 'evil-window-left)
    (evil-define-key 'normal 'global (kbd "gc") 'comment-dwim)
    (eval-after-load 'evil-ex
        '(evil-ex-define-cmd "find" 'projectile-find-file))
@@ -74,12 +70,10 @@
             ("TAB" . company-select-next-or-abort)
             ("S-TAB" . compnay-select-previous-or-abort)
             ("<backtab>" . company-select-previous-or-abort))
-    :hook (after-init . global-company-mode))
+    :hook (prog-mode . global-company-mode))
 
 (use-package lsp-mode ;; Enable LSP support in Emacs
-  :interpreter "c"
-  :hook ((lsp-mode . lsp-enable-which-key-integration)
-         (c-mode . lsp-deferred))
+  :hook ((lsp-mode . lsp-enable-which-key-integration))
   :config
   (setq-default lsp-keymap-prefix "C-c l")
   (setq-default lsp-headerline-breadcrumb-enable nil) ;; Remove top header line
@@ -88,13 +82,15 @@
   (setq-default lsp-enable-symbol-highlighting nil) ;; Disable highlighting of symbols
   :bind-keymap
   ("C-c l" . lsp-command-map)
-  :commands (lsp lsp-deferred))
+  :commands (lsp))
 
 (use-package lsp-java ;; Support for the Eclipse.jdt.ls language server
-  :interpreter "java"
-  :hook ((java-mode . lsp-deferred))
+  :hook ((java-mode . lsp))
   :config
   (setq-default lsp-enable-dap-auto-configure nil))
+
+(use-package lsp-ivy
+  :after lsp)
 
 (use-package ivy ;; Auto completion for everything else
     :bind (("C-s" . swiper)
@@ -112,10 +108,11 @@
     :hook (after-init . ivy-mode))
 
 (use-package counsel ;; Extend ivy completion to more Emacs functions
-  :hook (after-init . counsel-mode))
+  :after ivy)
 
 (use-package counsel-etags ;; Easy tags support (ONLY supports ctags despite name. No more etags support)
   :after counsel
+  :defer 5
   :bind (("C-]" . counsel-etags-find-tag-at-point))
   :init
   (add-hook 'prog-mode-hook
@@ -125,10 +122,13 @@
   :config
   (setq counsel-etags-update-interval 60)
   (setq counsel-etags-ctags-options-file "~/.ctags.d/default.ctags")
-  (push "build" counsel-etags-ignore-directories))
+  (push "build" counsel-etags-ignore-directories)
+  (push "target" counsel-etags-ignore-directories))
 
 (use-package which-key ;; Show possible keybindings when you pause a keycord
-    :hook (after-init . which-key-mode))
+  :defer 5
+  :hook ((after-init . which-key-mode))
+  :commands (which-key))
 
 (use-package flycheck ;; Improved linting and checking
     :config
@@ -156,18 +156,17 @@
     :hook ((window-setup . doom-modeline-mode)))
 
 (use-package projectile ;; Project management
+    :hook ((prog-mode . projectile-mode))
     :init
     (when (file-directory-p "~/Documents/Code") ;; Projectile will search this path for projects
         (setq projectile-project-search-path '("~/Documents/Code")))
     (setq projectile-switch-project-action #'projectile-dired) ;; Auto open dired when opening project
-    :config
-    (projectile-mode)
     :custom ((projectile-completion-system 'ivy))
     :bind-keymap
     ("C-c p" . projectile-command-map))
 
 (use-package magit ;; Git managment within Emacs (Very slow on Windows)
-    :commands (magit))
+  :commands (magit))
 
 (use-package dashboard ;; Improved start screen
     :demand
@@ -178,8 +177,12 @@
 
 (use-package org
   :interpreter "org"
-  :hook ((org-mode . org-indent-mode)
-         (org-mode . turn-on-flyspell)))
+  :hook ((org-mode . org-indent-mode)))
+
+(use-package flyspell
+  :config
+  (when (executable-find "ispell")
+    (add-hook 'org-mode-hook 'turn-on-flyspell)))
 
 (set-face-attribute 'default nil :font "Iosevka-12" ) ;; Set font options
 (set-frame-font "Iosevka-12" nil t)
@@ -233,45 +236,47 @@
 ;; Set default format for :lgrep and :rgrep
 
 ;; Function to build ctags tags file
-(defun create-tags-ctags (dir-name)
-    "Create tags file."
-    (interactive "DDirectory: ")
-    (shell-command
-     (format "ctags -f TAGS -e -R %s" (directory-file-name dir-name)))
-    )
+(when (executable-find "ctags")
+  (defun create-tags-ctags (dir-name)
+      "Create tags file."
+      (interactive "DDirectory: ")
+      (shell-command
+       (format "ctags -f TAGS -e -R %s" (directory-file-name dir-name)))
+      )
+)
 
-;; Function to built etags tags file
-(defun create-tags-etags (dir-name)
-    "Create tags file."
-    (interactive "DDirectory: ")
-    (eshell-command 
-     (format "find %s -type f -name \"*.[ch]\" | etags -" dir-name)))
+  ;; Function to built etags tags file
+  (defun create-tags-etags (dir-name)
+      "Create tags file."
+      (interactive "DDirectory: ")
+      (eshell-command 
+       (format "find %s -type f -name \"*.[ch]\" | etags -" dir-name)))
 
-;;;  Jonas.Jarnestrom<at>ki.ericsson.se A smarter               
-;;;  find-tag that automagically reruns etags when it cant find a               
-;;;  requested item and then makes a new try to locate it.                      
-;;;  Fri Mar 15 09:52:14 2002    
-(defadvice find-tag (around refresh-etags activate)
-"Rerun etags and reload tags if tag not found and redo find-tag.              
-If buffer is modified, ask about save before running etags."
-(let ((extension (file-name-extension (buffer-file-name))))
-(condition-case err
-ad-do-it
-    (error (and (buffer-modified-p)
-        (not (ding))
-        (y-or-n-p "Buffer is modified, save it? ")
-        (save-buffer))
-        (er-refresh-etags extension)
-        ad-do-it))))
-(defun er-refresh-etags (&optional extension)
-"Run etags on all peer files in current dir and reload them silently."
-(interactive)
-(shell-command (format "etags *.%s" (or extension "el")))
-(let ((tags-revert-without-query t))  ; don't query, revert silently          
-(visit-tags-table default-directory nil)))
+  ;;;  Jonas.Jarnestrom<at>ki.ericsson.se A smarter               
+  ;;;  find-tag that automagically reruns etags when it cant find a               
+  ;;;  requested item and then makes a new try to locate it.                      
+  ;;;  Fri Mar 15 09:52:14 2002    
+  (defadvice find-tag (around refresh-etags activate)
+  "Rerun etags and reload tags if tag not found and redo find-tag.              
+  If buffer is modified, ask about save before running etags."
+  (let ((extension (file-name-extension (buffer-file-name))))
+  (condition-case err
+  ad-do-it
+      (error (and (buffer-modified-p)
+          (not (ding))
+          (y-or-n-p "Buffer is modified, save it? ")
+          (save-buffer))
+          (er-refresh-etags extension)
+          ad-do-it))))
+  (defun er-refresh-etags (&optional extension)
+  "Run etags on all peer files in current dir and reload them silently."
+  (interactive)
+  (shell-command (format "etags *.%s" (or extension "el")))
+  (let ((tags-revert-without-query t))  ; don't query, revert silently          
+  (visit-tags-table default-directory nil)))
 
-;; Don't ask before rereading the TAGS files if they have changed
-(setq tags-revert-without-query t)
+  ;; Don't ask before rereading the TAGS files if they have changed
+  (setq tags-revert-without-query t)
 
 (when (executable-find "pandoc")
     ;; Set pandoc as the program that gets called when
