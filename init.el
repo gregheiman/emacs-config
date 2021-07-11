@@ -187,8 +187,10 @@
 ;;; Outline-Minor-Mode
     (use-package outline
       :config
-      (setq outline-blank-line t)
-      :hook ((emacs-lisp-mode . outline-minor-mode)))
+      (setq outline-blank-line t) ;; Have a blank line before a heading
+      :hook (
+             (emacs-lisp-mode . outline-minor-mode)
+             (outline-minor-mode . outline-hide-body)))
 
 ;;; Font Configuration
     (set-face-attribute 'default nil :font "Iosevka-12" ) ;; Set font options
