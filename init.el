@@ -67,9 +67,11 @@
       (global-undo-tree-mode t))
 
 ;;; Theme
-    (use-package atom-one-dark-theme ;; Color theme
+    (use-package doom-themes ;; Color theme
+      :config
+      (doom-themes-org-config) ;; Corrects some of org-mode's fontification issues
       :init
-      (load-theme 'atom-one-dark t))
+      (load-theme 'doom-sourcerer t))
 
 
 ;;; Company Mode
@@ -223,7 +225,6 @@
     (setq vc-follow-symlinks t) ;; Don't prompt to follow symlinks
 
 ;;; Scrolling Configuration
-    (setq mouse-wheel-scroll-amount '(1 ((shift) . 1))) ;; one line at a time
     (setq mouse-wheel-progressive-speed nil) ;; don't accelerate scrolling
     (setq mouse-wheel-follow-mouse 't) ;; scroll window under mouse
     (setq scroll-step 1) ;; keyboard scroll one line at a time
@@ -232,13 +233,15 @@
     (column-number-mode t)
     (setq-default mode-line-format
                 (list
-                    "%e" ;; Left align
                     " " ;; Extra space at front
-                    '((:eval (propertize (format " <%s> |" (upcase (substring (symbol-name evil-state) 0 1)))
+                    '((:eval (propertize (format "<%s> |" (upcase (substring (symbol-name evil-state) 0 1)))
                         'face '(:weight bold)))) ;; Evil mode
                     " %m |" ;; Mode
                     " %b |" ;; Buffer name
                     " %c:%l |" ;; Current line and column number
+                    '((:eval (propertize (format "%s |"(flycheck-mode-line-status-text))))) ;; Flycheck indicator
+                    '(vc-mode vc-mode) ;; Git branch indicator
+                    " | %+ |" ;; Show if file is modified or read-only
                     ))
 
 ;;; Startup Configuration
@@ -337,19 +340,21 @@
     (global-set-key (kbd "<escape>") 'keyboard-escape-quit) ;; Make ESC quit prompts
 
 ;;; Custom-Set-Variables (Set by Emacs)
-    (custom-set-variables
-    ;; custom-set-variables was added by Custom.
-    ;; If you edit it by hand, you could mess it up, so be careful.
-    ;; Your init file should contain only one such instance.
-    ;; If there is more than one, they won't work right.
-    '(custom-safe-themes
-    '("7661b762556018a44a29477b84757994d8386d6edee909409fabe0631952dad9" "83e0376b5df8d6a3fbdfffb9fb0e8cf41a11799d9471293a810deb7586c131e6" default))
-    '(markdown-command "pandoc")
-    '(package-selected-packages
-    '(esup company-ctags counsel-etags which-key use-package undo-tree projectile magit lsp-java gruvbox-theme flycheck evil-surround evil-commentary evil-collection counsel company atom-one-dark-theme)))
-    (custom-set-faces
-    ;; custom-set-faces was added by Custom.
-    ;; If you edit it by hand, you could mess it up, so be careful.
-    ;; Your init file should contain only one such instance.
-    ;; If there is more than one, they won't work right.
-    )
+    
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(custom-safe-themes
+   '("5784d048e5a985627520beb8a101561b502a191b52fa401139f4dd20acb07607" "6b1abd26f3e38be1823bd151a96117b288062c6cde5253823539c6926c3bb178" "9b54ba84f245a59af31f90bc78ed1240fca2f5a93f667ed54bbf6c6d71f664ac" "4b6b6b0a44a40f3586f0f641c25340718c7c626cbf163a78b5a399fbe0226659" "d6844d1e698d76ef048a53cefe713dbbe3af43a1362de81cdd3aefa3711eae0d" "f7fed1aadf1967523c120c4c82ea48442a51ac65074ba544a5aefc5af490893b" "8621edcbfcf57e760b44950bb1787a444e03992cb5a32d0d9aec212ea1cd5234" "22a514f7051c7eac7f07112a217772f704531b136f00e2ccfaa2e2a456558d39" "7661b762556018a44a29477b84757994d8386d6edee909409fabe0631952dad9" "83e0376b5df8d6a3fbdfffb9fb0e8cf41a11799d9471293a810deb7586c131e6" default))
+ '(markdown-command "pandoc")
+ '(package-selected-packages
+   '(doom-themes esup company-ctags counsel-etags which-key use-package undo-tree projectile magit lsp-java gruvbox-theme flycheck evil-surround evil-commentary evil-collection counsel company atom-one-dark-theme)))
+    
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
