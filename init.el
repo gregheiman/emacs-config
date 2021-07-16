@@ -82,8 +82,10 @@
         ("TAB" . company-select-next-or-abort)
         ("S-TAB" . compnay-select-previous-or-abort)
         ("<backtab>" . company-select-previous-or-abort))
+      :config
+      (setq company-format-margin-function 'company-text-icons-margin)
+      (setq company-text-icons-add-background t)
       :hook (prog-mode . global-company-mode))
-
 
 ;;; LSP Mode
     (use-package lsp-mode ;; Enable LSP support in Emacs
@@ -203,31 +205,68 @@
     (setq inhibit-startup-screen t) ;; Hide startup screen
 
 ;;; Emacs Configuration
-    (add-hook 'emacs-startup-hook 'toggle-frame-maximized) ;; Start Emacs maximized
-    (recentf-mode 1) ;; Keep a list of recently opened files
+ (use-package emacs
+  :hook ((emacs-startup . efs/display-startup-time)
+         (auto-save . full-auto-save))
+  :config
+    ;; Add to the interface
     (global-hl-line-mode) ;; Highlight the current line
-    (delete-selection-mode t) ;; Whatever is highlighted will be replaced with whatever is typed or pasted
     (global-display-line-numbers-mode 1) ;; Line numbers
-    (electric-pair-mode 1) ;; Auto pair delimeters
     (show-paren-mode t) ;; Highlight matching delimeter pair
-    (set-default 'truncate-lines t) ;; Disable wrapping of lines
     (setq-default show-paren-style 'parenthesis)
+
+    ;; Bring Emacs into the 21st century
+    (recentf-mode 1) ;; Keep a list of recently opened files
+    (delete-selection-mode t) ;; Whatever is highlighted will be replaced with whatever is typed or pasted
+    (electric-pair-mode 1) ;; Auto pair delimeters
+    (auto-save-visited-mode) ;; Auto save files without the #filename#
+
+    ;; Indent configuration 
     (setq-default indent-tabs-mode nil) ;; Use spaces for tabs instead of tab characters
     (setq tab-width 4) ;; Set the tab width to 4 characters
     (setq electric-indent-inhibit t) ;; Make return key indent to current indent level
     (setq backward-delete-char-untabify-method 'hungry) ;; Have Emacs backspace the entire tab at a time
-    (set-default-coding-systems 'utf-8-unix) ;; Automatically use unix line endings and utf-8
-    (setq-default buffer-file-coding-system 'utf-8-unix) 
-    (setq gc-cons-threshold 10000000) ;; Set GC threshold to 10 MB
+
+    ;; Personal preference
+    (set-default 'truncate-lines t) ;; Disable wrapping of lines
     (setq read-process-output-max (* 1024 1024)) ;; 1MB
     (setq vc-follow-symlinks t) ;; Don't prompt to follow symlinks
+
+    ;; Set default line endings and encoding
+    (setq-default buffer-file-coding-system 'utf-8-unix) 
+    (set-default-coding-systems 'utf-8-unix) ;; Automatically use unix line endings and utf-8
+
+    ;; Auto revert files
     (global-auto-revert-mode 1) ;; Auto update when files change on disk
     (setq auto-revert-verbose nil) ;; Be quite about updating files when they're changed on disk
 
-;;; Scrolling Configuration
+    ;; Scrolling configuration
     (setq mouse-wheel-progressive-speed nil) ;; don't accelerate scrolling
     (setq mouse-wheel-follow-mouse 't) ;; scroll window under mouse
     (setq scroll-step 1) ;; keyboard scroll one line at a time
+
+    ;; Backup file configuration
+    (setq backup-directory-alist '(("." . "~/.emacs.d/backup")) ;; Write backups to ~/.emacs.d/backup/
+        backup-by-copying      t  ; Don't de-link hard links
+        version-control        t  ; Use version numbers on backups
+        delete-old-versions    t  ; Automatically delete excess backups:
+        kept-new-versions      5 ; how many of the newest versions to keep
+        kept-old-versions      2) ; and how many of the old
+  )
+
+  (defun efs/display-startup-time () ;; Log startup time
+        (message "Emacs loaded in %s with %d garbage collections."
+                (format "%.2f seconds"
+                        (float-time
+                        (time-subtract after-init-time before-init-time)))
+                gcs-done))
+  (defun full-auto-save () ;; Auto save all buffers when autosave fires
+    (interactive)
+    (save-excursion
+        (dolist (buf (buffer-list))
+        (set-buffer buf)
+        (if (and (buffer-file-name) (buffer-modified-p))
+            (basic-save-buffer)))))
 
 ;;; Modeline Configuration
     (column-number-mode t)
@@ -243,36 +282,6 @@
                     '(vc-mode vc-mode) ;; Git branch indicator
                     " | %+ |" ;; Show if file is modified or read-only
                     ))
-
-;;; Startup Configuration
-    (defun efs/display-startup-time () ;; Log startup time
-        (message "Emacs loaded in %s with %d garbage collections."
-                (format "%.2f seconds"
-                        (float-time
-                        (time-subtract after-init-time before-init-time)))
-                gcs-done))
-    (add-hook 'emacs-startup-hook #'efs/display-startup-time)
-    (add-hook 'emacs-startup-hook 'recentf-open-files) ;; Open up recentf window on startup
-
-;;; Auto-Save Configuration
-    (auto-save-visited-mode) ;; Auto save files without the #filename#
-    (setq-default buffer-file-coding-system 'utf-8-unix) ;; Automatically use unix line endings and utf-8
-    (defun full-auto-save () ;; Auto save all buffers when autosave fires
-    (interactive)
-    (save-excursion
-        (dolist (buf (buffer-list))
-        (set-buffer buf)
-        (if (and (buffer-file-name) (buffer-modified-p))
-            (basic-save-buffer)))))
-    (add-hook 'auto-save-hook 'full-auto-save)
-
-;;; Backup File Configuration
-    (setq backup-directory-alist '(("." . "~/.emacs.d/backup")) ;; Write backups to ~/.emacs.d/backup/
-        backup-by-copying      t  ; Don't de-link hard links
-        version-control        t  ; Use version numbers on backups
-        delete-old-versions    t  ; Automatically delete excess backups:
-        kept-new-versions      5 ; how many of the newest versions to keep
-        kept-old-versions      2) ; and how many of the old
 
 ;;; Dired Configuration
     (add-hook 'dired-mode-hook (lambda()
@@ -342,6 +351,7 @@
     (global-set-key (kbd "<escape>") 'keyboard-escape-quit) ;; Make ESC quit prompts
 
 ;;; Custom-Set-Variables (Set by Emacs)
+    
     (custom-set-variables
     ;; custom-set-variables was added by Custom.
     ;; If you edit it by hand, you could mess it up, so be careful.
@@ -352,6 +362,7 @@
     '(markdown-command "pandoc")
     '(package-selected-packages
     '(doom-themes esup company-ctags counsel-etags which-key use-package undo-tree projectile magit lsp-java gruvbox-theme flycheck evil-surround evil-commentary evil-collection counsel company atom-one-dark-theme)))
+
 
     (custom-set-faces
     ;; custom-set-faces was added by Custom.
