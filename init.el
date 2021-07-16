@@ -39,12 +39,11 @@
       (evil-define-key 'normal 'global (kbd "]Q") 'flycheck-last-error)
       (evil-define-key 'normal 'global (kbd "[Q") 'flycheck-first-error)
       (evil-define-key 'normal 'global (kbd "gc") 'comment-dwim)
+      (evil-define-key 'normal 'global (kbd "/") 'consult-line)
       (eval-after-load 'evil-ex
-          '(evil-ex-define-cmd "find" 'consult-find))
+          '(evil-ex-define-cmd "find" 'projectile-find-file))
       (eval-after-load 'evil-ex
-          '(evil-ex-define-cmd "browse-old" 'recentf-open-files))
-      (eval-after-load 'swiper ;; Use swiper for / search if loaded
-          (evil-define-key 'normal 'global (kbd "/") 'consult-line)))
+          '(evil-ex-define-cmd "browse-old" 'recentf-open-files)))
 
     (use-package evil-collection ;; Extend default evil mode keybindings to more modes
       :demand
@@ -88,22 +87,23 @@
       :hook (prog-mode . global-company-mode))
 
 ;;; LSP Mode
-    (use-package lsp-mode ;; Enable LSP support in Emacs
-      :hook ((lsp-mode . lsp-enable-which-key-integration))
-      :config
-      (setq-default lsp-keymap-prefix "C-c l")
-      (setq-default lsp-headerline-breadcrumb-enable nil) ;; Remove top header line
-      (setq-default lsp-signature-auto-activate nil) ;; Stop signature definitions popping up
-      (setq-default lsp-enable-snippet nil) ;; Disable snippets (Snippets require YASnippet)
-      (setq-default lsp-enable-symbol-highlighting nil) ;; Disable highlighting of symbols
-      (setq-default lsp-semantic-tokens-enable nil) ;; Not everything needs to be a color
-      :bind-keymap ("C-c l" . lsp-command-map)
-      :commands (lsp))
+  (use-package lsp-mode ;; Enable LSP support in Emacs
+    :hook ((lsp-mode . lsp-enable-which-key-integration))
+    :config
+        (setq-default lsp-keymap-prefix "C-c l")
+        (setq-default lsp-headerline-breadcrumb-enable nil) ;; Remove top header line
+        (setq-default lsp-signature-auto-activate nil) ;; Stop signature definitions popping up
+        (setq-default lsp-enable-snippet nil) ;; Disable snippets (Snippets require YASnippet)
+        (setq-default lsp-enable-symbol-highlighting nil) ;; Disable highlighting of symbols
+        (setq-default lsp-semantic-tokens-enable nil) ;; Not everything needs to be a color
+    :bind-keymap ("C-c l" . lsp-command-map)
+    :commands (lsp))
 
-    (use-package lsp-java ;; Support for the Eclipse.jdt.ls language server
-      :hook ((java-mode . lsp))
-      :config
-      (setq-default lsp-enable-dap-auto-configure nil))
+  (use-package lsp-java ;; Support for the Eclipse.jdt.ls language server
+    :disabled 
+    :hook ((java-mode . lsp))
+    :config
+    (setq-default lsp-enable-dap-auto-configure nil))
 
 ;;; Vertico, Orderless, and Consult (Completion)
   (use-package vertico
@@ -180,15 +180,22 @@
       :hook (prog-mode . global-flycheck-mode))
 
 ;;; Projectile Mode
-    (use-package projectile ;; Project management
-      :hook ((prog-mode . projectile-mode))
-      :config
+  (use-package projectile ;; Project management
+    :hook ((prog-mode . projectile-mode))
+    :config
         (when (file-directory-p "~/Documents/Code") ;; Projectile will search this path for projects
             (setq projectile-project-search-path '("~/Documents/Code")))
         (setq projectile-switch-project-action #'projectile-dired) ;; Auto open dired when opening project
-      :custom ((projectile-completion-system 'ivy))
-      :bind-keymap ("C-c p" . projectile-command-map))
+        ;; (add-hook 'prog-mode-hook (lambda ()
+        ;;                             (add-hook 'after-save-hook 'regenerate-tags-if-exists)))
+    :bind-keymap ("C-c p" . projectile-command-map))
 
+  (defun regenerate-tags-if-exists ()
+    "Regenerate tags if the tags file already exists"
+    (if (equal (file-exists-p (concat (projectile-project-root) "TAGS")) t)
+        (projectile-regenerate-tags) ;; Create after-save hook to regen tags
+    )
+  )
 ;;; Magit Mode
     (use-package magit ;; Git managment within Emacs (Very slow on Windows)
       :commands (magit))
@@ -377,22 +384,24 @@
 ;;; Custom-Set-Variables (Set by Emacs)
     
     
-    (custom-set-variables
-    ;; custom-set-variables was added by Custom.
-    ;; If you edit it by hand, you could mess it up, so be careful.
-    ;; Your init file should contain only one such instance.
-    ;; If there is more than one, they won't work right.
-    '(custom-safe-themes
-    '("b7e460a67bcb6cac0a6aadfdc99bdf8bbfca1393da535d4e8945df0648fa95fb" "1704976a1797342a1b4ea7a75bdbb3be1569f4619134341bd5a4c1cfb16abad4" "5784d048e5a985627520beb8a101561b502a191b52fa401139f4dd20acb07607" "6b1abd26f3e38be1823bd151a96117b288062c6cde5253823539c6926c3bb178" "9b54ba84f245a59af31f90bc78ed1240fca2f5a93f667ed54bbf6c6d71f664ac" "4b6b6b0a44a40f3586f0f641c25340718c7c626cbf163a78b5a399fbe0226659" "d6844d1e698d76ef048a53cefe713dbbe3af43a1362de81cdd3aefa3711eae0d" "f7fed1aadf1967523c120c4c82ea48442a51ac65074ba544a5aefc5af490893b" "8621edcbfcf57e760b44950bb1787a444e03992cb5a32d0d9aec212ea1cd5234" "22a514f7051c7eac7f07112a217772f704531b136f00e2ccfaa2e2a456558d39" "7661b762556018a44a29477b84757994d8386d6edee909409fabe0631952dad9" "83e0376b5df8d6a3fbdfffb9fb0e8cf41a11799d9471293a810deb7586c131e6" default))
-    '(markdown-command "pandoc")
-    '(package-selected-packages
-    '(consult orderless vertico doom-themes esup company-ctags which-key use-package undo-tree projectile magit lsp-java gruvbox-theme flycheck evil-surround evil-commentary evil-collection company atom-one-dark-theme)))
+    
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(custom-safe-themes
+   '("b7e460a67bcb6cac0a6aadfdc99bdf8bbfca1393da535d4e8945df0648fa95fb" "1704976a1797342a1b4ea7a75bdbb3be1569f4619134341bd5a4c1cfb16abad4" "5784d048e5a985627520beb8a101561b502a191b52fa401139f4dd20acb07607" "6b1abd26f3e38be1823bd151a96117b288062c6cde5253823539c6926c3bb178" "9b54ba84f245a59af31f90bc78ed1240fca2f5a93f667ed54bbf6c6d71f664ac" "4b6b6b0a44a40f3586f0f641c25340718c7c626cbf163a78b5a399fbe0226659" "d6844d1e698d76ef048a53cefe713dbbe3af43a1362de81cdd3aefa3711eae0d" "f7fed1aadf1967523c120c4c82ea48442a51ac65074ba544a5aefc5af490893b" "8621edcbfcf57e760b44950bb1787a444e03992cb5a32d0d9aec212ea1cd5234" "22a514f7051c7eac7f07112a217772f704531b136f00e2ccfaa2e2a456558d39" "7661b762556018a44a29477b84757994d8386d6edee909409fabe0631952dad9" "83e0376b5df8d6a3fbdfffb9fb0e8cf41a11799d9471293a810deb7586c131e6" default))
+ '(markdown-command "pandoc")
+ '(package-selected-packages
+   '(consult orderless vertico doom-themes esup company-ctags which-key use-package undo-tree projectile magit gruvbox-theme flycheck evil-surround evil-commentary evil-collection company atom-one-dark-theme)))
 
 
 
-    (custom-set-faces
-    ;; custom-set-faces was added by Custom.
-    ;; If you edit it by hand, you could mess it up, so be careful.
-    ;; Your init file should contain only one such instance.
-    ;; If there is more than one, they won't work right.
-    )
+    
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
