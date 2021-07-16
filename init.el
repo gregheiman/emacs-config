@@ -40,11 +40,11 @@
       (evil-define-key 'normal 'global (kbd "[Q") 'flycheck-first-error)
       (evil-define-key 'normal 'global (kbd "gc") 'comment-dwim)
       (eval-after-load 'evil-ex
-          '(evil-ex-define-cmd "find" 'projectile-find-file))
+          '(evil-ex-define-cmd "find" 'consult-find))
       (eval-after-load 'evil-ex
           '(evil-ex-define-cmd "browse-old" 'recentf-open-files))
       (eval-after-load 'swiper ;; Use swiper for / search if loaded
-          (evil-define-key 'normal 'global (kbd "/") 'swiper)))
+          (evil-define-key 'normal 'global (kbd "/") 'consult-line)))
 
     (use-package evil-collection ;; Extend default evil mode keybindings to more modes
       :demand
@@ -52,7 +52,7 @@
       :config
       (evil-collection-init)
       :custom ((evil-collection-company-use-tng nil)) ;; Don't autocomplete like vim
-      :custom ((evil-collection-setup-minibuffer t)))
+    )
 
     (use-package evil-surround ;; Port of vim-surround to emacs
       :demand
@@ -105,42 +105,66 @@
       :config
       (setq-default lsp-enable-dap-auto-configure nil))
 
-    (use-package lsp-ivy
-      :after lsp)
+;;; Vertico, Orderless, and Consult (Completion)
+  (use-package vertico
+    :hook ((after-init . vertico-mode))
+    :config
+      (setq-default vertico-resize-window t) ;; row and shrink Vertico minibuffer
+      (setq vertico-cycle t) ;; Optionally enable cycling for `vertico-next' and `vertico-previous'
+  ) 
 
-;;; Ivy Mode
-    (use-package ivy ;; Auto completion for everything else
-      :bind (("C-s" . swiper)
-      :map ivy-minibuffer-map
-        ("TAB" . ivy-alt-done)
-        ("C-l" . ivy-alt-done)
-      :map ivy-switch-buffer-map
-        ("C-l" . ivy-done)
-        ("C-d" . ivy-switch-buffer-kill)
-      :map ivy-reverse-i-search-map
-        ("C-d" . ivy-reverse-i-search-kill))
-      :config
-        (setq ivy-use-virtual-buffers t)
-        (setq enable-recursive-minibuffers t)
-      :hook (after-init . ivy-mode))
+ (use-package orderless
+    :after vertico
+    :config
+      (setq completion-styles '(orderless)
+            completion-category-defaults nil
+            completion-category-overrides '((file (styles partial-completion))))
+  )
 
-    (use-package counsel ;; Extend ivy completion to more Emacs functions
-      :after ivy)
-
-    (use-package counsel-etags ;; Easy tags support (ONLY supports ctags despite name. No more etags support)
-      :after counsel
-      :defer 5
-      :bind (("C-]" . counsel-etags-find-tag-at-point))
-      :init
-        (add-hook 'prog-mode-hook
-                (lambda ()
-                (add-hook 'after-save-hook
-                    'counsel-etags-virtual-update-tags 'append 'local)))
-      :config
-        (setq counsel-etags-update-interval 60)
-        (setq counsel-etags-ctags-options-file "~/.ctags.d/default.ctags")
-        (push "build" counsel-etags-ignore-directories)
-        (push "target" counsel-etags-ignore-directories))
+  (use-package consult
+  :after vertico
+  ;; Replace bindings. Lazily loaded due by `use-package'.
+  :bind (;; C-c bindings (mode-specific-map)
+         ("C-c h" . consult-history)
+         ("C-c m" . consult-mode-command)
+         ("C-c b" . consult-bookmark)
+         ("C-c k" . consult-kmacro)
+         ;; C-x bindings (ctl-x-map)
+         ("C-x M-:" . consult-complex-command)     ;; orig. repeat-complex-command
+         ("C-x b" . consult-buffer)                ;; orig. switch-to-buffer
+         ("C-x 4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
+         ("C-x 5 b" . consult-buffer-other-frame)  ;; orig. switch-to-buffer-other-frame
+         ;; Custom M-# bindings for fast register access
+         ("M-#" . consult-register-load)
+         ("M-'" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
+         ("C-M-#" . consult-register)
+         ;; Other custom bindings
+         ("M-y" . consult-yank-pop)                ;; orig. yank-pop
+         ("<help> a" . consult-apropos)            ;; orig. apropos-command
+         ;; M-g bindings (goto-map)
+         ("M-g e" . consult-compile-error)
+         ("M-g f" . consult-flymake)               ;; Alternative: consult-flycheck
+         ("M-g g" . consult-goto-line)             ;; orig. goto-line
+         ("M-g M-g" . consult-goto-line)           ;; orig. goto-line
+         ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
+         ("M-g m" . consult-mark)
+         ("M-g k" . consult-global-mark)
+         ("M-g i" . consult-imenu)
+         ("M-g I" . consult-project-imenu)
+         ;; M-s bindings (search-map)
+         ("M-s f" . consult-find)
+         ("M-s L" . consult-locate)
+         ("M-s g" . consult-grep)
+         ("M-s G" . consult-git-grep)
+         ("M-s r" . consult-ripgrep)
+         ("M-s l" . consult-line)
+         ("M-s m" . consult-multi-occur)
+         ("M-s k" . consult-keep-lines)
+         ("M-s u" . consult-focus-lines))
+       :config
+	 (autoload 'projectile-project-root "projectile")
+         (setq consult-project-root-function #'projectile-project-root)
+  )
 
 ;;; Which-Key Mode
     (use-package which-key ;; Show possible keybindings when you pause a keycord
@@ -212,6 +236,7 @@
     ;; Add to the interface
     (global-hl-line-mode) ;; Highlight the current line
     (global-display-line-numbers-mode 1) ;; Line numbers
+    (column-number-mode t) ;; Show column numbers in modeline
     (show-paren-mode t) ;; Highlight matching delimeter pair
     (setq-default show-paren-style 'parenthesis)
 
@@ -269,19 +294,18 @@
             (basic-save-buffer)))))
 
 ;;; Modeline Configuration
-    (column-number-mode t)
     (setq-default mode-line-format
-                (list
-                    " " ;; Extra space at front
-                    '((:eval (propertize (format "<%s> |" (upcase (substring (symbol-name evil-state) 0 1)))
-                        'face '(:weight bold)))) ;; Evil mode
-                    " %m |" ;; Mode
-                    " %b |" ;; Buffer name
-                    " %c:%l |" ;; Current line and column number
-                    '((:eval (propertize (format "%s |"(flycheck-mode-line-status-text))))) ;; Flycheck indicator
-                    '(vc-mode vc-mode) ;; Git branch indicator
-                    " | %+ |" ;; Show if file is modified or read-only
-                    ))
+        (list
+            " " ;; Extra space at front
+            '((:eval (propertize (format "<%s> |" (upcase (substring (symbol-name evil-state) 0 1)))
+                                    'face '(:weight bold)))) ;; Evil mode
+            " %m |" ;; Mode
+            " %b |" ;; Buffer name
+            '(:eval (propertize (format " %s/%s:%s |" "%l" (line-number-at-pos (point-max)) "%c"))) ;; Current line/total lines:column number
+            '((:eval (propertize (format "%s |"(flycheck-mode-line-status-text))))) ;; Flycheck indicator
+            '(vc-mode vc-mode) ;; Git branch indicator
+            " | %+" ;; Show if file is modified or read-only
+            ))
 
 ;;; Dired Configuration
     (add-hook 'dired-mode-hook (lambda()
@@ -352,6 +376,7 @@
 
 ;;; Custom-Set-Variables (Set by Emacs)
     
+    
     (custom-set-variables
     ;; custom-set-variables was added by Custom.
     ;; If you edit it by hand, you could mess it up, so be careful.
@@ -361,7 +386,8 @@
     '("b7e460a67bcb6cac0a6aadfdc99bdf8bbfca1393da535d4e8945df0648fa95fb" "1704976a1797342a1b4ea7a75bdbb3be1569f4619134341bd5a4c1cfb16abad4" "5784d048e5a985627520beb8a101561b502a191b52fa401139f4dd20acb07607" "6b1abd26f3e38be1823bd151a96117b288062c6cde5253823539c6926c3bb178" "9b54ba84f245a59af31f90bc78ed1240fca2f5a93f667ed54bbf6c6d71f664ac" "4b6b6b0a44a40f3586f0f641c25340718c7c626cbf163a78b5a399fbe0226659" "d6844d1e698d76ef048a53cefe713dbbe3af43a1362de81cdd3aefa3711eae0d" "f7fed1aadf1967523c120c4c82ea48442a51ac65074ba544a5aefc5af490893b" "8621edcbfcf57e760b44950bb1787a444e03992cb5a32d0d9aec212ea1cd5234" "22a514f7051c7eac7f07112a217772f704531b136f00e2ccfaa2e2a456558d39" "7661b762556018a44a29477b84757994d8386d6edee909409fabe0631952dad9" "83e0376b5df8d6a3fbdfffb9fb0e8cf41a11799d9471293a810deb7586c131e6" default))
     '(markdown-command "pandoc")
     '(package-selected-packages
-    '(doom-themes esup company-ctags counsel-etags which-key use-package undo-tree projectile magit lsp-java gruvbox-theme flycheck evil-surround evil-commentary evil-collection counsel company atom-one-dark-theme)))
+    '(consult orderless vertico doom-themes esup company-ctags which-key use-package undo-tree projectile magit lsp-java gruvbox-theme flycheck evil-surround evil-commentary evil-collection company atom-one-dark-theme)))
+
 
 
     (custom-set-faces
