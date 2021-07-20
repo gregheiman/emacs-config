@@ -105,11 +105,10 @@
     :config
     (setq-default lsp-enable-dap-auto-configure nil))
 
-;;; Vertico, Orderless, and Consult (Completion)
+;;; Vertico, Orderless, Marginalia, and Consult (Completion)
   (use-package vertico
     :hook ((after-init . vertico-mode))
     :config
-      (setq-default vertico-resize-window t) ;; row and shrink Vertico minibuffer
       (setq vertico-cycle t) ;; Optionally enable cycling for `vertico-next' and `vertico-previous'
   ) 
 
@@ -119,6 +118,11 @@
       (setq completion-styles '(orderless)
             completion-category-defaults nil
             completion-category-overrides '((file (styles partial-completion))))
+ )
+
+ (use-package marginalia
+   :after vertico
+   :hook ((vertico-mode . marginalia-mode))
   )
 
   (use-package consult
@@ -196,26 +200,25 @@
         (projectile-regenerate-tags) ;; Create after-save hook to regen tags
     )
   )
-;;; Magit Mode
-    (use-package magit ;; Git managment within Emacs (Very slow on Windows)
-      :commands (magit))
 
-;;; Org Mode
-    (use-package org
-        :interpreter "org"
-        :hook ((org-mode . org-indent-mode)))
+;;; Magit Mode
+  (use-package magit ;; Git managment within Emacs (Very slow on Windows)
+    :commands (magit))
+
+;;; Org Mode Et Al.
+  (use-package org ;; Powerful plain text note taking and more
+    :hook ((org-mode . org-indent-mode)))
+
+  (use-package org-roam ;; Add powerful non-hierarchical note taking tools to org
+    :after org
+    :custom
+    (org-roam-v2-ack t))
 
 ;;; Flyspell Mode
     (use-package flyspell
       :config
         (when (executable-find "ispell")
             (add-hook 'org-mode-hook 'turn-on-flyspell)))
-
-;;; Esup Mode
-    (use-package esup
-      :config
-        (setq esup-depth 0)
-      :commands (esup))
 
 ;;; Outline-Minor-Mode
     (use-package outline
@@ -225,21 +228,16 @@
              (emacs-lisp-mode . outline-minor-mode)
              (outline-minor-mode . outline-hide-body)))
 
-;;; Font Configuration
-    (set-face-attribute 'default nil :font "Iosevka-12" ) ;; Set font options
-    (set-frame-font "Iosevka-12" nil t)
-
-;;; Hide Parts of the Interface
-    (tool-bar-mode 0) ;; Hide the tool bar
-    (scroll-bar-mode 0) ;; Hide the scroll bar
-    (menu-bar-mode 0) ;; Hide the menu bar
-    (setq inhibit-startup-screen t) ;; Hide startup screen
-
 ;;; Emacs Configuration
  (use-package emacs
   :hook ((emacs-startup . efs/display-startup-time)
-         (auto-save . full-auto-save))
+         (auto-save . full-auto-save)
+         (c-mode . c-mode-configuration))
   :config
+    ;; Font configuration
+    (set-face-attribute 'default nil :font "Iosevka-12" ) ;; Set font options
+    (set-frame-font "Iosevka-12" nil t)
+
     ;; Add to the interface
     (global-hl-line-mode) ;; Highlight the current line
     (global-display-line-numbers-mode 1) ;; Line numbers
@@ -299,6 +297,14 @@
         (set-buffer buf)
         (if (and (buffer-file-name) (buffer-modified-p))
             (basic-save-buffer)))))
+
+;;; C Configuration
+ (defun c-mode-configuration ()
+    "Set C style configuration"
+    (setq c-basic-offset 4)
+    (c-set-offset 'substatement-open 0)
+    (setq c-set-style "k&r")
+  )
 
 ;;; Modeline Configuration
     (setq-default mode-line-format
@@ -385,23 +391,23 @@
     
     
     
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(custom-safe-themes
-   '("b7e460a67bcb6cac0a6aadfdc99bdf8bbfca1393da535d4e8945df0648fa95fb" "1704976a1797342a1b4ea7a75bdbb3be1569f4619134341bd5a4c1cfb16abad4" "5784d048e5a985627520beb8a101561b502a191b52fa401139f4dd20acb07607" "6b1abd26f3e38be1823bd151a96117b288062c6cde5253823539c6926c3bb178" "9b54ba84f245a59af31f90bc78ed1240fca2f5a93f667ed54bbf6c6d71f664ac" "4b6b6b0a44a40f3586f0f641c25340718c7c626cbf163a78b5a399fbe0226659" "d6844d1e698d76ef048a53cefe713dbbe3af43a1362de81cdd3aefa3711eae0d" "f7fed1aadf1967523c120c4c82ea48442a51ac65074ba544a5aefc5af490893b" "8621edcbfcf57e760b44950bb1787a444e03992cb5a32d0d9aec212ea1cd5234" "22a514f7051c7eac7f07112a217772f704531b136f00e2ccfaa2e2a456558d39" "7661b762556018a44a29477b84757994d8386d6edee909409fabe0631952dad9" "83e0376b5df8d6a3fbdfffb9fb0e8cf41a11799d9471293a810deb7586c131e6" default))
- '(markdown-command "pandoc")
- '(package-selected-packages
-   '(consult orderless vertico doom-themes esup company-ctags which-key use-package undo-tree projectile magit gruvbox-theme flycheck evil-surround evil-commentary evil-collection company atom-one-dark-theme)))
+    (custom-set-variables
+    ;; custom-set-variables was added by Custom.
+    ;; If you edit it by hand, you could mess it up, so be careful.
+    ;; Your init file should contain only one such instance.
+    ;; If there is more than one, they won't work right.
+    '(custom-safe-themes
+    '("b7e460a67bcb6cac0a6aadfdc99bdf8bbfca1393da535d4e8945df0648fa95fb" "1704976a1797342a1b4ea7a75bdbb3be1569f4619134341bd5a4c1cfb16abad4" "5784d048e5a985627520beb8a101561b502a191b52fa401139f4dd20acb07607" "6b1abd26f3e38be1823bd151a96117b288062c6cde5253823539c6926c3bb178" "9b54ba84f245a59af31f90bc78ed1240fca2f5a93f667ed54bbf6c6d71f664ac" "4b6b6b0a44a40f3586f0f641c25340718c7c626cbf163a78b5a399fbe0226659" "d6844d1e698d76ef048a53cefe713dbbe3af43a1362de81cdd3aefa3711eae0d" "f7fed1aadf1967523c120c4c82ea48442a51ac65074ba544a5aefc5af490893b" "8621edcbfcf57e760b44950bb1787a444e03992cb5a32d0d9aec212ea1cd5234" "22a514f7051c7eac7f07112a217772f704531b136f00e2ccfaa2e2a456558d39" "7661b762556018a44a29477b84757994d8386d6edee909409fabe0631952dad9" "83e0376b5df8d6a3fbdfffb9fb0e8cf41a11799d9471293a810deb7586c131e6" default))
+    '(markdown-command "pandoc")
+    '(package-selected-packages
+    '(org-roam marginalia consult orderless vertico doom-themes company-ctags which-key use-package undo-tree projectile magit gruvbox-theme flycheck evil-surround evil-commentary evil-collection company atom-one-dark-theme)))
 
 
 
-    
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
+
+    (custom-set-faces
+    ;; custom-set-faces was added by Custom.
+    ;; If you edit it by hand, you could mess it up, so be careful.
+    ;; Your init file should contain only one such instance.
+    ;; If there is more than one, they won't work right.
+    )
