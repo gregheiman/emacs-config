@@ -34,10 +34,14 @@
       (evil-set-leader 'normal (kbd "\\"))
       (evil-define-key 'normal 'global (kbd "<leader>bl") 'list-buffers)
       (evil-define-key 'normal 'global (kbd "<leader>bg") 'switch-to-buffer)
-      (evil-define-key 'normal 'global (kbd "]q") 'flycheck-next-error)
-      (evil-define-key 'normal 'global (kbd "[q") 'flycheck-previous-error)
-      (evil-define-key 'normal 'global (kbd "]Q") 'flycheck-last-error)
-      (evil-define-key 'normal 'global (kbd "[Q") 'flycheck-first-error)
+      (evil-define-key 'normal 'global (kbd "]q") 'compilation-next-error)
+      (evil-define-key 'normal 'global (kbd "[q") 'compilation-previous-error)
+      (evil-define-key 'normal 'global (kbd "]Q") 'compilation-last-error)
+      (evil-define-key 'normal 'global (kbd "[Q") 'compilation-first-error)
+      (evil-define-key 'normal 'global (kbd "]b") 'next-buffer)
+      (evil-define-key 'normal 'global (kbd "[b") 'previous-buffer)
+      (evil-define-key 'normal 'global (kbd "]B") 'last-buffer)
+      (evil-define-key 'normal 'global (kbd "[B") 'first-buffer)
       (evil-define-key 'normal 'global (kbd "gc") 'comment-dwim)
       (evil-define-key 'normal 'global (kbd "/") 'consult-line)
       (eval-after-load 'evil-ex
@@ -88,7 +92,8 @@
 
 ;;; LSP Mode
   (use-package lsp-mode ;; Enable LSP support in Emacs
-    :hook ((lsp-mode . lsp-enable-which-key-integration))
+    :hook ((lsp-mode . lsp-enable-which-key-integration)
+           (java-mode . lsp-deferred))
     :config
         (setq-default lsp-keymap-prefix "C-c l")
         (setq-default lsp-headerline-breadcrumb-enable nil) ;; Remove top header line
@@ -97,13 +102,37 @@
         (setq-default lsp-enable-symbol-highlighting nil) ;; Disable highlighting of symbols
         (setq-default lsp-semantic-tokens-enable nil) ;; Not everything needs to be a color
     :bind-keymap ("C-c l" . lsp-command-map)
-    :commands (lsp))
+    :commands (lsp lsp-deferred))
 
   (use-package lsp-java ;; Support for the Eclipse.jdt.ls language server
-    :disabled 
-    :hook ((java-mode . lsp))
+    :after lsp-mode)
+
+  (use-package dap-mode
+    :after lsp-mode
+    :hook ((dap-session-created . +dap-running-session-mode)
+           (dap-stopped . +dap-running-session-mode))
     :config
-    (setq-default lsp-enable-dap-auto-configure nil))
+    (add-hook 'dap-stack-frame-changed-hook (lambda (session)
+                                            (when (dap--session-running session)
+                                              (+dap-running-session-mode 1))))
+  )
+
+  (define-minor-mode +dap-running-session-mode
+    "A mode for adding keybindings to running sessions"
+    nil
+    nil
+    (make-sparse-keymap)
+    (evil-normalize-keymaps) ;; if you use evil, this is necessary to update the keymaps
+    ;; The following code adds to the dap-terminated-hook
+    ;; so that this minor mode will be deactivated when the debugger finishes
+    (when +dap-running-session-mode
+      (let ((session-at-creation (dap--cur-active-session-or-die)))
+        (add-hook 'dap-terminated-hook
+                  (lambda (session)
+                    (when (eq session session-at-creation)
+                      (+dap-running-session-mode -1)))))))
+  
+  ;; Activate this minor mode when stepping into code in another file
 
 ;;; Vertico, Orderless, Marginalia, and Consult (Completion)
   (use-package vertico
@@ -240,7 +269,6 @@
 
     ;; Add to the interface
     (global-hl-line-mode) ;; Highlight the current line
-    (global-display-line-numbers-mode 1) ;; Line numbers
     (column-number-mode t) ;; Show column numbers in modeline
     (show-paren-mode t) ;; Highlight matching delimeter pair
     (setq-default show-paren-style 'parenthesis)
@@ -298,6 +326,14 @@
         (if (and (buffer-file-name) (buffer-modified-p))
             (basic-save-buffer)))))
 
+;;; Line Numbers
+  (use-package display-line-numbers
+    ;; Display line numbers for some modes
+    :hook ((text-mode . display-line-numbers-mode)
+           (prog-mode . display-line-numbers-mode)
+           (conf-mode . display-line-numbers-mode)
+           (org-mode . display-line-numbers-mode)))
+
 ;;; C Configuration
  (defun c-mode-configuration ()
     "Set C style configuration"
@@ -307,18 +343,27 @@
   )
 
 ;;; Modeline Configuration
+    ;; write a function to do the spacing
+    (defun simple-mode-line-render (left right)
+    "Return a string of `window-width' length containing LEFT, and RIGHT
+    aligned respectively."
+    (let* ((available-width (- (window-width) (length left) 2)))
+        (format (format " %%s %%%ds " available-width) left right)))
+
+    (defun vc-branch () ;; Cut out the Git from vc-mode
+      (if (equal (vc-registered (buffer-file-name)) t)
+        (let ((backend (vc-backend (buffer-file-name))))
+          (substring vc-mode (+ (if (eq backend 'Hg) 2 3) 2)))
+        (format "%s" "")))
+
+    ;; use the function in conjunction with :eval and format-mode-line in your mode-line-format
     (setq-default mode-line-format
-        (list
-            " " ;; Extra space at front
-            '((:eval (propertize (format "<%s> |" (upcase (substring (symbol-name evil-state) 0 1)))
-                                    'face '(:weight bold)))) ;; Evil mode
-            " %m |" ;; Mode
-            " %b |" ;; Buffer name
-            '(:eval (propertize (format " %s/%s:%s |" "%l" (line-number-at-pos (point-max)) "%c"))) ;; Current line/total lines:column number
-            '((:eval (propertize (format "%s |"(flycheck-mode-line-status-text))))) ;; Flycheck indicator
-            '(vc-mode vc-mode) ;; Git branch indicator
-            " | %+" ;; Show if file is modified or read-only
-            ))
+        '((:eval (simple-mode-line-render
+                    ;; left
+                    (format-mode-line '(:eval (propertize (format "<%s>  %s  %s  [%s]" (upcase (substring (symbol-name evil-state) 0 1)) (vc-branch) "%b" "%*")))) ;; Evil mode, branch, file name, modified 
+                    ;; right
+                    (format-mode-line '(:eval (propertize (format "%s  %s  %s  %s/%s:%s" (upcase (symbol-name buffer-file-coding-system)) (flycheck-mode-line-status-text) "%m" "%l" (line-number-at-pos (point-max)) "%c")))) ;; Current line/total lines:column number
+                    ))))
 
 ;;; Dired Configuration
     (add-hook 'dired-mode-hook (lambda()
@@ -380,34 +425,25 @@
     (when (executable-find "pandoc")
         ;; Set pandoc as the program that gets called when
         ;; you issue a markdown command
-        (custom-set-variables
-        '(markdown-command "pandoc"))
-    )
+        (setq markdown-command "pandoc"))
 
 ;;; Emacs Keybindings
     (global-set-key (kbd "<escape>") 'keyboard-escape-quit) ;; Make ESC quit prompts
 
 ;;; Custom-Set-Variables (Set by Emacs)
     
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(doom-modeline-mode t)
+ '(package-selected-packages
+   '(which-key vertico use-package undo-tree projectile org-roam orderless marginalia magit lsp-java flycheck evil-surround evil-commentary evil-collection doom-themes consult company)))
     
-    
-    (custom-set-variables
-    ;; custom-set-variables was added by Custom.
-    ;; If you edit it by hand, you could mess it up, so be careful.
-    ;; Your init file should contain only one such instance.
-    ;; If there is more than one, they won't work right.
-    '(custom-safe-themes
-    '("b7e460a67bcb6cac0a6aadfdc99bdf8bbfca1393da535d4e8945df0648fa95fb" "1704976a1797342a1b4ea7a75bdbb3be1569f4619134341bd5a4c1cfb16abad4" "5784d048e5a985627520beb8a101561b502a191b52fa401139f4dd20acb07607" "6b1abd26f3e38be1823bd151a96117b288062c6cde5253823539c6926c3bb178" "9b54ba84f245a59af31f90bc78ed1240fca2f5a93f667ed54bbf6c6d71f664ac" "4b6b6b0a44a40f3586f0f641c25340718c7c626cbf163a78b5a399fbe0226659" "d6844d1e698d76ef048a53cefe713dbbe3af43a1362de81cdd3aefa3711eae0d" "f7fed1aadf1967523c120c4c82ea48442a51ac65074ba544a5aefc5af490893b" "8621edcbfcf57e760b44950bb1787a444e03992cb5a32d0d9aec212ea1cd5234" "22a514f7051c7eac7f07112a217772f704531b136f00e2ccfaa2e2a456558d39" "7661b762556018a44a29477b84757994d8386d6edee909409fabe0631952dad9" "83e0376b5df8d6a3fbdfffb9fb0e8cf41a11799d9471293a810deb7586c131e6" default))
-    '(markdown-command "pandoc")
-    '(package-selected-packages
-    '(org-roam marginalia consult orderless vertico doom-themes company-ctags which-key use-package undo-tree projectile magit gruvbox-theme flycheck evil-surround evil-commentary evil-collection company atom-one-dark-theme)))
-
-
-
-
-    (custom-set-faces
-    ;; custom-set-faces was added by Custom.
-    ;; If you edit it by hand, you could mess it up, so be careful.
-    ;; Your init file should contain only one such instance.
-    ;; If there is more than one, they won't work right.
-    )
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
