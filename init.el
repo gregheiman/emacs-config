@@ -351,18 +351,30 @@
         (format (format " %%s %%%ds " available-width) left right)))
 
     (defun vc-branch () ;; Cut out the Git from vc-mode
-      (if (equal (vc-registered (buffer-file-name)) t)
         (let ((backend (vc-backend (buffer-file-name))))
           (substring vc-mode (+ (if (eq backend 'Hg) 2 3) 2)))
-        (format "%s" "")))
+        )
 
     ;; use the function in conjunction with :eval and format-mode-line in your mode-line-format
     (setq-default mode-line-format
         '((:eval (simple-mode-line-render
                     ;; left
-                    (format-mode-line '(:eval (propertize (format "<%s>  %s  %s  [%s]" (upcase (substring (symbol-name evil-state) 0 1)) (vc-branch) "%b" "%*")))) ;; Evil mode, branch, file name, modified 
+                    (format-mode-line
+                     (list
+                      " "
+                      '(:eval (propertize (format "<%s> " (upcase (substring (symbol-name evil-state) 0 1))))) ;; Evil mode
+                      '(:eval (propertize (format " %s " (vc-branch))))
+                      " %b "
+                      " [%*] "
+                      ))
                     ;; right
-                    (format-mode-line '(:eval (propertize (format "%s  %s  %s  %s/%s:%s" (upcase (symbol-name buffer-file-coding-system)) (flycheck-mode-line-status-text) "%m" "%l" (line-number-at-pos (point-max)) "%c")))) ;; Current line/total lines:column number
+                     (format-mode-line
+                      (list
+                       '(:eval (propertize (format "%s" (upcase (symbol-name buffer-file-coding-system)))))
+                       '(:eval (propertize (format "%s" (flycheck-mode-line-status-text))))
+                       " %m "
+                       '(:eval (propertize (format "%s/%s:%s" "%l" (line-number-at-pos (point-max)) "%c")))
+                       ))
                     ))))
 
 ;;; Dired Configuration
