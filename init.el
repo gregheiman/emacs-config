@@ -207,6 +207,7 @@
 
 ;;; Flycheck Mode
     (use-package flycheck ;; Improved linting and checking
+      :bind-keymap ("C-c f" . flycheck-command-map)
       :config
         (setq flycheck-display-error-function #'flycheck-display-error-messages) ;; Show error messages in echo area
         (setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc)) ;; Stop flycheck from treating init.el as package file
@@ -232,16 +233,28 @@
 
 ;;; Magit Mode
   (use-package magit ;; Git managment within Emacs (Very slow on Windows)
+    :bind-keymap ("C-c m" . magit-mode-map)
     :commands (magit))
 
 ;;; Org Mode Et Al.
   (use-package org ;; Powerful plain text note taking and more
-    :hook ((org-mode . org-indent-mode)))
+    :hook ((org-mode . org-indent-mode))
+    :bind-keymap ("C-c o o" . org-mode-map))
+
+  (use-package org-agenda ;; Powerful TODO list and agenda tracking
+    :ensure nil
+    :after org
+    :bind-keymap ("C-c o a" . org-agenda-mode-map)
+    :config
+    (setq org-agenda-files (directory-files-recursively "~/Documents/Org" "\\.org$")))
 
   (use-package org-roam ;; Add powerful non-hierarchical note taking tools to org
     :after org
-    :custom
-    (org-roam-v2-ack t))
+    :hook ((org-mode . org-roam-mode))
+    :init
+    (setq org-roam-v2-ack t)
+    :config
+    (setq org-roam-directory "~/Documents/Org"))
 
 ;;; Flyspell Mode
     (use-package flyspell
@@ -444,14 +457,16 @@
 
 ;;; Custom-Set-Variables (Set by Emacs)
     
+    
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(doom-modeline-mode t)
+ '(org-agenda-files '("c:/Users/heimangreg/Documents/Org/Emacs-Tasks.org"))
  '(package-selected-packages
    '(which-key vertico use-package undo-tree projectile org-roam orderless marginalia magit lsp-java flycheck evil-surround evil-commentary evil-collection doom-themes consult company)))
+
     
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
