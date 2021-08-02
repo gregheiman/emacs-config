@@ -30,6 +30,7 @@
       :init
       (setq evil-want-keybinding nil) ;; Needed to use evil-collection
       :config
+      (setq evil-insert-state-message nil)
       (evil-set-undo-system 'undo-tree)
       (evil-set-leader 'normal (kbd "\\"))
       (evil-define-key 'normal 'global (kbd "<leader>bl") 'list-buffers)
@@ -71,10 +72,14 @@
 
 ;;; Theme
     (use-package doom-themes ;; Color theme
+      :disabled
       :config
       (doom-themes-org-config) ;; Corrects some of org-mode's fontification issues
       :init
       (load-theme 'doom-sourcerer t))
+    (use-package eclipse-theme
+      :init
+      (load-theme 'eclipse t))
 
 
 ;;; Company Mode
@@ -250,7 +255,6 @@
 
   (use-package org-roam ;; Add powerful non-hierarchical note taking tools to org
     :after org
-    :hook ((org-mode . org-roam-mode))
     :init
     (setq org-roam-v2-ack t)
     :config
@@ -274,7 +278,8 @@
  (use-package emacs
   :hook ((emacs-startup . efs/display-startup-time)
          (auto-save . full-auto-save)
-         (c-mode . c-mode-configuration))
+         (c-mode . c-mode-configuration)
+         (java-mode . java-mode-configuration))
   :config
     ;; Font configuration
     (set-face-attribute 'default nil :font "Iosevka-12" ) ;; Set font options
@@ -302,6 +307,7 @@
     (set-default 'truncate-lines t) ;; Disable wrapping of lines
     (setq read-process-output-max (* 1024 1024)) ;; 1MB
     (setq vc-follow-symlinks t) ;; Don't prompt to follow symlinks
+    (defalias 'yes-or-no-p 'y-or-n-p) ;; Mad efficiency gains
 
     ;; Set default line endings and encoding
     (setq-default buffer-file-coding-system 'utf-8-unix) 
@@ -353,7 +359,13 @@
     (setq c-basic-offset 4)
     (c-set-offset 'substatement-open 0)
     (setq c-set-style "k&r")
-  )
+    )
+
+;;; Java Configuration
+ (defun java-mode-configuration ()
+   (c-set-offset 'case-label '+)
+    )
+
 
 ;;; Modeline Configuration
     ;; write a function to do the spacing
@@ -368,6 +380,32 @@
           (substring vc-mode (+ (if (eq backend 'Hg) 2 3) 2)))
         )
 
+  (defun flycheck-indicator () ;; Results in errors|warnings
+    (if (equal (string-match "\\(FlyC:\\)\\([0-9]+\\)|\\([0-9]+\\)" (flycheck-mode-line-status-text)) nil)
+		    (propertize "✔" 'face '(:foreground "green3"))
+      (concat
+         (propertize (format "%s" (match-string 2 (flycheck-mode-line-status-text))) 'face '(:foreground "red2"))
+         (propertize (format "%s" "|") 'face '(:inherit font-lock-modeline-face))
+         (propertize (format "%s" (match-string 3 (flycheck-mode-line-status-text))) 'face '(:inherit flycheck-error-list-warning))
+      ))
+    )
+
+  ;; Gets tacked onto the end of the vc-branch output
+  (defadvice vc-git-mode-line-string (after plus-minus (file) compile activate)
+  "Show the information of git diff on modeline."
+  (setq ad-return-value
+	(concat (propertize ad-return-value 'face '(:inherit font-lock-modeline-face))
+		" ["
+		(let ((plus-minus (vc-git--run-command-string
+				   file "diff" "--numstat" "--")))
+		  (if (and plus-minus
+		       (string-match "^\\([0-9]+\\)\t\\([0-9]+\\)\t" plus-minus))
+		       (concat
+			(propertize (format "+%s" (match-string 1 plus-minus)) 'face '(:foreground "green3"))
+			(propertize (format " -%s" (match-string 2 plus-minus)) 'face '(:inherit font-lock-warning-face)))
+		    (propertize "✔" 'face '(:foreground "green3"))))
+		"]")))
+
     ;; use the function in conjunction with :eval and format-mode-line in your mode-line-format
     (setq-default mode-line-format
         '((:eval (simple-mode-line-render
@@ -376,17 +414,17 @@
                      (list
                       " "
                       '(:eval (propertize (format "<%s> " (upcase (substring (symbol-name evil-state) 0 1))))) ;; Evil mode
-                      '(:eval (propertize (format " %s " (vc-branch))))
-                      " %b "
-                      " [%*] "
+                      '(:eval (propertize (format "%s " (vc-branch))))
+                      '(:eval (propertize (format "%s" "%b")))
+                      '(:eval (propertize (format " %s " "[%*]")))
                       ))
                     ;; right
                      (format-mode-line
                       (list
+                       '(:eval (propertize (format "[%s] " (flycheck-indicator))))
                        '(:eval (propertize (format "%s" (upcase (symbol-name buffer-file-coding-system)))))
-                       '(:eval (propertize (format "%s" (flycheck-mode-line-status-text))))
-                       " %m "
-                       '(:eval (propertize (format "%s/%s:%s" "%l" (line-number-at-pos (point-max)) "%c")))
+                       '(:eval (propertize (format " %s " "%m")))
+                       '(:eval (propertize (format "%s/%s:%s " "%l" (line-number-at-pos (point-max)) "%c")))
                        ))
                     ))))
 
@@ -463,9 +501,13 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(ansi-color-faces-vector
+   [default default default italic underline success warning error])
+ '(custom-safe-themes
+   '("9b54ba84f245a59af31f90bc78ed1240fca2f5a93f667ed54bbf6c6d71f664ac" "835868dcd17131ba8b9619d14c67c127aa18b90a82438c8613586331129dda63" "7eea50883f10e5c6ad6f81e153c640b3a288cd8dc1d26e4696f7d40f754cc703" "8621edcbfcf57e760b44950bb1787a444e03992cb5a32d0d9aec212ea1cd5234" "f91395598d4cb3e2ae6a2db8527ceb83fed79dbaf007f435de3e91e5bda485fb" "a9a67b318b7417adbedaab02f05fa679973e9718d9d26075c6235b1f0db703c8" "1d5e33500bc9548f800f9e248b57d1b2a9ecde79cb40c0b1398dec51ee820daf" "00c5138bb71c95ca37a0fc845656498a8b4ff271ba4e0e0845732d188359d55a" default))
  '(org-agenda-files '("c:/Users/heimangreg/Documents/Org/Emacs-Tasks.org"))
  '(package-selected-packages
-   '(which-key vertico use-package undo-tree projectile org-roam orderless marginalia magit lsp-java flycheck evil-surround evil-commentary evil-collection doom-themes consult company)))
+   '(eclipse-theme which-key vertico use-package undo-tree projectile org-roam orderless marginalia magit lsp-java flycheck evil-surround evil-commentary evil-collection doom-themes consult company)))
 
     
 (custom-set-faces
