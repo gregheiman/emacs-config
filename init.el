@@ -72,15 +72,10 @@
 
 ;;; Theme
     (use-package doom-themes ;; Color theme
-      :disabled
       :config
       (doom-themes-org-config) ;; Corrects some of org-mode's fontification issues
       :init
-      (load-theme 'doom-sourcerer t))
-    (use-package eclipse-theme
-      :init
-      (load-theme 'eclipse t))
-
+      (load-theme 'doom-moonlight t))
 
 ;;; Company Mode
     (use-package company ;; Text auto completion framework
@@ -139,7 +134,7 @@
   
   ;; Activate this minor mode when stepping into code in another file
 
-;;; Vertico, Orderless, Marginalia, and Consult (Completion)
+;;; Vertico, Orderless, Marginalia, Embark and Consult (Minibuffer)
   (use-package vertico
     :hook ((after-init . vertico-mode))
     :config
@@ -162,47 +157,59 @@
   (use-package consult
   :after vertico
   ;; Replace bindings. Lazily loaded due by `use-package'.
-  :bind (;; C-c bindings (mode-specific-map)
-         ("C-c h" . consult-history)
-         ("C-c m" . consult-mode-command)
-         ("C-c b" . consult-bookmark)
-         ("C-c k" . consult-kmacro)
-         ;; C-x bindings (ctl-x-map)
-         ("C-x M-:" . consult-complex-command)     ;; orig. repeat-complex-command
-         ("C-x b" . consult-buffer)                ;; orig. switch-to-buffer
-         ("C-x 4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
-         ("C-x 5 b" . consult-buffer-other-frame)  ;; orig. switch-to-buffer-other-frame
+  :bind (;; c bindings (mode-specific-map)
+         ("C-c c m h" . consult-history)
+         ("C-c c m m" . consult-mode-command)
+         ("C-c c m b" . consult-bookmark)
+         ("C-c c m k" . consult-kmacro)
+         ;; x bindings (ctl-x-map)
+         ("C-c c x M-:" . consult-complex-command)     ;; orig. repeat-complex-command
+         ("C-c c x b" . consult-buffer)                ;; orig. switch-to-buffer
+         ("C-c c x 4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
+         ("C-c c x 5 b" . consult-buffer-other-frame)  ;; orig. switch-to-buffer-other-frame
          ;; Custom M-# bindings for fast register access
-         ("M-#" . consult-register-load)
-         ("M-'" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
-         ("C-M-#" . consult-register)
+         ("C-c c # #" . consult-register-load)
+         ("C-c c # '" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
+         ("C-c c # C-#" . consult-register)
          ;; Other custom bindings
-         ("M-y" . consult-yank-pop)                ;; orig. yank-pop
-         ("<help> a" . consult-apropos)            ;; orig. apropos-command
+         ("C-c c M-y" . consult-yank-pop)                ;; orig. yank-pop
+         ("C-c c <help> a" . consult-apropos)            ;; orig. apropos-command
          ;; M-g bindings (goto-map)
-         ("M-g e" . consult-compile-error)
-         ("M-g f" . consult-flymake)               ;; Alternative: consult-flycheck
-         ("M-g g" . consult-goto-line)             ;; orig. goto-line
-         ("M-g M-g" . consult-goto-line)           ;; orig. goto-line
-         ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
-         ("M-g m" . consult-mark)
-         ("M-g k" . consult-global-mark)
-         ("M-g i" . consult-imenu)
-         ("M-g I" . consult-project-imenu)
+         ("C-c c g e" . consult-compile-error)
+         ("C-c c g f" . consult-flymake)               ;; Alternative: consult-flycheck
+         ("C-c c g g" . consult-goto-line)             ;; orig. goto-line
+         ("C-c c g M-g" . consult-goto-line)           ;; orig. goto-line
+         ("C-c c g o" . consult-outline)               ;; Alternative: consult-org-heading
+         ("C-c c g m" . consult-mark)
+         ("C-c c g k" . consult-global-mark)
+         ("C-c c g i" . consult-imenu)
+         ("C-c c g I" . consult-project-imenu)
          ;; M-s bindings (search-map)
-         ("M-s f" . consult-find)
-         ("M-s L" . consult-locate)
-         ("M-s g" . consult-grep)
-         ("M-s G" . consult-git-grep)
-         ("M-s r" . consult-ripgrep)
-         ("M-s l" . consult-line)
-         ("M-s m" . consult-multi-occur)
-         ("M-s k" . consult-keep-lines)
-         ("M-s u" . consult-focus-lines))
+         ("C-c c s f" . consult-find)
+         ("C-c c s L" . consult-locate)
+         ("C-c c s g" . consult-grep)
+         ("C-c c s G" . consult-git-grep)
+         ("C-c c s r" . consult-ripgrep)
+         ("C-c c s l" . consult-line)
+         ("C-c c s m" . consult-multi-occur)
+         ("C-c c s k" . consult-keep-lines)
+         ("C-c c s u" . consult-focus-lines))
        :config
 	 (autoload 'projectile-project-root "projectile")
          (setq consult-project-root-function #'projectile-project-root)
   )
+
+  (use-package embark
+    :after vertico
+    :bind (("C-c e ." . embark-dwim)
+           ("C-c e ;" . embark-act))
+    )
+
+  (use-package embark-consult
+    :after (embark consult)
+    :demand t
+    :hook
+    (embark-collect-mode . consult-preview-at-point-mode))
 
 ;;; Which-Key Mode
     (use-package which-key ;; Show possible keybindings when you pause a keycord
@@ -241,6 +248,45 @@
     :bind-keymap ("C-c m" . magit-mode-map)
     :commands (magit))
 
+;;; Impatient Mode
+  (use-package impatient-mode ;; Live preview HTML and Markdown files
+    :bind (("C-c i m" . impatient-markdown-preview)
+           ("C-c i h" . impatient-html-preview))
+    )
+
+  (defun markdown-html-filter (buffer) ;; Use this filter with impatient mode with M-x imp-set-user-filter RET markdown-html RET
+    "Impatient mode filter to show markdown correctly."
+    (princ (with-current-buffer buffer
+    (format
+     "<!DOCTYPE html>
+      <html>
+        <title>Impatient Markdown Preview</title>
+        <xmp theme=\"spacelab\">
+          %s
+        </xmp>
+        <script type=\"text/javascript\" src=\"http://strapdownjs.com/v/0.2/strapdown.js\"></script>
+      </html>"
+     (buffer-substring-no-properties (point-min) (point-max))))
+           (current-buffer)))
+
+  (defun impatient-markdown-preview () ;; Preview current markdown buffer with impatient mode
+    "Preview Markdown in realtime with impatient mode."
+    (interactive)
+    (unless (process-status "httpd")
+        (httpd-start))
+    (impatient-mode)
+    (imp-set-user-filter 'markdown-html-filter)
+    (imp-visit-buffer))
+
+  (defun impatient-html-preview () ;; Preview current HTML buffer with impatient mode
+    "Preview HTML files in realtime with impatient mode."
+    (interactive)
+    (unless (process-status "httpd")
+        (httpd-start))
+    (impatient-mode)
+    (imp-visit-buffer))
+
+
 ;;; Org Mode Et Al.
   (use-package org ;; Powerful plain text note taking and more
     :hook ((org-mode . org-indent-mode))
@@ -273,6 +319,19 @@
       :hook (
              (emacs-lisp-mode . outline-minor-mode)
              (outline-minor-mode . outline-hide-body)))
+
+;;; Eshell Mode
+  (use-package eshell
+    :config
+      (setq-default eshell-prompt-function 'eshell-prompt)
+      (setq-default eshell-highlight-prompt nil))
+
+  (defun eshell-prompt ()
+      (concat
+        (propertize (concat (if (string= (eshell/pwd) (getenv "HOME")) "~" (eshell/basename (eshell/pwd))) " λ "))
+        (propertize (or (ignore-errors (format "(%s)" (vc-responsible-backend default-directory))) ""))
+       )
+  )
 
 ;;; Emacs Configuration
  (use-package emacs
@@ -382,9 +441,9 @@
 
   (defun flycheck-indicator () ;; Results in errors|warnings
     (if (equal (string-match "\\(FlyC:\\)\\([0-9]+\\)|\\([0-9]+\\)" (flycheck-mode-line-status-text)) nil)
-		    (propertize "✔" 'face '(:foreground "green3"))
+		    (propertize "✔" 'face '(:inherit success))
       (concat
-         (propertize (format "%s" (match-string 2 (flycheck-mode-line-status-text))) 'face '(:foreground "red2"))
+         (propertize (format "%s" (match-string 2 (flycheck-mode-line-status-text))) 'face '(:inherit error))
          (propertize (format "%s" "|") 'face '(:inherit font-lock-modeline-face))
          (propertize (format "%s" (match-string 3 (flycheck-mode-line-status-text))) 'face '(:inherit flycheck-error-list-warning))
       ))
@@ -401,9 +460,9 @@
 		  (if (and plus-minus
 		       (string-match "^\\([0-9]+\\)\t\\([0-9]+\\)\t" plus-minus))
 		       (concat
-			(propertize (format "+%s" (match-string 1 plus-minus)) 'face '(:foreground "green3"))
+			(propertize (format "+%s" (match-string 1 plus-minus)) 'face '(:inherit success))
 			(propertize (format " -%s" (match-string 2 plus-minus)) 'face '(:inherit font-lock-warning-face)))
-		    (propertize "✔" 'face '(:foreground "green3"))))
+		    (propertize "✔" 'face '(:inherit success))))
 		"]")))
 
     ;; use the function in conjunction with :eval and format-mode-line in your mode-line-format
@@ -488,7 +547,7 @@
     (when (executable-find "pandoc")
         ;; Set pandoc as the program that gets called when
         ;; you issue a markdown command
-        (setq markdown-command "pandoc"))
+      (setq markdown-command "pandoc"))
 
 ;;; Emacs Keybindings
     (global-set-key (kbd "<escape>") 'keyboard-escape-quit) ;; Make ESC quit prompts
@@ -504,10 +563,10 @@
  '(ansi-color-faces-vector
    [default default default italic underline success warning error])
  '(custom-safe-themes
-   '("9b54ba84f245a59af31f90bc78ed1240fca2f5a93f667ed54bbf6c6d71f664ac" "835868dcd17131ba8b9619d14c67c127aa18b90a82438c8613586331129dda63" "7eea50883f10e5c6ad6f81e153c640b3a288cd8dc1d26e4696f7d40f754cc703" "8621edcbfcf57e760b44950bb1787a444e03992cb5a32d0d9aec212ea1cd5234" "f91395598d4cb3e2ae6a2db8527ceb83fed79dbaf007f435de3e91e5bda485fb" "a9a67b318b7417adbedaab02f05fa679973e9718d9d26075c6235b1f0db703c8" "1d5e33500bc9548f800f9e248b57d1b2a9ecde79cb40c0b1398dec51ee820daf" "00c5138bb71c95ca37a0fc845656498a8b4ff271ba4e0e0845732d188359d55a" default))
+   '("0568a5426239e65aab5e7c48fa1abde81130a87ddf7f942613bf5e13bf79686b" "1704976a1797342a1b4ea7a75bdbb3be1569f4619134341bd5a4c1cfb16abad4" "6c531d6c3dbc344045af7829a3a20a09929e6c41d7a7278963f7d3215139f6a7" "c2aeb1bd4aa80f1e4f95746bda040aafb78b1808de07d340007ba898efa484f5" "7a7b1d475b42c1a0b61f3b1d1225dd249ffa1abb1b7f726aec59ac7ca3bf4dae" "4f1d2476c290eaa5d9ab9d13b60f2c0f1c8fa7703596fa91b235db7f99a9441b" "d268b67e0935b9ebc427cad88ded41e875abfcc27abd409726a92e55459e0d01" "a7b20039f50e839626f8d6aa96df62afebb56a5bbd1192f557cb2efb5fcfb662" "745d03d647c4b118f671c49214420639cb3af7152e81f132478ed1c649d4597d" "9b54ba84f245a59af31f90bc78ed1240fca2f5a93f667ed54bbf6c6d71f664ac" "835868dcd17131ba8b9619d14c67c127aa18b90a82438c8613586331129dda63" "7eea50883f10e5c6ad6f81e153c640b3a288cd8dc1d26e4696f7d40f754cc703" "8621edcbfcf57e760b44950bb1787a444e03992cb5a32d0d9aec212ea1cd5234" "f91395598d4cb3e2ae6a2db8527ceb83fed79dbaf007f435de3e91e5bda485fb" "a9a67b318b7417adbedaab02f05fa679973e9718d9d26075c6235b1f0db703c8" "1d5e33500bc9548f800f9e248b57d1b2a9ecde79cb40c0b1398dec51ee820daf" "00c5138bb71c95ca37a0fc845656498a8b4ff271ba4e0e0845732d188359d55a" default))
  '(org-agenda-files '("c:/Users/heimangreg/Documents/Org/Emacs-Tasks.org"))
  '(package-selected-packages
-   '(eclipse-theme which-key vertico use-package undo-tree projectile org-roam orderless marginalia magit lsp-java flycheck evil-surround evil-commentary evil-collection doom-themes consult company)))
+   '(modus-themes impatient-mode embark-consult embark eclipse-theme which-key vertico use-package undo-tree projectile org-roam orderless marginalia magit lsp-java flycheck evil-surround evil-commentary evil-collection doom-themes consult company)))
 
     
 (custom-set-faces
