@@ -2,7 +2,6 @@
 ;; C-c @ C-c Hide entry
 ;; C-c @ C-e Show entry
 
-
 ;;; Package Configuration
   (require 'package) ;; Add package repos
     (setq package-archives
@@ -29,7 +28,7 @@
     (add-to-list 'load-path "~/.emacs.d/Custom") ;; The directory that my custom files are kept in
     (load "functions") ;; Load functions
 
-;;; Evil Mode  
+;;; Evil Mode 
   (use-package evil ;; Vim keybindings
       :hook ((after-init . evil-mode))
       :init
@@ -39,7 +38,6 @@
       (evil-set-undo-system 'undo-tree)
       (evil-set-leader 'normal (kbd "\\"))
       (evil-define-key 'normal 'global (kbd "<leader>bl") 'list-buffers)
-      (evil-define-key 'normal 'global (kbd "<leader>bg") 'switch-to-buffer)
       (evil-define-key 'normal 'global (kbd "]q") 'compilation-next-error)
       (evil-define-key 'normal 'global (kbd "[q") 'compilation-previous-error)
       (evil-define-key 'normal 'global (kbd "]Q") 'compilation-last-error)
@@ -49,9 +47,6 @@
       (evil-define-key 'normal 'global (kbd "]B") 'last-buffer)
       (evil-define-key 'normal 'global (kbd "[B") 'first-buffer)
       (evil-define-key 'normal 'global (kbd "gc") 'comment-dwim)
-      (evil-define-key 'normal 'global (kbd "/") 'consult-line)
-      (eval-after-load 'evil-ex
-          '(evil-ex-define-cmd "find" 'projectile-find-file))
       (eval-after-load 'evil-ex
           '(evil-ex-define-cmd "browse-old" 'recentf-open-files)))
 
@@ -83,6 +78,10 @@
 
   (use-package modus-themes ;; High contrast themes 
     :init
+    (setq modus-themes-paren-match '(bold underline)
+          modus-themes-bold-constructs t
+          modus-themes-subtle-line-numbers t
+          modus-themes-mode-line '(borderless))
     (load-theme 'modus-vivendi t)
   )
 
@@ -165,45 +164,14 @@
 
   (use-package consult ;; Greatly expand upon many built in Emacs minibuffer completion functions
     :after vertico
-    :bind ( ;; Every binding starts with the C-c c prefix
-      ;; c bindings (mode-specific-map)
-      ("C-c c m h" . consult-history)
-      ("C-c c m m" . consult-mode-command)
-      ("C-c c m b" . consult-bookmark)
-      ("C-c c m k" . consult-kmacro)
-      ;; x bindings (ctl-x-map)
-      ("C-c c x M-:" . consult-complex-command)     ;; orig. repeat-complex-command
-      ("C-c c x b" . consult-buffer)                ;; orig. switch-to-buffer
-      ("C-c c x 4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
-      ("C-c c x 5 b" . consult-buffer-other-frame)  ;; orig. switch-to-buffer-other-frame
-      ;; Custom M-# bindings for fast register access
-      ("C-c c # #" . consult-register-load)
-      ("C-c c # '" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
-      ("C-c c # C-#" . consult-register)
-      ;; Other custom bindings
-      ("C-c c M-y" . consult-yank-pop)                ;; orig. yank-pop
-      ("C-c c <help> a" . consult-apropos)            ;; orig. apropos-command
-      ;; M-g bindings (goto-map)
-      ("C-c c g e" . consult-compile-error)
-      ("C-c c g f" . consult-flymake)               ;; Alternative: consult-flycheck
-      ("C-c c g g" . consult-goto-line)             ;; orig. goto-line
-      ("C-c c g M-g" . consult-goto-line)           ;; orig. goto-line
-      ("C-c c g o" . consult-outline)               ;; Alternative: consult-org-heading
-      ("C-c c g m" . consult-mark)
-      ("C-c c g k" . consult-global-mark)
-      ("C-c c g i" . consult-imenu)
-      ("C-c c g I" . consult-project-imenu)
-      ;; M-s bindings (search-map)
-      ("C-c c s f" . consult-find)
-      ("C-c c s L" . consult-locate)
-      ("C-c c s g" . consult-grep)
-      ("C-c c s G" . consult-git-grep)
-      ("C-c c s r" . consult-ripgrep)
-      ("C-c c s l" . consult-line)
-      ("C-c c s m" . consult-multi-occur)
-      ("C-c c s k" . consult-keep-lines)
-      ("C-c c s u" . consult-focus-lines))
     :config
+      (if (executable-find "rg")
+        (evil-define-key 'normal 'global (kbd "<leader>f") 'consult-ripgrep)
+        (evil-define-key 'normal 'global (kbd "<leaderf") 'consult-grep))
+
+        (evil-define-key 'normal 'global (kbd "<leader>bg") 'consult-buffer)
+        (evil-define-key 'normal 'global (kbd "/") 'consult-line)
+
       (autoload 'projectile-project-root "projectile")
       (setq consult-project-root-function #'projectile-project-root)
   )
@@ -242,6 +210,10 @@
         (when (file-directory-p "~/Documents/Code") ;; Projectile will search this path for projects
             (setq projectile-project-search-path '("~/Documents/Code")))
         (setq projectile-switch-project-action #'projectile-dired) ;; Auto open dired when opening project
+        (if (executable-find "rg")
+            (setq projectile-git-command "rg --files | rg "))
+        (eval-after-load 'evil-ex
+          '(evil-ex-define-cmd "find" 'projectile-find-file))
     :bind-keymap ("C-c p" . projectile-command-map))
 
 ;;; Magit Mode
