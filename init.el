@@ -98,7 +98,7 @@
       (setq company-text-icons-add-background t)
     :hook (prog-mode . global-company-mode))
 
-;;; LSP Mode
+;;; LSP and DAP Mode
   (use-package lsp-mode ;; Enable LSP support in Emacs
     :hook ((lsp-mode . lsp-enable-which-key-integration)
            (java-mode . lsp-deferred))
@@ -123,10 +123,16 @@
     (add-hook 'dap-stack-frame-changed-hook (lambda (session)
                                             (when (dap--session-running session)
                                               (+dap-running-session-mode 1))))
+    (dap-register-debug-template "PingApiSample Garmin"
+                                 (list :type "java"
+                                       :request "launch"
+                                       :mainClass "com.garmin.partner.pingapi.PingApiSample"
+                                       :projectName "pingapi"
+                                       :args "--spring.profiles.active=garmin"))
   )
 
   (define-minor-mode +dap-running-session-mode
-    "A mode for adding keybindings to running sessions"
+    "A mode for adding keybindings to running DAP sessions"
     nil
     nil
     (make-sparse-keymap)
@@ -307,6 +313,7 @@
      (setq vc-follow-symlinks t) ;; Don't prompt to follow symlinks
      (defalias 'yes-or-no-p 'y-or-n-p) ;; Mad efficiency gains
      (setq custom-file (make-temp-file "emacs-custom-")) ;; Closest thing to disabling custom
+     (setq compilation-scroll-output t) ;; Auto scroll to bottom of compilation buffer
  
      ;; Set default line endings and encoding
      (setq-default buffer-file-coding-system 'utf-8-unix) 
@@ -415,6 +422,7 @@
 
     ;; Don't ask before rereading the TAGS files if they have changed
     (setq-default tags-revert-without-query t)
+    (setq tags-add-tables nil) ;; Don't ask to keep current list of tags tables also
 
 ;;; Markdown Configuration
     (when (executable-find "pandoc")
