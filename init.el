@@ -71,24 +71,28 @@
       (global-undo-tree-mode t))
 
 ;;; Theme
-    (use-package doom-themes ;; Color theme
-      :config
-      (doom-themes-org-config) ;; Corrects some of org-mode's fontification issues
-      :init
-      (load-theme 'doom-moonlight t))
+  (use-package doom-themes ;; Lots of high quality themes 
+    :config
+    (doom-themes-org-config) ;; Corrects some of org-mode's fontification issues
+  )
+
+  (use-package modus-themes ;; High contrast themes 
+    :init
+    (load-theme 'modus-vivendi t)
+  )
 
 ;;; Company Mode
-    (use-package company ;; Text auto completion framework
-      :bind (("TAB" . company-indent-or-complete-common)
-      :map company-active-map
-        ("<tab>" . company-select-next-or-abort)
-        ("TAB" . company-select-next-or-abort)
-        ("S-TAB" . compnay-select-previous-or-abort)
-        ("<backtab>" . company-select-previous-or-abort))
-      :config
-      (setq company-format-margin-function 'company-text-icons-margin)
-      (setq company-text-icons-add-background t)
-      :hook (prog-mode . global-company-mode))
+  (use-package company ;; Text auto completion framework
+    :bind (("TAB" . company-indent-or-complete-common)
+    :map company-active-map
+    ("<tab>" . company-select-next-or-abort)
+    ("TAB" . company-select-next-or-abort)
+    ("S-TAB" . compnay-select-previous-or-abort)
+    ("<backtab>" . company-select-previous-or-abort))
+    :config
+    (setq company-format-margin-function 'company-text-icons-margin)
+    (setq company-text-icons-add-background t)
+    :hook (prog-mode . global-company-mode))
 
 ;;; LSP Mode
   (use-package lsp-mode ;; Enable LSP support in Emacs
@@ -134,96 +138,97 @@
   
   ;; Activate this minor mode when stepping into code in another file
 
-;;; Vertico, Orderless, Marginalia, Embark and Consult (Minibuffer)
-  (use-package vertico
+;;; Vertico, Orderless, Marginalia, Embark, and Consult (Minibuffer Packages)
+  (use-package vertico ;; Minimalistic minibuffer completion framework
     :hook ((after-init . vertico-mode))
     :config
-      (setq vertico-cycle t) ;; Optionally enable cycling for `vertico-next' and `vertico-previous'
+    (setq vertico-cycle t) ;; Optionally enable cycling for `vertico-next' and `vertico-previous'
   ) 
 
- (use-package orderless
+  (use-package orderless ;; Allow for space delimeted searching
     :after vertico
     :config
       (setq completion-styles '(orderless)
             completion-category-defaults nil
             completion-category-overrides '((file (styles partial-completion))))
- )
+  )
 
- (use-package marginalia
+  (use-package marginalia ;; Show info about selection canidates in minibuffer
    :after vertico
    :hook ((vertico-mode . marginalia-mode))
   )
 
-  (use-package consult
-  :after vertico
-  ;; Replace bindings. Lazily loaded due by `use-package'.
-  :bind (;; c bindings (mode-specific-map)
-         ("C-c c m h" . consult-history)
-         ("C-c c m m" . consult-mode-command)
-         ("C-c c m b" . consult-bookmark)
-         ("C-c c m k" . consult-kmacro)
-         ;; x bindings (ctl-x-map)
-         ("C-c c x M-:" . consult-complex-command)     ;; orig. repeat-complex-command
-         ("C-c c x b" . consult-buffer)                ;; orig. switch-to-buffer
-         ("C-c c x 4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
-         ("C-c c x 5 b" . consult-buffer-other-frame)  ;; orig. switch-to-buffer-other-frame
-         ;; Custom M-# bindings for fast register access
-         ("C-c c # #" . consult-register-load)
-         ("C-c c # '" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
-         ("C-c c # C-#" . consult-register)
-         ;; Other custom bindings
-         ("C-c c M-y" . consult-yank-pop)                ;; orig. yank-pop
-         ("C-c c <help> a" . consult-apropos)            ;; orig. apropos-command
-         ;; M-g bindings (goto-map)
-         ("C-c c g e" . consult-compile-error)
-         ("C-c c g f" . consult-flymake)               ;; Alternative: consult-flycheck
-         ("C-c c g g" . consult-goto-line)             ;; orig. goto-line
-         ("C-c c g M-g" . consult-goto-line)           ;; orig. goto-line
-         ("C-c c g o" . consult-outline)               ;; Alternative: consult-org-heading
-         ("C-c c g m" . consult-mark)
-         ("C-c c g k" . consult-global-mark)
-         ("C-c c g i" . consult-imenu)
-         ("C-c c g I" . consult-project-imenu)
-         ;; M-s bindings (search-map)
-         ("C-c c s f" . consult-find)
-         ("C-c c s L" . consult-locate)
-         ("C-c c s g" . consult-grep)
-         ("C-c c s G" . consult-git-grep)
-         ("C-c c s r" . consult-ripgrep)
-         ("C-c c s l" . consult-line)
-         ("C-c c s m" . consult-multi-occur)
-         ("C-c c s k" . consult-keep-lines)
-         ("C-c c s u" . consult-focus-lines))
-       :config
-	 (autoload 'projectile-project-root "projectile")
-         (setq consult-project-root-function #'projectile-project-root)
+  (use-package consult ;; Greatly expand upon many built in Emacs minibuffer completion functions
+    :after vertico
+    :bind ( ;; Every binding starts with the C-c c prefix
+      ;; c bindings (mode-specific-map)
+      ("C-c c m h" . consult-history)
+      ("C-c c m m" . consult-mode-command)
+      ("C-c c m b" . consult-bookmark)
+      ("C-c c m k" . consult-kmacro)
+      ;; x bindings (ctl-x-map)
+      ("C-c c x M-:" . consult-complex-command)     ;; orig. repeat-complex-command
+      ("C-c c x b" . consult-buffer)                ;; orig. switch-to-buffer
+      ("C-c c x 4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
+      ("C-c c x 5 b" . consult-buffer-other-frame)  ;; orig. switch-to-buffer-other-frame
+      ;; Custom M-# bindings for fast register access
+      ("C-c c # #" . consult-register-load)
+      ("C-c c # '" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
+      ("C-c c # C-#" . consult-register)
+      ;; Other custom bindings
+      ("C-c c M-y" . consult-yank-pop)                ;; orig. yank-pop
+      ("C-c c <help> a" . consult-apropos)            ;; orig. apropos-command
+      ;; M-g bindings (goto-map)
+      ("C-c c g e" . consult-compile-error)
+      ("C-c c g f" . consult-flymake)               ;; Alternative: consult-flycheck
+      ("C-c c g g" . consult-goto-line)             ;; orig. goto-line
+      ("C-c c g M-g" . consult-goto-line)           ;; orig. goto-line
+      ("C-c c g o" . consult-outline)               ;; Alternative: consult-org-heading
+      ("C-c c g m" . consult-mark)
+      ("C-c c g k" . consult-global-mark)
+      ("C-c c g i" . consult-imenu)
+      ("C-c c g I" . consult-project-imenu)
+      ;; M-s bindings (search-map)
+      ("C-c c s f" . consult-find)
+      ("C-c c s L" . consult-locate)
+      ("C-c c s g" . consult-grep)
+      ("C-c c s G" . consult-git-grep)
+      ("C-c c s r" . consult-ripgrep)
+      ("C-c c s l" . consult-line)
+      ("C-c c s m" . consult-multi-occur)
+      ("C-c c s k" . consult-keep-lines)
+      ("C-c c s u" . consult-focus-lines))
+    :config
+      (autoload 'projectile-project-root "projectile")
+      (setq consult-project-root-function #'projectile-project-root)
   )
 
-  (use-package embark
+  (use-package embark ;; Actions for items in the minibuffer
     :after vertico
-    :bind (("C-c e ." . embark-dwim)
-           ("C-c e ;" . embark-act))
+    :bind (("C-:" . embark-dwim)
+           ("C-;" . embark-act)
+           ("C-h B" . embark-bindings))
     )
 
-  (use-package embark-consult
+  (use-package embark-consult ;; Integrate Embark with Consult
     :after (embark consult)
     :demand t
     :hook
     (embark-collect-mode . consult-preview-at-point-mode))
 
 ;;; Which-Key Mode
-    (use-package which-key ;; Show possible keybindings when you pause a keycord
+  (use-package which-key ;; Show possible keybindings when you pause a keycord
     :defer 5
     :hook ((after-init . which-key-mode))
     :commands (which-key))
 
 ;;; Flycheck Mode
-    (use-package flycheck ;; Improved linting and checking
-      :bind-keymap ("C-c f" . flycheck-command-map)
-      :config
-        (setq flycheck-display-error-function #'flycheck-display-error-messages) ;; Show error messages in echo area
-        (setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc)) ;; Stop flycheck from treating init.el as package file
-      :hook (prog-mode . global-flycheck-mode))
+  (use-package flycheck ;; Improved linting and checking
+    :bind-keymap ("C-c f" . flycheck-command-map)
+    :config
+      (setq flycheck-display-error-function #'flycheck-display-error-messages) ;; Show error messages in echo area
+      (setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc)) ;; Stop flycheck from treating init.el as package file
+    :hook (prog-mode . global-flycheck-mode))
 
 ;;; Projectile Mode
   (use-package projectile ;; Project management
@@ -237,7 +242,7 @@
     :bind-keymap ("C-c p" . projectile-command-map))
 
   (defun regenerate-tags-if-exists ()
-    "Regenerate tags if the tags file already exists"
+    "Regenerate tags with Projectile if the tags file already exists"
     (if (equal (file-exists-p (concat (projectile-project-root) "TAGS")) t)
         (projectile-regenerate-tags) ;; Create after-save hook to regen tags
     )
@@ -288,6 +293,7 @@
 
 
 ;;; Org Mode Et Al.
+  ;; Prefix all org modes with C-c o (So for org-agenda C-c o a)
   (use-package org ;; Powerful plain text note taking and more
     :hook ((org-mode . org-indent-mode))
     :bind-keymap ("C-c o o" . org-mode-map))
@@ -307,15 +313,20 @@
     (setq org-roam-directory "~/Documents/Org"))
 
 ;;; Flyspell Mode
-    (use-package flyspell
-      :config
-        (when (executable-find "ispell")
-            (add-hook 'org-mode-hook 'turn-on-flyspell)))
+  (use-package flyspell
+    :hook ((org-mode . 'turn-on-flyspell)
+           (markdown-mode . 'turn-on-flyspell)
+           (LaTeX-mode . 'turn-on-flyspell)) 
+    :config
+      (when (executable-find "aspell") ;; Use aspell if available
+        (setq ispell-program-name "aspell"))
+  )
+    
 
 ;;; Outline-Minor-Mode
-    (use-package outline
+    (use-package outline ;; Minor mode that allows for folding code
       :config
-      (setq outline-blank-line t) ;; Have a blank line before a heading
+        (setq outline-blank-line t) ;; Have a blank line before a heading
       :hook (
              (emacs-lisp-mode . outline-minor-mode)
              (outline-minor-mode . outline-hide-body)))
@@ -335,59 +346,60 @@
 
 ;;; Emacs Configuration
  (use-package emacs
-  :hook ((emacs-startup . efs/display-startup-time)
-         (auto-save . full-auto-save)
-         (c-mode . c-mode-configuration)
-         (java-mode . java-mode-configuration))
-  :config
-    ;; Font configuration
-    (set-face-attribute 'default nil :font "Iosevka-12" ) ;; Set font options
-    (set-frame-font "Iosevka-12" nil t)
-
-    ;; Add to the interface
-    (global-hl-line-mode) ;; Highlight the current line
-    (column-number-mode t) ;; Show column numbers in modeline
-    (show-paren-mode t) ;; Highlight matching delimeter pair
-    (setq-default show-paren-style 'parenthesis)
-
-    ;; Bring Emacs into the 21st century
-    (recentf-mode 1) ;; Keep a list of recently opened files
-    (delete-selection-mode t) ;; Whatever is highlighted will be replaced with whatever is typed or pasted
-    (electric-pair-mode 1) ;; Auto pair delimeters
-    (auto-save-visited-mode) ;; Auto save files without the #filename#
-
-    ;; Indent configuration 
-    (setq-default indent-tabs-mode nil) ;; Use spaces for tabs instead of tab characters
-    (setq tab-width 4) ;; Set the tab width to 4 characters
-    (setq electric-indent-inhibit t) ;; Make return key indent to current indent level
-    (setq backward-delete-char-untabify-method 'hungry) ;; Have Emacs backspace the entire tab at a time
-
-    ;; Personal preference
-    (set-default 'truncate-lines t) ;; Disable wrapping of lines
-    (setq read-process-output-max (* 1024 1024)) ;; 1MB
-    (setq vc-follow-symlinks t) ;; Don't prompt to follow symlinks
-    (defalias 'yes-or-no-p 'y-or-n-p) ;; Mad efficiency gains
-
-    ;; Set default line endings and encoding
-    (setq-default buffer-file-coding-system 'utf-8-unix) 
-    (set-default-coding-systems 'utf-8-unix) ;; Automatically use unix line endings and utf-8
-
-    ;; Auto revert files
-    (global-auto-revert-mode 1) ;; Auto update when files change on disk
-    (setq auto-revert-verbose nil) ;; Be quite about updating files when they're changed on disk
-
-    ;; Scrolling configuration
-    (setq mouse-wheel-progressive-speed nil) ;; don't accelerate scrolling
-    (setq mouse-wheel-follow-mouse 't) ;; scroll window under mouse
-    (setq scroll-step 1) ;; keyboard scroll one line at a time
-
-    ;; Backup file configuration
-    (setq backup-directory-alist '(("." . "~/.emacs.d/backup")) ;; Write backups to ~/.emacs.d/backup/
-        backup-by-copying      t  ; Don't de-link hard links
-        version-control        t  ; Use version numbers on backups
-        delete-old-versions    t  ; Automatically delete excess backups:
-        kept-new-versions      5 ; how many of the newest versions to keep
-        kept-old-versions      2) ; and how many of the old
+   :hook ((emacs-startup . efs/display-startup-time)
+          (auto-save . full-auto-save)
+          (c-mode . c-mode-configuration)
+          (java-mode . java-mode-configuration))
+   :config
+     ;; Font configuration
+     (set-face-attribute 'default nil :font "Iosevka-12" ) ;; Set font options
+     (set-frame-font "Iosevka-12" nil t)
+ 
+     ;; Add to the interface
+     (global-hl-line-mode) ;; Highlight the current line
+     (column-number-mode t) ;; Show column numbers in modeline
+     (show-paren-mode t) ;; Highlight matching delimeter pair
+     (setq-default show-paren-style 'parenthesis)
+ 
+     ;; Bring Emacs into the 21st century
+     (recentf-mode 1) ;; Keep a list of recently opened files
+     (delete-selection-mode t) ;; Whatever is highlighted will be replaced with whatever is typed or pasted
+     (electric-pair-mode 1) ;; Auto pair delimeters
+     (auto-save-visited-mode) ;; Auto save files without the #filename#
+ 
+     ;; Indent configuration 
+     (setq-default indent-tabs-mode nil) ;; Use spaces for tabs instead of tab characters
+     (setq tab-width 4) ;; Set the tab width to 4 characters
+     (setq electric-indent-inhibit t) ;; Make return key indent to current indent level
+     (setq backward-delete-char-untabify-method 'hungry) ;; Have Emacs backspace the entire tab at a time
+ 
+     ;; Personal preference
+     (set-default 'truncate-lines t) ;; Disable wrapping of lines
+     (setq read-process-output-max (* 1024 1024)) ;; 1MB
+     (setq vc-follow-symlinks t) ;; Don't prompt to follow symlinks
+     (defalias 'yes-or-no-p 'y-or-n-p) ;; Mad efficiency gains
+     (setq custom-file (make-temp-file "emacs-custom-")) ;; Closest thing to disabling custom
+ 
+     ;; Set default line endings and encoding
+     (setq-default buffer-file-coding-system 'utf-8-unix) 
+     (set-default-coding-systems 'utf-8-unix) ;; Automatically use unix line endings and utf-8
+ 
+     ;; Auto revert files
+     (global-auto-revert-mode 1) ;; Auto update when files change on disk
+     (setq auto-revert-verbose nil) ;; Be quite about updating files when they're changed on disk
+ 
+     ;; Scrolling configuration
+     (setq mouse-wheel-progressive-speed nil) ;; don't accelerate scrolling
+     (setq mouse-wheel-follow-mouse 't) ;; scroll window under mouse
+     (setq scroll-step 1) ;; keyboard scroll one line at a time
+ 
+     ;; Backup file configuration
+     (setq backup-directory-alist '(("." . "~/.emacs.d/backup")) ;; Write backups to ~/.emacs.d/backup/
+         backup-by-copying      t  ; Don't de-link hard links
+         version-control        t  ; Use version numbers on backups
+         delete-old-versions    t  ; Automatically delete excess backups:
+         kept-new-versions      5 ; how many of the newest versions to keep
+         kept-old-versions      2) ; and how many of the old
   )
 
   (defun efs/display-startup-time () ;; Log startup time
@@ -502,12 +514,12 @@
 ;;; Tags Configuration
     ;; Function to build ctags tags file
     (when (executable-find "ctags")
-    (defun create-tags-ctags (dir-name)
-        "Create tags file."
-        (interactive "DDirectory: ")
-        (shell-command
-        (format "ctags -f TAGS -e -R %s" (directory-file-name dir-name)))
-        )
+      (defun create-tags-ctags (dir-name)
+          "Create tags file."
+          (interactive "DDirectory: ")
+          (shell-command
+          (format "ctags -f TAGS -e -R %s" (directory-file-name dir-name)))
+          )
     )
 
     ;; Function to built etags tags file
@@ -551,27 +563,3 @@
 
 ;;; Emacs Keybindings
     (global-set-key (kbd "<escape>") 'keyboard-escape-quit) ;; Make ESC quit prompts
-
-;;; Custom-Set-Variables (Set by Emacs)
-    
-    
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(ansi-color-faces-vector
-   [default default default italic underline success warning error])
- '(custom-safe-themes
-   '("0568a5426239e65aab5e7c48fa1abde81130a87ddf7f942613bf5e13bf79686b" "1704976a1797342a1b4ea7a75bdbb3be1569f4619134341bd5a4c1cfb16abad4" "6c531d6c3dbc344045af7829a3a20a09929e6c41d7a7278963f7d3215139f6a7" "c2aeb1bd4aa80f1e4f95746bda040aafb78b1808de07d340007ba898efa484f5" "7a7b1d475b42c1a0b61f3b1d1225dd249ffa1abb1b7f726aec59ac7ca3bf4dae" "4f1d2476c290eaa5d9ab9d13b60f2c0f1c8fa7703596fa91b235db7f99a9441b" "d268b67e0935b9ebc427cad88ded41e875abfcc27abd409726a92e55459e0d01" "a7b20039f50e839626f8d6aa96df62afebb56a5bbd1192f557cb2efb5fcfb662" "745d03d647c4b118f671c49214420639cb3af7152e81f132478ed1c649d4597d" "9b54ba84f245a59af31f90bc78ed1240fca2f5a93f667ed54bbf6c6d71f664ac" "835868dcd17131ba8b9619d14c67c127aa18b90a82438c8613586331129dda63" "7eea50883f10e5c6ad6f81e153c640b3a288cd8dc1d26e4696f7d40f754cc703" "8621edcbfcf57e760b44950bb1787a444e03992cb5a32d0d9aec212ea1cd5234" "f91395598d4cb3e2ae6a2db8527ceb83fed79dbaf007f435de3e91e5bda485fb" "a9a67b318b7417adbedaab02f05fa679973e9718d9d26075c6235b1f0db703c8" "1d5e33500bc9548f800f9e248b57d1b2a9ecde79cb40c0b1398dec51ee820daf" "00c5138bb71c95ca37a0fc845656498a8b4ff271ba4e0e0845732d188359d55a" default))
- '(org-agenda-files '("c:/Users/heimangreg/Documents/Org/Emacs-Tasks.org"))
- '(package-selected-packages
-   '(modus-themes impatient-mode embark-consult embark eclipse-theme which-key vertico use-package undo-tree projectile org-roam orderless marginalia magit lsp-java flycheck evil-surround evil-commentary evil-collection doom-themes consult company)))
-
-    
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
