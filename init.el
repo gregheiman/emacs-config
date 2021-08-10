@@ -2,30 +2,35 @@
 ;; C-c @ C-c Hide entry
 ;; C-c @ C-e Show entry
 
-;;; Package Configuration
-    (require 'package) ;; Add package repos
-    (setq package-archives
-      '(("melpa" . "https://melpa.org/packages/")
-        ("org" . "http://orgmode.org/elpa/")
-        ("elpa" . "https://elpa.gnu.org/packages/")))
-    (package-initialize) ;; Initialize package.el
 
+;;; Package Configuration
+  (require 'package) ;; Add package repos
+    (setq package-archives
+    '(("melpa" . "https://melpa.org/packages/")
+    ("org" . "http://orgmode.org/elpa/")
+    ("elpa" . "https://elpa.gnu.org/packages/")))
+    (package-initialize) ;; Initialize package.el  
     (unless package-archive-contents ;; Auto download package archive repository manifest if not present
       (package-refresh-contents))
 
 ;;; Use-Package Configuration
-    (unless (package-installed-p 'use-package) ;; Download use-package if not present
-      (package-install 'use-package))
 
-    (eval-when-compile ;; Use use-package to manage packages
-      (require 'use-package))
+  (unless (package-installed-p 'use-package) ;; Download use-package if not present
+    (package-install 'use-package))
 
-    (require 'use-package)
-      (setq use-package-always-ensure t) ;; Always download packages that are marked under use-package if they aren't installed
-      (setq use-package-always-defer t) ;; Always defer package loading. If absolutely nessacary use :demand to override
+  (eval-when-compile ;; Use use-package to manage packages
+    (require 'use-package))
 
-;;; Evil Mode
-    (use-package evil ;; Vim keybindings
+  (require 'use-package)
+    (setq use-package-always-ensure t) ;; Always download packages that are marked under use-package if they aren't installed
+    (setq use-package-always-defer t) ;; Always defer package loading. If absolutely nessacary use :demand to override
+
+;;; Load Custom Files
+    (add-to-list 'load-path "~/.emacs.d/Custom") ;; The directory that my custom files are kept in
+    (load "functions") ;; Load functions
+
+;;; Evil Mode  
+  (use-package evil ;; Vim keybindings
       :hook ((after-init . evil-mode))
       :init
       (setq evil-want-keybinding nil) ;; Needed to use evil-collection
@@ -71,10 +76,10 @@
       (global-undo-tree-mode t))
 
 ;;; Theme
-  (use-package doom-themes ;; Lots of high quality themes 
-    :config
-    (doom-themes-org-config) ;; Corrects some of org-mode's fontification issues
-  )
+  ;; (use-package doom-themes ;; Lots of high quality themes 
+  ;;   :config
+  ;;   (doom-themes-org-config) ;; Corrects some of org-mode's fontification issues
+  ;; )
 
   (use-package modus-themes ;; High contrast themes 
     :init
@@ -85,13 +90,13 @@
   (use-package company ;; Text auto completion framework
     :bind (("TAB" . company-indent-or-complete-common)
     :map company-active-map
-    ("<tab>" . company-select-next-or-abort)
-    ("TAB" . company-select-next-or-abort)
-    ("S-TAB" . compnay-select-previous-or-abort)
-    ("<backtab>" . company-select-previous-or-abort))
+      ("<tab>" . company-select-next-or-abort)
+      ("TAB" . company-select-next-or-abort)
+      ("S-TAB" . compnay-select-previous-or-abort)
+      ("<backtab>" . company-select-previous-or-abort))
     :config
-    (setq company-format-margin-function 'company-text-icons-margin)
-    (setq company-text-icons-add-background t)
+      (setq company-format-margin-function 'company-text-icons-margin)
+      (setq company-text-icons-add-background t)
     :hook (prog-mode . global-company-mode))
 
 ;;; LSP Mode
@@ -237,16 +242,7 @@
         (when (file-directory-p "~/Documents/Code") ;; Projectile will search this path for projects
             (setq projectile-project-search-path '("~/Documents/Code")))
         (setq projectile-switch-project-action #'projectile-dired) ;; Auto open dired when opening project
-        ;; (add-hook 'prog-mode-hook (lambda ()
-        ;;                             (add-hook 'after-save-hook 'regenerate-tags-if-exists)))
     :bind-keymap ("C-c p" . projectile-command-map))
-
-  (defun regenerate-tags-if-exists ()
-    "Regenerate tags with Projectile if the tags file already exists"
-    (if (equal (file-exists-p (concat (projectile-project-root) "TAGS")) t)
-        (projectile-regenerate-tags) ;; Create after-save hook to regen tags
-    )
-  )
 
 ;;; Magit Mode
   (use-package magit ;; Git managment within Emacs (Very slow on Windows)
@@ -258,39 +254,6 @@
     :bind (("C-c i m" . impatient-markdown-preview)
            ("C-c i h" . impatient-html-preview))
     )
-
-  (defun markdown-html-filter (buffer) ;; Use this filter with impatient mode with M-x imp-set-user-filter RET markdown-html RET
-    "Impatient mode filter to show markdown correctly."
-    (princ (with-current-buffer buffer
-    (format
-     "<!DOCTYPE html>
-      <html>
-        <title>Impatient Markdown Preview</title>
-        <xmp theme=\"spacelab\">
-          %s
-        </xmp>
-        <script type=\"text/javascript\" src=\"http://strapdownjs.com/v/0.2/strapdown.js\"></script>
-      </html>"
-     (buffer-substring-no-properties (point-min) (point-max))))
-           (current-buffer)))
-
-  (defun impatient-markdown-preview () ;; Preview current markdown buffer with impatient mode
-    "Preview Markdown in realtime with impatient mode."
-    (interactive)
-    (unless (process-status "httpd")
-        (httpd-start))
-    (impatient-mode)
-    (imp-set-user-filter 'markdown-html-filter)
-    (imp-visit-buffer))
-
-  (defun impatient-html-preview () ;; Preview current HTML buffer with impatient mode
-    "Preview HTML files in realtime with impatient mode."
-    (interactive)
-    (unless (process-status "httpd")
-        (httpd-start))
-    (impatient-mode)
-    (imp-visit-buffer))
-
 
 ;;; Org Mode Et Al.
   ;; Prefix all org modes with C-c o (So for org-agenda C-c o a)
@@ -336,13 +299,6 @@
     :config
       (setq-default eshell-prompt-function 'eshell-prompt)
       (setq-default eshell-highlight-prompt nil))
-
-  (defun eshell-prompt ()
-      (concat
-        (propertize (concat (if (string= (eshell/pwd) (getenv "HOME")) "~" (eshell/basename (eshell/pwd))) " λ "))
-        (propertize (or (ignore-errors (format "(%s)" (vc-responsible-backend default-directory))) ""))
-       )
-  )
 
 ;;; Emacs Configuration
  (use-package emacs
@@ -402,20 +358,6 @@
          kept-old-versions      2) ; and how many of the old
   )
 
-  (defun efs/display-startup-time () ;; Log startup time
-        (message "Emacs loaded in %s with %d garbage collections."
-                (format "%.2f seconds"
-                        (float-time
-                        (time-subtract after-init-time before-init-time)))
-                gcs-done))
-  (defun full-auto-save () ;; Auto save all buffers when autosave fires
-    (interactive)
-    (save-excursion
-        (dolist (buf (buffer-list))
-        (set-buffer buf)
-        (if (and (buffer-file-name) (buffer-modified-p))
-            (basic-save-buffer)))))
-
 ;;; Line Numbers
   (use-package display-line-numbers
     ;; Display line numbers for some modes
@@ -424,43 +366,7 @@
            (conf-mode . display-line-numbers-mode)
            (org-mode . display-line-numbers-mode)))
 
-;;; C Configuration
- (defun c-mode-configuration ()
-    "Set C style configuration"
-    (setq c-basic-offset 4)
-    (c-set-offset 'substatement-open 0)
-    (setq c-set-style "k&r")
-    )
-
-;;; Java Configuration
- (defun java-mode-configuration ()
-   (c-set-offset 'case-label '+)
-    )
-
-
 ;;; Modeline Configuration
-    ;; write a function to do the spacing
-    (defun simple-mode-line-render (left right)
-    "Return a string of `window-width' length containing LEFT, and RIGHT
-    aligned respectively."
-    (let* ((available-width (- (window-width) (length left) 2)))
-        (format (format " %%s %%%ds " available-width) left right)))
-
-    (defun vc-branch () ;; Cut out the Git from vc-mode
-        (let ((backend (vc-backend (buffer-file-name))))
-          (substring vc-mode (+ (if (eq backend 'Hg) 2 3) 2)))
-        )
-
-  (defun flycheck-indicator () ;; Results in errors|warnings
-    (if (equal (string-match "\\(FlyC:\\)\\([0-9]+\\)|\\([0-9]+\\)" (flycheck-mode-line-status-text)) nil)
-		    (propertize "✔" 'face '(:inherit success))
-      (concat
-         (propertize (format "%s" (match-string 2 (flycheck-mode-line-status-text))) 'face '(:inherit error))
-         (propertize (format "%s" "|") 'face '(:inherit font-lock-modeline-face))
-         (propertize (format "%s" (match-string 3 (flycheck-mode-line-status-text))) 'face '(:inherit flycheck-error-list-warning))
-      ))
-    )
-
   ;; Gets tacked onto the end of the vc-branch output
   (defadvice vc-git-mode-line-string (after plus-minus (file) compile activate)
   "Show the information of git diff on modeline."
@@ -512,23 +418,6 @@
     )
 
 ;;; Tags Configuration
-    ;; Function to build ctags tags file
-    (when (executable-find "ctags")
-      (defun create-tags-ctags (dir-name)
-          "Create tags file."
-          (interactive "DDirectory: ")
-          (shell-command
-          (format "ctags -f TAGS -e -R %s" (directory-file-name dir-name)))
-          )
-    )
-
-    ;; Function to built etags tags file
-    (defun create-tags-etags (dir-name)
-        "Create tags file."
-        (interactive "DDirectory: ")
-        (eshell-command 
-        (format "find %s -type f -name \"*.[ch]\" | etags -" dir-name)))
-
     ;;;  Jonas.Jarnestrom<at>ki.ericsson.se A smarter               
     ;;;  find-tag that automagically reruns etags when it cant find a               
     ;;;  requested item and then makes a new try to locate it.                      
@@ -553,7 +442,7 @@
     (visit-tags-table default-directory nil)))
 
     ;; Don't ask before rereading the TAGS files if they have changed
-    (setq tags-revert-without-query t)
+    (setq-default tags-revert-without-query t)
 
 ;;; Markdown Configuration
     (when (executable-find "pandoc")
@@ -563,3 +452,4 @@
 
 ;;; Emacs Keybindings
     (global-set-key (kbd "<escape>") 'keyboard-escape-quit) ;; Make ESC quit prompts
+
