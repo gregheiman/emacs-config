@@ -1,3 +1,8 @@
+;; Functions, Advice, and Custom Minor Modes
+;; Uses Outline-Minor-Mode
+;; C-c @ C-c Hide entry
+;; C-c @ C-e Show entry
+
 ;;; Emacs functions
   (defun efs/display-startup-time () ;; Log startup time
         (message "Emacs loaded in %s with %d garbage collections."
@@ -14,17 +19,40 @@
         (if (and (buffer-file-name) (buffer-modified-p))
             (basic-save-buffer)))))
 
+;;; DAP Mode
+  (define-minor-mode +dap-running-session-mode
+    "A mode for adding keybindings to running DAP sessions"
+    nil
+    nil
+    (make-sparse-keymap)
+    (evil-normalize-keymaps) ;; if you use evil, this is necessary to update the keymaps
+    ;; The following code adds to the dap-terminated-hook
+    ;; so that this minor mode will be deactivated when the debugger finishes
+    (when +dap-running-session-mode
+      (let ((session-at-creation (dap--cur-active-session-or-die)))
+        (add-hook 'dap-terminated-hook
+                  (lambda (session)
+                    (when (eq session session-at-creation)
+                      (+dap-running-session-mode -1)))))))
+
 ;;; C Mode Configuration
  (defun c-mode-configuration ()
     "Set C style configuration"
-    (setq c-basic-offset 4)
-    (c-set-offset 'substatement-open 0)
-    (setq c-set-style "k&r")
+    (setq c-basic-offset 4) ;; Set 4 space tabs
+    (c-set-offset 'substatement-open 0) 
+    (setq c-set-style "k&r") ;; The God style
   )
 
 ;;; Java Mode Configuration
   (defun java-mode-configuration ()
-    (c-set-offset 'case-label '+)
+    "Set Java style configuration"
+    (c-set-offset 'case-label '+) ;; Properly indent case statments
+  )
+
+;;; Elisp Mode Configuration
+  (defun elisp-mode-configuration ()
+    "Set elisp style configuration"
+    (setq tab-width 2) ;; 2 space tabs
   )
 
 ;;; Modeline
@@ -52,7 +80,24 @@
       ))
   )
 
-;;; Tags Configuration
+  ;; Add the Git diff summary to the end of vc-mode output
+  (defadvice vc-git-mode-line-string (after plus-minus (file) compile activate)
+  "Show the information of git diff on modeline."
+  (setq ad-return-value
+	(concat (propertize ad-return-value 'face '(:inherit font-lock-modeline-face))
+		" ["
+		(let ((plus-minus (vc-git--run-command-string
+				   file "diff" "--numstat" "--")))
+		  (if (and plus-minus
+		       (string-match "^\\([0-9]+\\)\t\\([0-9]+\\)\t" plus-minus))
+		       (concat
+			(propertize (format "+%s" (match-string 1 plus-minus)) 'face '(:inherit success))
+			(propertize (format " -%s" (match-string 2 plus-minus)) 'face '(:inherit font-lock-warning-face)))
+		    (propertize "✔" 'face '(:inherit success))))
+		"]"))
+  )
+
+;;; Tags 
   (when (executable-find "ctags")
     (defun create-tags-ctags (dir-name)
         "Create tags file using Ctags."
@@ -67,6 +112,30 @@
     (interactive "DDirectory: ")
     (eshell-command 
         (format "find %s -type f -name \"*.[ch]\" | etags -" dir-name))
+  )
+
+  ;;;  Jonas.Jarnestrom<at>ki.ericsson.se A smarter               
+  ;;;  find-tag that automagically reruns etags when it cant find a               
+  ;;;  requested item and then makes a new try to locate it.                      
+  ;;;  Fri Mar 15 09:52:14 2002    
+  (defadvice find-tag (around refresh-etags activate)
+    "Rerun etags and reload tags if tag not found and redo find-tag.              
+    If buffer is modified, ask about save before running etags."
+    (let ((extension (file-name-extension (buffer-file-name))))
+    (condition-case err
+    ad-do-it
+        (error (and (buffer-modified-p)
+            (not (ding))
+            (y-or-n-p "Buffer is modified, save it? ")
+            (save-buffer))
+            (er-refresh-etags extension)
+            ad-do-it))))
+    (defun er-refresh-etags (&optional extension)
+    "Run etags on all peer files in current dir and reload them silently."
+    (interactive)
+    (shell-command (format "etags *.%s" (or extension "el")))
+    (let ((tags-revert-without-query t))  ; don't query, revert silently          
+        (visit-tags-table default-directory nil))
   )
 
 ;;; Impatient Mode
@@ -120,25 +189,3 @@
         (propertize (or (ignore-errors (format "(%s) " (git-prompt-branch-name))) ""))
         (propertize (concat (if (string= (eshell/pwd) (getenv "HOME")) "~" (eshell/basename (eshell/pwd))) " λ "))
   ))
-
-;;; CLI Mode
-  (defun cli-mode ()
-    "Set the compile buffer to be editable for interative CLIs."
-    (interactive)
-    (if (not (member 'cli-mode-start-bait compilation-start-hook))
-        (progn
-          (add-hook 'compilation-start-hook #'cli-mode-start-bait)
-          (add-hook 'compilation-finish-functions #'cli-mode-finish-bait))
-      (remove-hook 'compilation-start-hook #'cli-mode-start-bait)
-      (remove-hook 'compilation-finish-functions #'cli-mode-finish-bait)))
-  
-  (defun cli-mode-start-bait (process)
-    "This is the function that should be added to `compilation-start-mode-hook' for cli mode."
-    (pop-to-buffer (get-buffer "*compilation*"))
-    (comint-mode)
-    (setq inhibit-read-only t)
-    (goto-char (point-max)))
-  
-  (defun cli-mode-finish-bait (process report)
-    (pop-to-buffer (get-buffer "*compilation*"))
-    (compilation-mode))

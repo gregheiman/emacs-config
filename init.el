@@ -32,29 +32,37 @@
   (use-package evil ;; Vim keybindings
       :hook ((after-init . evil-mode))
       :init
-      (setq evil-want-keybinding nil) ;; Needed to use evil-collection
+        (setq evil-want-keybinding nil) ;; Needed to use evil-collection
       :config
-      (setq evil-insert-state-message nil)
-      (evil-set-undo-system 'undo-tree)
-      (evil-set-leader 'normal (kbd "\\"))
-      (evil-define-key 'normal 'global (kbd "<leader>bl") 'list-buffers)
-      (evil-define-key 'normal 'global (kbd "]q") 'compilation-next-error)
-      (evil-define-key 'normal 'global (kbd "[q") 'compilation-previous-error)
-      (evil-define-key 'normal 'global (kbd "]Q") 'compilation-last-error)
-      (evil-define-key 'normal 'global (kbd "[Q") 'compilation-first-error)
-      (evil-define-key 'normal 'global (kbd "]b") 'next-buffer)
-      (evil-define-key 'normal 'global (kbd "[b") 'previous-buffer)
-      (evil-define-key 'normal 'global (kbd "]B") 'last-buffer)
-      (evil-define-key 'normal 'global (kbd "[B") 'first-buffer)
-      (evil-define-key 'normal 'global (kbd "gc") 'comment-dwim)
-      (eval-after-load 'evil-ex
-          '(evil-ex-define-cmd "browse-old" 'recentf-open-files)))
+        (setq evil-insert-state-message nil)
+        (evil-set-undo-system 'undo-tree)
+        (evil-set-leader 'normal (kbd "\\"))
+        (evil-define-key 'normal 'global (kbd "<leader>bl") 'list-buffers)
+        (evil-define-key 'normal 'global (kbd "]q") 'compilation-next-error)
+        (evil-define-key 'normal 'global (kbd "[q") 'compilation-previous-error)
+        (evil-define-key 'normal 'global (kbd "]Q") 'compilation-last-error)
+        (evil-define-key 'normal 'global (kbd "[Q") 'compilation-first-error)
+        (evil-define-key 'normal 'global (kbd "]b") 'next-buffer)
+        (evil-define-key 'normal 'global (kbd "[b") 'previous-buffer)
+        (evil-define-key 'normal 'global (kbd "]B") 'last-buffer)
+        (evil-define-key 'normal 'global (kbd "[B") 'first-buffer)
+        (evil-define-key 'normal 'global (kbd "gc") 'comment-dwim)
+        (if (executable-find "rg")
+          (evil-define-key 'normal 'global (kbd "<leader>f") 'consult-ripgrep)
+          (evil-define-key 'normal 'global (kbd "<leaderf") 'consult-grep))
+        (evil-define-key 'normal 'global (kbd "<leader>bg") 'consult-buffer)
+        (evil-define-key 'normal 'global (kbd "/") 'consult-line)
+  
+        (eval-after-load 'evil-ex
+            '(evil-ex-define-cmd "find" 'projectile-find-file))
+        (eval-after-load 'evil-ex
+            '(evil-ex-define-cmd "browse-old" 'recentf-open-files)))
 
     (use-package evil-collection ;; Extend default evil mode keybindings to more modes
       :demand
       :after evil
       :config
-      (evil-collection-init)
+        (evil-collection-init)
       :custom ((evil-collection-company-use-tng nil)) ;; Don't autocomplete like vim
     )
 
@@ -62,20 +70,15 @@
       :demand
       :after evil
       :config
-      (global-evil-surround-mode 1))
+        (global-evil-surround-mode 1))
 
     (use-package undo-tree ;; Undo tree to enable redoing with Evil
       :demand
       :after evil
       :config
-      (global-undo-tree-mode t))
+        (global-undo-tree-mode t))
 
 ;;; Theme
-  ;; (use-package doom-themes ;; Lots of high quality themes 
-  ;;   :config
-  ;;   (doom-themes-org-config) ;; Corrects some of org-mode's fontification issues
-  ;; )
-
   (use-package modus-themes ;; High contrast themes 
     :init
     (setq modus-themes-paren-match '(bold underline)
@@ -99,7 +102,7 @@
     :hook (prog-mode . global-company-mode))
 
 ;;; LSP and DAP Mode
-  (use-package lsp-mode ;; Enable LSP support in Emacs
+  (use-package lsp-mode ;; LSP support in Emacs
     :hook ((lsp-mode . lsp-enable-which-key-integration)
            (java-mode . lsp-deferred))
     :config
@@ -115,38 +118,15 @@
   (use-package lsp-java ;; Support for the Eclipse.jdt.ls language server
     :after lsp-mode)
 
-  (use-package dap-mode
+  (use-package dap-mode ;; DAP support for Emacs
     :after lsp-mode
     :hook ((dap-session-created . +dap-running-session-mode)
            (dap-stopped . +dap-running-session-mode))
     :config
-    (add-hook 'dap-stack-frame-changed-hook (lambda (session)
-                                            (when (dap--session-running session)
-                                              (+dap-running-session-mode 1))))
-    (dap-register-debug-template "PingApiSample Garmin"
-                                 (list :type "java"
-                                       :request "launch"
-                                       :mainClass "com.garmin.partner.pingapi.PingApiSample"
-                                       :projectName "pingapi"
-                                       :args "--spring.profiles.active=garmin"))
-  )
-
-  (define-minor-mode +dap-running-session-mode
-    "A mode for adding keybindings to running DAP sessions"
-    nil
-    nil
-    (make-sparse-keymap)
-    (evil-normalize-keymaps) ;; if you use evil, this is necessary to update the keymaps
-    ;; The following code adds to the dap-terminated-hook
-    ;; so that this minor mode will be deactivated when the debugger finishes
-    (when +dap-running-session-mode
-      (let ((session-at-creation (dap--cur-active-session-or-die)))
-        (add-hook 'dap-terminated-hook
-                  (lambda (session)
-                    (when (eq session session-at-creation)
-                      (+dap-running-session-mode -1)))))))
-  
-  ;; Activate this minor mode when stepping into code in another file
+      (add-hook 'dap-stack-frame-changed-hook (lambda (session)
+                                              (when (dap--session-running session)
+                                                (+dap-running-session-mode 1))))
+    )
 
 ;;; Vertico, Orderless, Marginalia, Embark, and Consult (Minibuffer Packages)
   (use-package vertico ;; Minimalistic minibuffer completion framework
@@ -171,13 +151,6 @@
   (use-package consult ;; Greatly expand upon many built in Emacs minibuffer completion functions
     :after vertico
     :config
-      (if (executable-find "rg")
-        (evil-define-key 'normal 'global (kbd "<leader>f") 'consult-ripgrep)
-        (evil-define-key 'normal 'global (kbd "<leaderf") 'consult-grep))
-
-        (evil-define-key 'normal 'global (kbd "<leader>bg") 'consult-buffer)
-        (evil-define-key 'normal 'global (kbd "/") 'consult-line)
-
       (autoload 'projectile-project-root "projectile")
       (setq consult-project-root-function #'projectile-project-root)
   )
@@ -191,9 +164,8 @@
 
   (use-package embark-consult ;; Integrate Embark with Consult
     :after (embark consult)
-    :demand t
     :hook
-    (embark-collect-mode . consult-preview-at-point-mode))
+      (embark-collect-mode . consult-preview-at-point-mode))
 
 ;;; Which-Key Mode
   (use-package which-key ;; Show possible keybindings when you pause a keycord
@@ -218,8 +190,6 @@
         (setq projectile-switch-project-action #'projectile-dired) ;; Auto open dired when opening project
         (if (executable-find "rg")
             (setq projectile-git-command "rg --files | rg "))
-        (eval-after-load 'evil-ex
-          '(evil-ex-define-cmd "find" 'projectile-find-file))
     :bind-keymap ("C-c p" . projectile-command-map))
 
 ;;; Magit Mode
@@ -288,7 +258,7 @@
      ;; Font configuration
      (set-face-attribute 'default nil :font "Iosevka-12" ) ;; Set font options
      (set-frame-font "Iosevka-12" nil t)
- 
+
      ;; Add to the interface
      (global-hl-line-mode) ;; Highlight the current line
      (column-number-mode t) ;; Show column numbers in modeline
@@ -346,23 +316,6 @@
            (org-mode . display-line-numbers-mode)))
 
 ;;; Modeline Configuration
-  ;; Gets tacked onto the end of the vc-branch output
-  (defadvice vc-git-mode-line-string (after plus-minus (file) compile activate)
-  "Show the information of git diff on modeline."
-  (setq ad-return-value
-	(concat (propertize ad-return-value 'face '(:inherit font-lock-modeline-face))
-		" ["
-		(let ((plus-minus (vc-git--run-command-string
-				   file "diff" "--numstat" "--")))
-		  (if (and plus-minus
-		       (string-match "^\\([0-9]+\\)\t\\([0-9]+\\)\t" plus-minus))
-		       (concat
-			(propertize (format "+%s" (match-string 1 plus-minus)) 'face '(:inherit success))
-			(propertize (format " -%s" (match-string 2 plus-minus)) 'face '(:inherit font-lock-warning-face)))
-		    (propertize "✔" 'face '(:inherit success))))
-		"]")))
-
-    ;; use the function in conjunction with :eval and format-mode-line in your mode-line-format
     (setq-default mode-line-format
         '((:eval (simple-mode-line-render
                     ;; left
@@ -397,31 +350,7 @@
     )
 
 ;;; Tags Configuration
-    ;;;  Jonas.Jarnestrom<at>ki.ericsson.se A smarter               
-    ;;;  find-tag that automagically reruns etags when it cant find a               
-    ;;;  requested item and then makes a new try to locate it.                      
-    ;;;  Fri Mar 15 09:52:14 2002    
-    (defadvice find-tag (around refresh-etags activate)
-    "Rerun etags and reload tags if tag not found and redo find-tag.              
-    If buffer is modified, ask about save before running etags."
-    (let ((extension (file-name-extension (buffer-file-name))))
-    (condition-case err
-    ad-do-it
-        (error (and (buffer-modified-p)
-            (not (ding))
-            (y-or-n-p "Buffer is modified, save it? ")
-            (save-buffer))
-            (er-refresh-etags extension)
-            ad-do-it))))
-    (defun er-refresh-etags (&optional extension)
-    "Run etags on all peer files in current dir and reload them silently."
-    (interactive)
-    (shell-command (format "etags *.%s" (or extension "el")))
-    (let ((tags-revert-without-query t))  ; don't query, revert silently          
-    (visit-tags-table default-directory nil)))
-
-    ;; Don't ask before rereading the TAGS files if they have changed
-    (setq-default tags-revert-without-query t)
+    (setq-default tags-revert-without-query t) ;; Don't ask before rereading the TAGS files if they have changed
     (setq tags-add-tables nil) ;; Don't ask to keep current list of tags tables also
 
 ;;; Markdown Configuration
