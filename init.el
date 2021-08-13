@@ -188,8 +188,8 @@
         (when (file-directory-p "~/Documents/Code") ;; Projectile will search this path for projects
             (setq projectile-project-search-path '("~/Documents/Code")))
         (setq projectile-switch-project-action #'projectile-dired) ;; Auto open dired when opening project
-        (if (executable-find "rg")
-            (setq projectile-git-command "rg --files | rg "))
+        (if (and (executable-find "rg") (eq projectile-indexing-method 'native)) 
+            (setq projectile-git-command "rg --files | rg")) ;; Only works if indexing method is native (Default on Windows)
     :bind-keymap ("C-c p" . projectile-command-map))
 
 ;;; Magit Mode
@@ -292,7 +292,16 @@
      ;; Auto revert files
      (global-auto-revert-mode 1) ;; Auto update when files change on disk
      (setq auto-revert-verbose nil) ;; Be quite about updating files when they're changed on disk
- 
+
+     ;; Set the bell to flash the modeline rather than audio or standard visual bell
+     (setq ring-bell-function
+      (lambda ()
+        (let ((orig-fg (face-foreground 'mode-line)))
+          (set-face-foreground 'mode-line "#F2804F")
+          (run-with-idle-timer 0.1 nil
+                               (lambda (fg) (set-face-foreground 'mode-line fg))
+                               orig-fg))))
+
      ;; Scrolling configuration
      (setq mouse-wheel-progressive-speed nil) ;; don't accelerate scrolling
      (setq mouse-wheel-follow-mouse 't) ;; scroll window under mouse
