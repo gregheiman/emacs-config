@@ -137,10 +137,10 @@
 
   (use-package orderless ;; Allow for space delimeted searching
     :after vertico
-    :config
-      (setq completion-styles '(orderless)
-            completion-category-defaults nil
-            completion-category-overrides '((file (styles partial-completion))))
+    :custom
+      (completion-styles '(orderless))
+      (completion-category-defaults nil)
+      (completion-category-overrides '((file (styles partial-completion))))
   )
 
   (use-package marginalia ;; Show info about selection canidates in minibuffer
@@ -206,7 +206,7 @@
 ;;; Org Mode Et Al.
   ;; Prefix all org modes with C-c o (So for org-agenda C-c o a)
   (use-package org ;; Powerful plain text note taking and more
-    :hook ((org-mode . org-indent-mode))
+    :hook (org-mode . org-mode-setup)
     :bind-keymap ("C-c o o" . org-mode-map))
 
   (use-package org-agenda ;; Powerful TODO list and agenda tracking
@@ -217,16 +217,30 @@
     (setq org-agenda-files (directory-files-recursively "~/Documents/Org" "\\.org$")))
 
   (use-package org-roam ;; Add powerful non-hierarchical note taking tools to org
-    :after org
     :init
-    (setq org-roam-v2-ack t)
+      (setq org-roam-v2-ack t)
     :config
-    (setq org-roam-directory "~/Documents/Org"))
+      (setq org-roam-directory (file-truename "~/Documents/Org/Org-Roam"))
+      (setq org-roam-completion-everywhere t)
+      (setq-default org-roam-completion-system 'default)
+      (org-roam-db-autosync-enable)
+    :bind (
+      (("C-c o r s"   . org-roam-db-sync)
+      ("C-c o r f"   . org-roam-node-find)
+      ("C-c o r d"   . org-roam-dailies-goto-date)
+      ("C-c o r c"   . org-roam-dailies-capture-today)
+      ("C-c o r C r" . org-roam-dailies-capture-tomorrow)
+      ("C-c o r t"   . org-roam-dailies-goto-today)
+      ("C-c o r y"   . org-roam-dailies-goto-yesterday)
+      ("C-c o r r"   . org-roam-dailies-goto-tomorrow)
+      ("C-c o r g"   . org-roam-graph)
+      ("C-c o r i"   . org-roam-insert)
+      ("C-c o r I"   . org-roam-insert-immediate)))
+    )
 
 ;;; Flyspell Mode
   (use-package flyspell
-    :hook ((org-mode . 'turn-on-flyspell)
-           (markdown-mode . 'turn-on-flyspell)
+    :hook ((markdown-mode . 'turn-on-flyspell)
            (LaTeX-mode . 'turn-on-flyspell)) 
     :config
       (when (executable-find "aspell") ;; Use aspell if available

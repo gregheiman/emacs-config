@@ -97,14 +97,14 @@
 		"]"))
   )
 
-;;; Tags 
+;;; Tags
   (when (executable-find "ctags")
     (defun create-tags-ctags (dir-name)
         "Create tags file using Ctags."
         (interactive "DDirectory: ")
         (shell-command
-        (format "ctags -f TAGS -e -R %s" (directory-file-name dir-name)))
-        )
+         (format "ctags -a -e -R --kinds-all=* %s" (directory-file-name dir-name))
+         ))
   )
 
   (defun create-tags-etags (dir-name)
@@ -188,4 +188,12 @@
       (concat
         (propertize (or (ignore-errors (format "(%s) " (git-prompt-branch-name))) ""))
         (propertize (concat (if (string= (eshell/pwd) (getenv "HOME")) "~" (eshell/basename (eshell/pwd))) " λ "))
-  ))
+        ))
+
+;;; Org Mode
+  (defun org-mode-setup ()
+    (org-indent-mode)
+    (auto-fill-mode 1)
+    (visual-line-mode 1)
+    (turn-on-flyspell)
+    (setq evil-auto-indent nil))  
