@@ -35,6 +35,14 @@
                     (when (eq session session-at-creation)
                       (+dap-running-session-mode -1)))))))
 
+;;; C Mode Configuration
+ (defun c-mode-configuration ()
+    "Set C style configuration"
+    (setq c-basic-offset 4) ;; Set 4 space tabs
+    (c-set-offset 'substatement-open 0) 
+    (setq c-set-style "k&r") ;; The God style
+  )
+
 ;;; Java Mode Configuration
   (defun java-mode-configuration ()
     "Set Java style configuration."

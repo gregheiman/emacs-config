@@ -24,6 +24,16 @@
     (setq use-package-always-ensure t) ;; Always download packages that are marked under use-package if they aren't installed
     (setq use-package-always-defer t) ;; Always defer package loading. If absolutely nessacary use :demand to override
 
+;;; Native Comp
+  (when (and (fboundp 'native-comp-available-p)
+             (native-comp-available-p))
+    (progn
+      (setq native-comp-async-report-warnings-errors nil)
+      (setq comp-deferred-compilation t)
+      (add-to-list 'native-comp-eln-load-path (expand-file-name "eln-cache/" user-emacs-directory))
+      (setq package-native-compile t)
+      ))
+
 ;;; Load Custom Files
   (add-to-list 'load-path "~/.emacs.d/Custom") ;; The directory that my custom files are kept in
   (load "functions") ;; Load functions
@@ -117,8 +127,9 @@
 
 ;;; LSP and DAP Mode
   (use-package lsp-mode ;; LSP support in Emacs
-    :hook ((lsp-mode . lsp-enable-which-key-integration)
-           (java-mode . lsp-deferred))
+    :hook (lsp-mode . lsp-enable-which-key-integration)
+          (java-mode . lsp)
+          ((c-mode c++-mode objc-mode) . (lambda () (when (executable-find "clangd") (lsp))))
     :config
       (setq-default lsp-completion-provider :none)
       (setq-default lsp-keymap-prefix "C-c l")
@@ -131,6 +142,12 @@
 
   (use-package lsp-java ;; Support for the Eclipse.jdt.ls language server
     :after lsp-mode)
+
+  (use-package lsp-pyright ;; Support for the Pyright language server
+    :hook (python-mode . (lambda ()
+                            (require 'lsp-pyright)
+                            (lsp)))
+  )
 
   (use-package dap-mode ;; DAP support for Emacs
     :after lsp-mode
@@ -352,6 +369,7 @@
      (setq mouse-wheel-progressive-speed nil) ;; don't accelerate scrolling
      (setq mouse-wheel-follow-mouse 't) ;; scroll window under mouse
      (setq scroll-step 1) ;; keyboard scroll one line at a time
+     (setq mouse-wheel-scroll-amount '(5)) ;; mouse wheel scroll 5 lines at a time
  
      ;; Backup file configuration
      (setq backup-directory-alist '(("." . "~/.emacs.d/backup")) ;; Write backups to ~/.emacs.d/backup/
