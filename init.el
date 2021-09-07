@@ -25,10 +25,10 @@
     (setq use-package-always-defer t) ;; Always defer package loading. If absolutely nessacary use :demand to override
 
 ;;; Load Custom Files
-    (add-to-list 'load-path "~/.emacs.d/Custom") ;; The directory that my custom files are kept in
-    (load "functions") ;; Load functions
+  (add-to-list 'load-path "~/.emacs.d/Custom") ;; The directory that my custom files are kept in
+  (load "functions") ;; Load functions
 
-;;; Evil Mode 
+;;; Evil Mode
   (use-package evil ;; Vim keybindings
       :hook ((after-init . evil-mode))
       :init
@@ -52,6 +52,10 @@
           (evil-define-key 'normal 'global (kbd "<leaderf") 'consult-grep))
         (evil-define-key 'normal 'global (kbd "<leader>bg") 'consult-buffer)
         (evil-define-key 'normal 'global (kbd "/") 'consult-line)
+        (evil-define-key '(normal insert visual) org-mode-map (kbd "C-j") 'org-next-visible-heading)
+        (evil-define-key '(normal insert visual) org-mode-map (kbd "C-k") 'org-previous-visible-heading)
+        (evil-define-key '(normal insert visual) org-mode-map (kbd "M-j") 'org-metadown)
+        (evil-define-key '(normal insert visual) org-mode-map (kbd "M-k") 'org-metaup)
   
         (eval-after-load 'evil-ex
             '(evil-ex-define-cmd "find" 'projectile-find-file))
@@ -99,19 +103,29 @@
     :config
       (setq company-format-margin-function 'company-text-icons-margin)
       (setq company-text-icons-add-background t)
-    :hook (prog-mode . global-company-mode))
+      (setq company-backends '((company-files
+                                company-capf
+                                company-clang
+                                company-cmake
+                                company-yasnippet
+                                company-gtags
+                                company-etags
+                                company-keywords
+                                company-dabbrev-code)))
+      :hook (prog-mode . global-company-mode))
+
 
 ;;; LSP and DAP Mode
   (use-package lsp-mode ;; LSP support in Emacs
     :hook ((lsp-mode . lsp-enable-which-key-integration)
            (java-mode . lsp-deferred))
     :config
-        (setq-default lsp-keymap-prefix "C-c l")
-        (setq-default lsp-headerline-breadcrumb-enable nil) ;; Remove top header line
-        (setq-default lsp-signature-auto-activate nil) ;; Stop signature definitions popping up
-        (setq-default lsp-enable-snippet nil) ;; Disable snippets (Snippets require YASnippet)
-        (setq-default lsp-enable-symbol-highlighting nil) ;; Disable highlighting of symbols
-        (setq-default lsp-semantic-tokens-enable nil) ;; Not everything needs to be a color
+      (setq-default lsp-completion-provider :none)
+      (setq-default lsp-keymap-prefix "C-c l")
+      (setq-default lsp-headerline-breadcrumb-enable nil) ;; Remove top header line
+      (setq-default lsp-signature-auto-activate nil) ;; Stop signature definitions popping up
+      (setq-default lsp-enable-symbol-highlighting nil) ;; Disable highlighting of symbols
+      (setq-default lsp-semantic-tokens-enable nil) ;; Not everything needs to be a color
     :bind-keymap ("C-c l" . lsp-command-map)
     :commands (lsp lsp-deferred))
 
@@ -127,6 +141,14 @@
                                               (when (dap--session-running session)
                                                 (+dap-running-session-mode 1))))
     )
+
+;;; Yasnippet
+  (use-package yasnippet ;; Snippet engine
+    :hook ((prog-mode . yas-minor-mode)
+           (org-mode . yas-minor-mode))
+  )
+
+  (use-package yasnippet-snippets) ;; Set of default snippets for wide variety of langs.
 
 ;;; Vertico, Orderless, Marginalia, Embark, and Consult (Minibuffer Packages)
   (use-package vertico ;; Minimalistic minibuffer completion framework
@@ -144,8 +166,8 @@
   )
 
   (use-package marginalia ;; Show info about selection canidates in minibuffer
-   :after vertico
-   :hook ((vertico-mode . marginalia-mode))
+    :after vertico
+    :hook ((vertico-mode . marginalia-mode))
   )
 
   (use-package consult ;; Greatly expand upon many built in Emacs minibuffer completion functions
@@ -207,22 +229,34 @@
   ;; Prefix all org modes with C-c o (So for org-agenda C-c o a)
   (use-package org ;; Powerful plain text note taking and more
     :hook (org-mode . org-mode-setup)
-    :bind-keymap ("C-c o o" . org-mode-map))
+    :bind-keymap ("C-c o o" . org-mode-map)
+    :config
+      (setq org-src-fontify-natively t
+        org-fontify-quote-and-verse-blocks t
+        org-src-tab-acts-natively t
+        org-edit-src-content-indentation 2
+        org-hide-block-startup nil
+        org-src-preserve-indentation nil
+        org-cycle-separator-lines 2)
+      (if (executable-find "rubber") ;; Set the command for org -> latex -> pdf
+        (setq-default org-latex-pdf-process '("rubber --inplace --ps --pdf -f %f"))
+        (setq-default org-latex-pdf-process '("latexmk -pdflatex='pdflatex -interaction nonstopmode' -pdf -bibtex -f %f")))
+  )
 
   (use-package org-agenda ;; Powerful TODO list and agenda tracking
     :ensure nil
     :after org
     :bind-keymap ("C-c o a" . org-agenda-mode-map)
     :config
-    (setq org-agenda-files (directory-files-recursively "~/Documents/Org" "\\.org$")))
+    (setq org-agenda-files (directory-files-recursively "~/Org/Org-Agenda" "\\.org$")))
 
   (use-package org-roam ;; Add powerful non-hierarchical note taking tools to org
     :init
       (setq org-roam-v2-ack t)
     :config
-      (setq org-roam-directory (file-truename "~/Documents/Org/Org-Roam"))
+      (setq org-roam-directory (file-truename "~/Org/Org-Roam"))
       (setq org-roam-completion-everywhere t)
-      (setq-default org-roam-completion-system 'default)
+      (add-to-list 'company-backends 'company-capf)
       (org-roam-db-autosync-enable)
     :bind (
       (("C-c o r s"   . org-roam-db-sync)
@@ -233,9 +267,7 @@
       ("C-c o r t"   . org-roam-dailies-goto-today)
       ("C-c o r y"   . org-roam-dailies-goto-yesterday)
       ("C-c o r r"   . org-roam-dailies-goto-tomorrow)
-      ("C-c o r g"   . org-roam-graph)
-      ("C-c o r i"   . org-roam-insert)
-      ("C-c o r I"   . org-roam-insert-immediate)))
+      ("C-c o r g"   . org-roam-graph)))
     )
 
 ;;; Flyspell Mode
