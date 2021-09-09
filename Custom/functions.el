@@ -45,7 +45,7 @@
 
 ;;; Java Mode Configuration
   (defun java-mode-configuration ()
-    "Set Java style configuration"
+    "Set Java style configuration."
     (c-set-offset 'case-label '+) ;; Properly indent case statments
   )
 
@@ -192,8 +192,20 @@
 
 ;;; Org Mode
   (defun org-mode-setup ()
+    "Startup configuration when using Org mode."
     (org-indent-mode)
-    (auto-fill-mode 1)
+    (auto-fill-mode 0)
     (visual-line-mode 1)
     (turn-on-flyspell)
-    (setq evil-auto-indent nil))  
+    (setq evil-auto-indent nil))
+
+  (defun org-export-output-file-name-modified (orig-fun extension &optional subtreep pub-dir)
+    "Modifies org-export to place exported files in a different directory"
+    (unless pub-dir
+      (setq pub-dir "~/Org/Org-Exported-Files")
+      (unless (file-directory-p pub-dir)
+        (make-directory pub-dir)))
+    (apply orig-fun extension subtreep pub-dir nil))
+  (advice-add 'org-export-output-file-name :around #'org-export-output-file-name-modified)
+
+;;; Minibuffer
