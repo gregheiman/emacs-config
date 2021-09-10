@@ -66,11 +66,14 @@
         (evil-define-key '(normal insert visual) org-mode-map (kbd "C-k") 'org-previous-visible-heading)
         (evil-define-key '(normal insert visual) org-mode-map (kbd "M-j") 'org-metadown)
         (evil-define-key '(normal insert visual) org-mode-map (kbd "M-k") 'org-metaup)
-  
+
         (eval-after-load 'evil-ex
-            '(evil-ex-define-cmd "find" 'projectile-find-file))
+          '(if (executable-find "find")
+              (evil-ex-define-cmd "find" 'consult-find)
+              (evil-ex-define-cmd "find" 'projectile-find-file)))
         (eval-after-load 'evil-ex
-            '(evil-ex-define-cmd "browse-old" 'recentf-open-files)))
+            '(evil-ex-define-cmd "browse-old" 'recentf-open-files))
+  )
 
     (use-package evil-collection ;; Extend default evil mode keybindings to more modes
       :demand
@@ -255,9 +258,8 @@
         org-hide-block-startup nil
         org-src-preserve-indentation nil
         org-cycle-separator-lines 2)
-      (if (executable-find "rubber") ;; Set the command for org -> latex -> pdf
-        (setq-default org-latex-pdf-process '("rubber --inplace --ps --pdf -f %f"))
-        (setq-default org-latex-pdf-process '("latexmk -pdflatex='pdflatex -interaction nonstopmode' -pdf -bibtex -f %f")))
+      (if (executable-find "latexmk") ;; Set the command for org -> latex -> pdf
+        (setq-default org-latex-pdf-process '("latexmk -output-directory=%o -pdflatex='pdflatex -interaction nonstopmode' -pdf -bibtex -f %f")))
   )
 
   (use-package org-agenda ;; Powerful TODO list and agenda tracking
@@ -292,7 +294,7 @@
     :hook ((markdown-mode . 'turn-on-flyspell)
            (LaTeX-mode . 'turn-on-flyspell)) 
     :config
-      (when (executable-find "aspell") ;; Use aspell if available
+      (if (executable-find "aspell") ;; Use aspell if available
         (setq ispell-program-name "aspell"))
   )
     
@@ -416,7 +418,7 @@
                                 (setq auto-revert-verbose nil))) ;; Be quiet about updating Dired
 
 ;;; Grep Configuration
-    (when (executable-find "rg")
+    (if (executable-find "rg")
         (setq grep-use-null-device nil) ;; Don't append NUL to end on windows (Not nessacary for rg)
         (setq-default grep-template "rg -n -H --no-heading -g <F> -e <R> .") ;; For lgrep
         (setq-default grep-find-template "rg -n -H --no-heading -e <R> -g .") ;; For rgrep
@@ -427,7 +429,7 @@
     (setq tags-add-tables nil) ;; Don't ask to keep current list of tags tables also
 
 ;;; Markdown Configuration
-    (when (executable-find "pandoc")
+    (if (executable-find "pandoc")
         ;; Set pandoc as the program that gets called when
         ;; you issue a markdown command
       (setq markdown-command "pandoc"))
