@@ -48,6 +48,7 @@
         (evil-set-undo-system 'undo-tree)
         (evil-set-leader 'normal (kbd "\\"))
         (evil-define-key 'normal 'global (kbd "<leader>bl") 'list-buffers)
+        (evil-define-key 'normal 'global (kbd "<leader>bd") 'kill-this-buffer)
         (evil-define-key 'normal 'global (kbd "]q") 'compilation-next-error)
         (evil-define-key 'normal 'global (kbd "[q") 'compilation-previous-error)
         (evil-define-key 'normal 'global (kbd "]Q") 'compilation-last-error)
