@@ -197,7 +197,8 @@
     (auto-fill-mode 0)
     (visual-line-mode 1)
     (turn-on-flyspell)
-    (setq evil-auto-indent nil))
+    (turn-on-font-lock)
+    )
 
   (defun org-export-output-file-name-modified (orig-fun extension &optional subtreep pub-dir)
     "Modifies org-export to place exported files in a different directory"
