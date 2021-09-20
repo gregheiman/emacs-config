@@ -268,7 +268,8 @@
     :after org
     :bind-keymap ("C-c o a" . org-agenda-mode-map)
     :config
-    (setq org-agenda-files (directory-files-recursively "~/Org/Org-Agenda" "\\.org$")))
+      (setq org-agenda-files (directory-files-recursively (expand-file-name "~/Org/Org-Agenda") "\\.org$"))) ;; Add all .org files in folder to org agenda list
+      (setq org-log-done 'time) ;; Auto mark time when TODO item is marked done
 
   (use-package org-roam ;; Add powerful non-hierarchical note taking tools to org
     :init
