@@ -60,7 +60,7 @@
         (evil-define-key 'normal 'global (kbd "gc") 'comment-dwim)
         (if (executable-find "rg")
           (evil-define-key 'normal 'global (kbd "<leader>f") 'consult-ripgrep)
-          (evil-define-key 'normal 'global (kbd "<leaderf") 'consult-grep))
+          (evil-define-key 'normal 'global (kbd "<leader>f") 'consult-grep))
         (evil-define-key 'normal 'global (kbd "<leader>bg") 'consult-buffer)
         (evil-define-key 'normal 'global (kbd "/") 'consult-line)
         (evil-define-key '(normal insert visual) org-mode-map (kbd "C-j") 'org-next-visible-heading)
@@ -163,52 +163,45 @@
                                                 (+dap-running-session-mode 1))))
     )
 
-;;; Yasnippet
-  (use-package yasnippet ;; Snippet engine
-    :hook ((prog-mode . yas-minor-mode)
-           (org-mode . yas-minor-mode))
+;;; Minibuffer Completion etc. 
+  (use-package icomplete
+    :ensure nil
+    :hook (after-init . (lambda () ;; If version > 28 load icomplete vertical otherwise simulate
+                          (if (version< emacs-version "28")
+                          (icomplete-mode 1))
+                          (setq icomplete-separator "\n")
+                          (icomplete-vertical-mode 1)))
+    :config
+      (setq icomplete-hide-common-prefix nil)
+      (setq icomplete-in-buffer t)
+    :bind (
+         :map icomplete-minibuffer-map
+         ("<return>" . icomplete-force-complete-and-exit)
+         ("<down>" . icomplete-forward-completions)
+         ("C-n" . icomplete-forward-completions)
+         ("<up>" . icomplete-backward-completions)
+         ("C-p" . icomplete-backward-completions))
   )
 
-  (use-package yasnippet-snippets) ;; Set of default snippets for wide variety of langs.
-
-;;; Vertico, Orderless, Marginalia, Embark, and Consult (Minibuffer Packages)
-  (use-package vertico ;; Minimalistic minibuffer completion framework
-    :hook ((after-init . vertico-mode))
-    :config
-    (setq vertico-cycle t) ;; Optionally enable cycling for `vertico-next' and `vertico-previous'
-  ) 
-
   (use-package orderless ;; Allow for space delimeted searching
-    :after vertico
-    :custom
-      (completion-styles '(orderless))
-      (completion-category-defaults nil)
-      (completion-category-overrides '((file (styles partial-completion))))
+    :config
+      (setq completion-styles
+             '(substring initials flex partial-completion orderless))
+       (setq completion-category-overrides
+             '((file (styles . (partial-completion orderless)))))
   )
 
   (use-package marginalia ;; Show info about selection canidates in minibuffer
-    :after vertico
-    :hook ((vertico-mode . marginalia-mode))
+    :init
+    (marginalia-mode)
   )
 
   (use-package consult ;; Greatly expand upon many built in Emacs minibuffer completion functions
-    :after vertico
+    :after icomplete
     :config
       (autoload 'projectile-project-root "projectile")
       (setq consult-project-root-function #'projectile-project-root)
   )
-
-  (use-package embark ;; Actions for items in the minibuffer
-    :after vertico
-    :bind (("C-:" . embark-dwim)
-           ("C-;" . embark-act)
-           ("C-h B" . embark-bindings))
-    )
-
-  (use-package embark-consult ;; Integrate Embark with Consult
-    :after (embark consult)
-    :hook
-      (embark-collect-mode . consult-preview-at-point-mode))
 
 ;;; Which-Key Mode
   (use-package which-key ;; Show possible keybindings when you pause a keycord
