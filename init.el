@@ -28,8 +28,9 @@
   (when (and (fboundp 'native-comp-available-p)
              (native-comp-available-p))
     (progn
-      (setq native-comp-async-report-warnings-errors nil)
-      (setq comp-deferred-compilation t)
+      (setq-default native-comp-async-report-warnings-errors nil)
+      (setq-default comp-deferred-compilation t)
+      (setq-default native-comp-speed 2)
       (add-to-list 'native-comp-eln-load-path (expand-file-name "eln-cache/" user-emacs-directory))
       (setq package-native-compile t)
       ))
@@ -108,7 +109,7 @@
 
 ;;; Company Mode
   (use-package company ;; Text auto completion framework
-    :bind (("TAB" . company-indent-or-complete-common)
+    :bind (("C-SPC" . company-complete) ;; The set mark command is v when using Evil-mode, so can rebind
     :map company-active-map
       ("<tab>" . company-select-next-or-abort)
       ("TAB" . company-select-next-or-abort)
@@ -117,16 +118,8 @@
     :config
       (setq company-format-margin-function 'company-text-icons-margin)
       (setq company-text-icons-add-background t)
-      (setq company-backends '((company-files
-                                company-capf
-                                company-clang
-                                company-cmake
-                                company-yasnippet
-                                company-gtags
-                                company-etags
-                                company-keywords
-                                company-dabbrev-code)))
-      :hook (prog-mode . global-company-mode))
+    :hook (prog-mode . global-company-mode)
+  )
 
 
 ;;; LSP and DAP Mode
@@ -164,7 +157,7 @@
     )
 
 ;;; Minibuffer Completion etc. 
-  (use-package icomplete
+  (use-package icomplete ;; Minibuffer completion
     :ensure nil
     :hook (after-init . (lambda () ;; If version > 28 load icomplete vertical otherwise simulate
                           (if (version< emacs-version "28")
@@ -173,7 +166,6 @@
                           (icomplete-vertical-mode 1)))
     :config
       (setq icomplete-hide-common-prefix nil)
-      (setq icomplete-in-buffer t)
       (setq icomplete-show-matches-on-no-input t)
     :bind (
          :map icomplete-minibuffer-map
@@ -185,7 +177,7 @@
   )
 
   (use-package orderless ;; Allow for space delimeted searching
-    :config
+    :init
       (setq completion-styles
              '(substring initials flex partial-completion orderless))
        (setq completion-category-overrides
@@ -262,7 +254,8 @@
     :after org
     :bind-keymap ("C-c o a" . org-agenda-mode-map)
     :config
-    (setq org-agenda-files (directory-files-recursively "~/Org/Org-Agenda" "\\.org$")))
+      (setq org-agenda-files (directory-files-recursively (expand-file-name "~/Org/Org-Agenda") "\\.org$"))) ;; Add all .org files in folder to org agenda list
+      (setq org-log-done 'time) ;; Auto mark time when TODO item is marked done
 
   (use-package org-roam ;; Add powerful non-hierarchical note taking tools to org
     :init
