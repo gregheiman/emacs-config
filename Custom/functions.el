@@ -210,3 +210,12 @@
   (advice-add 'org-export-output-file-name :around #'org-export-output-file-name-modified)
 
 ;;; Minibuffer
+
+;;; Mu4e
+(defun gh/my-render-html-message ()
+  "Use EWW redering engine to render mail in mu4e"
+  (let ((dom (libxml-parse-html-region (point-min) (point-max))))
+    (erase-buffer)
+    (shr-insert-document dom)
+    (goto-char (point-min))))
+
