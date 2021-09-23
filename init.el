@@ -303,7 +303,7 @@
       (setq-default eshell-prompt-function 'eshell-prompt)
       (setq-default eshell-highlight-prompt nil))
 
-;;; Mu4e and Email
+;;; Email
   (use-package mu4e ;; Email client for Mu indexer. Uses mbsync to retrieve mail.
     :ensure nil
     :hook (
@@ -320,16 +320,6 @@
       (setq-default mu4e-trash-folder  "/[Gmail]/Trash")
       (setq-default mu4e-sent-messages-behavior 'delete)
       (setq-default mu4e-compose-in-new-frame t)
-      (setq-default mu4e-maildir-shortcuts
-          '(("/Inbox"             . ?i)
-            ("/[Gmail]/Sent Mail" . ?s)
-            ("/[Gmail]/Trash"     . ?t)
-            ("/[Gmail]/Drafts"    . ?d)
-            ("/[Gmail]/All Mail"  . ?a)))
-  )
-
-  (use-package org-mime ;; Allows for using Org mode to compose Emails
-
   )
 
 ;;; Emacs Configuration
