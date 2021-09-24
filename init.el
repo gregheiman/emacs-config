@@ -321,12 +321,6 @@
       (setq-default mu4e-refile-folder "/[Gmail]/All Mail")
       (setq-default mu4e-trash-folder  "/[Gmail]/Trash")
       (setq-default mu4e-sent-messages-behavior 'delete)
-      (setq-default mu4e-maildir-shortcuts
-          '(("/Inbox"             . ?i)
-            ("/[Gmail]/Sent Mail" . ?s)
-            ("/[Gmail]/Trash"     . ?t)
-            ("/[Gmail]/Drafts"    . ?d)
-            ("/[Gmail]/All Mail"  . ?a)))
       ;; don't keep message buffers around
       (setq message-kill-buffer-on-exit t)
       ;; Sending mail configuration
@@ -357,10 +351,6 @@
            (smtpmail-smtp-service 587)
            )
           ))
-  )
-
-  (use-package org-mime ;; Allows for using Org mode to compose Emails
-
   )
 
 ;;; Emacs Configuration
