@@ -39,30 +39,35 @@ Channel acc1-gmail-inbox
 Far :acc1-gmail-remote:
 Near :acc1-gmail-local:
 Patterns "INBOX"
+Expunge Both
 Create Both
 SyncState *
 
 Channel acc1-gmail-trash
 Far :acc1-gmail-remote:"[Gmail]/Trash"
 Near :acc1-gmail-local:"[acc1].Trash"
+Expunge Both
 Create Both
 SyncState *
 
 Channel acc1-gmail-sent
 Far :acc1-gmail-remote:"[Gmail]/Sent Mail"
 Near :acc1-gmail-local:"[acc1].Sent Mail"
+Expunge Both
 Create Both
 SyncState *
 
 Channel acc1-gmail-all
 Far :acc1-gmail-remote:"[Gmail]/All Mail"
 Near :acc1-gmail-local:"[acc1].All Mail"
+Expunge Both
 Create Both
 SyncState *
 
 Channel acc1-gmail-starred
 Far :acc1-gmail-remote:"[Gmail]/Starred"
 Near :acc1-gmail-local:"[acc1].Starred"
+Expunge Both
 Create Both
 SyncState *
 
@@ -122,30 +127,35 @@ Channel acc2-gmail-inbox
 Far :acc2-gmail-remote:
 Near :acc2-gmail-local:
 Patterns "INBOX"
+Expunge Both
 Create Both
 SyncState *
 
 Channel acc2-gmail-trash
 Far :acc2-gmail-remote:"[Gmail]/Trash"
 Near :acc2-gmail-local:"[acc2].Trash"
+Expunge Both
 Create Both
 SyncState *
 
 Channel acc2-gmail-sent
 Far :acc2-gmail-remote:"[Gmail]/Sent Mail"
 Near :acc2-gmail-local:"[acc2].Sent Mail"
+Expunge Both
 Create Both
 SyncState *
 
 Channel acc2-gmail-all
 Far :acc2-gmail-remote:"[Gmail]/All Mail"
 Near :acc2-gmail-local:"[acc2].All Mail"
+Expunge Both
 Create Both
 SyncState *
 
 Channel acc2-gmail-starred
 Far :acc2-gmail-remote:"[Gmail]/Starred"
 Near :acc2-gmail-local:"[acc2].Stared"
+Expunge Both
 Create Both
 SyncState *
 

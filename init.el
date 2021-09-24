@@ -40,6 +40,7 @@
   (add-to-list 'load-path "/usr/local/share/emacs/site-lisp/mu4e")
   (load "functions") ;; Load functions
   (load "mu4e") ;; Load mu4e
+ 
 
 ;;; Evil Mode
   (use-package evil ;; Vim keybindings
@@ -303,11 +304,12 @@
       (setq-default eshell-prompt-function 'eshell-prompt)
       (setq-default eshell-highlight-prompt nil))
 
-;;; Mu4e and Email
+;;; Email
   (use-package mu4e ;; Email client for Mu indexer. Uses mbsync to retrieve mail.
     :ensure nil
     :hook (
            (mu4e-view-mode . visual-line-mode) ;; Auto break lines when viewing an email
+           (mu4e-compose-pre . my-mu4e-set-account) ;; Set the account to send mail from before sending
           ) 
     :config
       (setq-default mu4e-get-mail-command "mbsync -c ~/.emacs.d/mu4e/.mbsyncrc -a") ;; Since location of .mbsyncrc is non standard
@@ -319,13 +321,42 @@
       (setq-default mu4e-refile-folder "/[Gmail]/All Mail")
       (setq-default mu4e-trash-folder  "/[Gmail]/Trash")
       (setq-default mu4e-sent-messages-behavior 'delete)
-      (setq-default mu4e-compose-in-new-frame t)
       (setq-default mu4e-maildir-shortcuts
           '(("/Inbox"             . ?i)
             ("/[Gmail]/Sent Mail" . ?s)
             ("/[Gmail]/Trash"     . ?t)
             ("/[Gmail]/Drafts"    . ?d)
             ("/[Gmail]/All Mail"  . ?a)))
+      ;; don't keep message buffers around
+      (setq message-kill-buffer-on-exit t)
+      ;; Sending mail configuration
+      (setq smtpmail-default-smtp-server "smtp.gmail.com"
+            smtpmail-smtp-server "smtp.gmail.com"
+            smtpmail-smtp-service 587)
+      (setq mail-specify-envelope-from t)
+      (setq message-sendmail-envelope-from 'header)
+      (setq-default mail-envelope-from 'header)
+      ;; Set list of accounts
+      (defvar my-mu4e-account-alist
+        '(("gregheiman02@gmail.com"
+           (mu4e-sent-folder "/acc1-gmail/acc1-gmail.Sent Mail")
+           (user-mail-address "gregheiman02@gmail.com")
+           (smtpmail-smtp-user "gregheiman02")
+           (smtpmail-local-domain "gmail.com")
+           (smtpmail-default-smtp-server "smtp.gmail.com")
+           (smtpmail-smtp-server "smtp.gmail.com")
+           (smtpmail-smtp-service 587)
+           )
+          ("treebark1378@gmail.com"
+           (mu4e-sent-folder "/acc2-gmail/acc2-gmail.Sent Mail")
+           (user-mail-address "treebark1378@gmail.com")
+           (smtpmail-smtp-user "treebark1378")
+           (smtpmail-local-domain "gmail.com")
+           (smtpmail-default-smtp-server "smtp.gmail.com")
+           (smtpmail-smtp-server "smtp.gmail.com")
+           (smtpmail-smtp-service 587)
+           )
+          ))
   )
 
   (use-package org-mime ;; Allows for using Org mode to compose Emails
@@ -339,6 +370,10 @@
           (c-mode . c-mode-configuration)
           (java-mode . java-mode-configuration))
    :config
+     ;; Set information about ourselves
+     (setq user-mail-address "gregheiman02@gmail.com"
+           user-full-name "Greg Heiman")
+
      ;; Font configuration
      (set-face-attribute 'default nil :font "Iosevka-12" ) ;; Set font options
      (set-frame-font "Iosevka-12" nil t)
