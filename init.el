@@ -312,7 +312,7 @@
            (mu4e-compose-pre . my-mu4e-set-account) ;; Set the account to send mail from before sending
           ) 
     :config
-      (setq-default mu4e-get-mail-command "mbsync -c ~/.emacs.d/mu4e/.mbsyncrc -a") ;; Since location of .mbsyncrc is non standard
+      (setq-default mu4e-get-mail-command "mbsync -c ~/.emacs.d/email/.mbsyncrc -a") ;; Since location of .mbsyncrc is non standard
       (setq-default mu4e-change-filenames-when-moving t)
       (setq-default mu4e-update-interval 600) ;; 10 minutes
       (setq-default mu4e-maildir (expand-file-name "~/Mail"))
