@@ -312,28 +312,25 @@
            (mu4e-compose-pre . my-mu4e-set-account) ;; Set the account to send mail from before sending
           ) 
     :config
+      (setq-default mu4e-view-prefer-html t)
+      (setq-default mu4e-view-show-images t)
+      (setq-default mu4e-view-show-addresses 't)
+      (setq shr-color-visible-luminance-min 100) ;; Allow better colors for html messages on dark themes
       (setq-default mu4e-get-mail-command "mbsync -c ~/.emacs.d/email/.mbsyncrc -a") ;; Since location of .mbsyncrc is non standard
       (setq-default mu4e-change-filenames-when-moving t)
       (setq-default mu4e-update-interval 600) ;; 10 minutes
       (setq-default mu4e-maildir (expand-file-name "~/Mail"))
-      (setq-default mu4e-drafts-folder "/[Gmail]/Drafts")
-      (setq-default mu4e-sent-folder   "/[Gmail]/Sent Mail")
-      (setq-default mu4e-refile-folder "/[Gmail]/All Mail")
-      (setq-default mu4e-trash-folder  "/[Gmail]/Trash")
       (setq-default mu4e-sent-messages-behavior 'delete)
       ;; don't keep message buffers around
       (setq message-kill-buffer-on-exit t)
-      ;; Sending mail configuration
-      (setq smtpmail-default-smtp-server "smtp.gmail.com"
-            smtpmail-smtp-server "smtp.gmail.com"
-            smtpmail-smtp-service 587)
       (setq mail-specify-envelope-from t)
       (setq message-sendmail-envelope-from 'header)
       (setq-default mail-envelope-from 'header)
-      ;; Set list of accounts
+      (add-to-list 'mu4e-view-actions '("View in PDF" . mu4e-msg2pdf))
+      ;; Set list of accounts for sending mail
       (defvar my-mu4e-account-alist
         '(("gregheiman02@gmail.com"
-           (mu4e-sent-folder "/acc1-gmail/acc1-gmail.Sent Mail")
+           (mu4e-sent-folder "/gregheiman02@gmail.com/[Gmail]/Sent Mail")
            (user-mail-address "gregheiman02@gmail.com")
            (smtpmail-smtp-user "gregheiman02")
            (smtpmail-local-domain "gmail.com")
@@ -342,7 +339,7 @@
            (smtpmail-smtp-service 587)
            )
           ("treebark1378@gmail.com"
-           (mu4e-sent-folder "/acc2-gmail/acc2-gmail.Sent Mail")
+           (mu4e-sent-folder "/treebark1378@gmail.com/[Gmail]/Sent Mail")
            (user-mail-address "treebark1378@gmail.com")
            (smtpmail-smtp-user "treebark1378")
            (smtpmail-local-domain "gmail.com")
@@ -350,7 +347,60 @@
            (smtpmail-smtp-server "smtp.gmail.com")
            (smtpmail-smtp-service 587)
            )
+          ("w459e965@wichita.edu"
+           (mu4e-sent-folder "/outlook-wsu/Sent Mail")
+           (user-mail-address "w459e964@wichita.edu")
+           (smtpmail-smtp-user "w459e964")
+           (smtpmail-local-domain "wichita.edu")
+           (smtpmail-default-smtp-server "smtp.office365.com")
+           (smtpmail-smtp-server "smtp.office365.com")
+           (smtpmail-smtp-service 587)
+           (smtpmail-stream-type starttls)
+           )
           ))
+      ;; Create contexts for storing mail in the correct folders
+      (setq mu4e-contexts
+            (list
+             (make-mu4e-context
+              :name "gregheiman02@gmail.com"
+              :match-func
+              (lambda (msg)
+                (when msg
+                  (string-prefix-p "/gregheiman02@gmail.com" (mu4e-message-field msg :maildir))))
+              :vars '((user-mail-address . "gregheiman02@gmail.com")
+                      (user-full-name . "Greg Heiman")
+                      (mu4e-drafts-folder  . "/gregheiman02@gmail.com/[Gmail]/Drafts")
+                      (mu4e-sent-folder . "/gregheiman02@gmail.com/[Gmail]/Sent Mail")
+                      (mu4e-refile-folder . "/gregheiman02@gmail.com/[Gmail]/All Mail")
+                      (mu4e-trash-folder . "/gregheiman02@gmail.com/[Gmail]/Trash"))
+              )
+             (make-mu4e-context
+              :name "treebark1378@gmail.com"
+              :match-func
+              (lambda (msg)
+                (when msg
+                  (string-prefix-p "/treebark1378@gmail.com" (mu4e-message-field msg :maildir))))
+              :vars '((user-mail-address . "treebark1378@gmail.com")
+                      (user-full-name . "Tree Bark")
+                      (mu4e-drafts-folder  . "/treebark1378@gmail.com/[Gmail]/Drafts")
+                      (mu4e-sent-folder . "/treebark1378@gmail.com/[Gmail]/Sent Mail")
+                      (mu4e-refile-folder . "/treebark1378@gmail.com/[Gmail]/All Mail")
+                      (mu4e-trash-folder . "/treebark1378@gmail.com/[Gmail]/Trash"))
+              )
+             (make-mu4e-context
+              :name "w459e964@wichita.edu"
+              :match-func
+              (lambda (msg)
+                (when msg
+                  (string-prefix-p "/outlook-wsu" (mu4e-message-field msg :maildir))))
+              :vars '((user-mail-address . "w459e964@wichita.edu")
+                      (user-full-name . "Greg Heiman")
+                      (mu4e-drafts-folder  . "/outlook-wsu/Drafts")
+                      (mu4e-sent-folder . "/outlook-wsu/Sent Mail")
+                      (mu4e-refile-folder . "/outlook-wsu/All Mail")
+                      (mu4e-trash-folder . "/outlook-wsu/Trash"))
+              )
+             ))
   )
 
 ;;; Emacs Configuration
