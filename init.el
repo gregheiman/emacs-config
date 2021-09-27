@@ -326,7 +326,6 @@
       (setq mail-specify-envelope-from t)
       (setq message-sendmail-envelope-from 'header)
       (setq-default mail-envelope-from 'header)
-      (add-to-list 'mu4e-view-actions '("View in PDF" . mu4e-msg2pdf))
       ;; Set list of accounts for sending mail
       (defvar my-mu4e-account-alist
         '(("gregheiman02@gmail.com"
