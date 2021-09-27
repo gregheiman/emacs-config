@@ -309,13 +309,12 @@
     :ensure nil
     :hook (
            (mu4e-view-mode . visual-line-mode) ;; Auto break lines when viewing an email
-           (mu4e-compose-pre . my-mu4e-set-account) ;; Set the account to send mail from before sending
           ) 
     :config
       (setq-default mu4e-view-prefer-html t)
       (setq-default mu4e-view-show-images t)
       (setq-default mu4e-view-show-addresses 't)
-      (setq shr-color-visible-luminance-min 100) ;; Allow better colors for html messages on dark themes
+      (setq-default shr-color-visible-luminance-min 100) ;; Allow better colors for html messages on dark themes
       (setq-default mu4e-get-mail-command "mbsync -c ~/.emacs.d/email/.mbsyncrc -a") ;; Since location of .mbsyncrc is non standard
       (setq-default mu4e-change-filenames-when-moving t)
       (setq-default mu4e-update-interval 600) ;; 10 minutes
@@ -326,37 +325,6 @@
       (setq mail-specify-envelope-from t)
       (setq message-sendmail-envelope-from 'header)
       (setq-default mail-envelope-from 'header)
-      ;; Set list of accounts for sending mail
-      (defvar my-mu4e-account-alist
-        '(("gregheiman02@gmail.com"
-           (mu4e-sent-folder "/gregheiman02@gmail.com/[Gmail]/Sent Mail")
-           (user-mail-address "gregheiman02@gmail.com")
-           (smtpmail-smtp-user "gregheiman02")
-           (smtpmail-local-domain "gmail.com")
-           (smtpmail-default-smtp-server "smtp.gmail.com")
-           (smtpmail-smtp-server "smtp.gmail.com")
-           (smtpmail-smtp-service 587)
-           )
-          ("treebark1378@gmail.com"
-           (mu4e-sent-folder "/treebark1378@gmail.com/[Gmail]/Sent Mail")
-           (user-mail-address "treebark1378@gmail.com")
-           (smtpmail-smtp-user "treebark1378")
-           (smtpmail-local-domain "gmail.com")
-           (smtpmail-default-smtp-server "smtp.gmail.com")
-           (smtpmail-smtp-server "smtp.gmail.com")
-           (smtpmail-smtp-service 587)
-           )
-          ("w459e965@wichita.edu"
-           (mu4e-sent-folder "/outlook-wsu/Sent Mail")
-           (user-mail-address "w459e964@wichita.edu")
-           (smtpmail-smtp-user "w459e964")
-           (smtpmail-local-domain "wichita.edu")
-           (smtpmail-default-smtp-server "smtp.office365.com")
-           (smtpmail-smtp-server "smtp.office365.com")
-           (smtpmail-smtp-service 587)
-           (smtpmail-stream-type starttls)
-           )
-          ))
       ;; Create contexts for storing mail in the correct folders
       (setq mu4e-contexts
             (list
@@ -371,7 +339,13 @@
                       (mu4e-drafts-folder  . "/gregheiman02@gmail.com/[Gmail]/Drafts")
                       (mu4e-sent-folder . "/gregheiman02@gmail.com/[Gmail]/Sent Mail")
                       (mu4e-refile-folder . "/gregheiman02@gmail.com/[Gmail]/All Mail")
-                      (mu4e-trash-folder . "/gregheiman02@gmail.com/[Gmail]/Trash"))
+                      (mu4e-trash-folder . "/gregheiman02@gmail.com/[Gmail]/Trash")
+                      (user-mail-address . "gregheiman02@gmail.com")
+                      (smtpmail-smtp-user . "gregheiman02")
+                      (smtpmail-local-domain . "gmail.com")
+                      (smtpmail-default-smtp-server . "smtp.gmail.com")
+                      (smtpmail-smtp-server . "smtp.gmail.com")
+                      (smtpmail-smtp-service . 587))
               )
              (make-mu4e-context
               :name "treebark1378@gmail.com"
@@ -384,7 +358,13 @@
                       (mu4e-drafts-folder  . "/treebark1378@gmail.com/[Gmail]/Drafts")
                       (mu4e-sent-folder . "/treebark1378@gmail.com/[Gmail]/Sent Mail")
                       (mu4e-refile-folder . "/treebark1378@gmail.com/[Gmail]/All Mail")
-                      (mu4e-trash-folder . "/treebark1378@gmail.com/[Gmail]/Trash"))
+                      (mu4e-trash-folder . "/treebark1378@gmail.com/[Gmail]/Trash")
+                      (user-mail-address . "treebark1378@gmail.com")
+                      (smtpmail-smtp-user . "treebark1378")
+                      (smtpmail-local-domain . "gmail.com")
+                      (smtpmail-default-smtp-server . "smtp.gmail.com")
+                      (smtpmail-smtp-server . "smtp.gmail.com")
+                      (smtpmail-smtp-service . 587))
               )
              (make-mu4e-context
               :name "w459e964@wichita.edu"
@@ -397,7 +377,14 @@
                       (mu4e-drafts-folder  . "/outlook-wsu/Drafts")
                       (mu4e-sent-folder . "/outlook-wsu/Sent Mail")
                       (mu4e-refile-folder . "/outlook-wsu/All Mail")
-                      (mu4e-trash-folder . "/outlook-wsu/Trash"))
+                      (mu4e-trash-folder . "/outlook-wsu/Trash")
+                      (user-mail-address . "w459e964@wichita.edu")
+                      (smtpmail-smtp-user . "w459e964")
+                      (smtpmail-local-domain . "wichita.edu")
+                      (smtpmail-default-smtp-server . "smtp.office365.com")
+                      (smtpmail-smtp-server . "smtp.office365.com")
+                      (smtpmail-smtp-service . 587)
+                      (smtpmail-stream-type . starttls))
               )
              ))
   )
