@@ -160,23 +160,10 @@
     )
 
 ;;; Minibuffer Completion etc. 
-  (use-package icomplete ;; Minibuffer completion
-    :ensure nil
-    :hook (after-init . (lambda () ;; If version > 28 load icomplete vertical otherwise simulate
-                          (if (version< emacs-version "28")
-                          (icomplete-mode 1))
-                          (setq icomplete-separator "\n")
-                          (icomplete-vertical-mode 1)))
+  (use-package vertico ;; Minimal minibuffer completion framework without compromises
+    :hook (after-init . vertico-mode)
     :config
-      (setq icomplete-hide-common-prefix nil)
-      (setq icomplete-show-matches-on-no-input t)
-    :bind (
-         :map icomplete-minibuffer-map
-         ("<return>" . icomplete-force-complete-and-exit)
-         ("<down>" . icomplete-forward-completions)
-         ("C-n" . icomplete-forward-completions)
-         ("<up>" . icomplete-backward-completions)
-         ("C-p" . icomplete-backward-completions))
+      (setq vertico-cycle t)
   )
 
   (use-package orderless ;; Allow for space delimeted searching
@@ -189,11 +176,11 @@
 
   (use-package marginalia ;; Show info about selection canidates in minibuffer
     :init
-    (marginalia-mode)
+      (marginalia-mode)
   )
 
   (use-package consult ;; Greatly expand upon many built in Emacs minibuffer completion functions
-    :after icomplete
+    :after vertico
     :config
       (autoload 'projectile-project-root "projectile")
       (setq consult-project-root-function #'projectile-project-root)
