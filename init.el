@@ -167,14 +167,18 @@
   )
 
   (use-package orderless ;; Allow for space delimeted searching
+    :after vertico
     :init
-      (setq completion-styles
-             '(substring initials flex partial-completion orderless))
+       (setq completion-styles '(initials partial-completion orderless))
        (setq completion-category-overrides
-             '((file (styles . (partial-completion orderless)))))
+             '((file (styles . (partial-completion orderless))))
+       )
+    :config
+      (setq orderless-smart-case t) 
   )
 
   (use-package marginalia ;; Show info about selection canidates in minibuffer
+    :after vertico
     :init
       (marginalia-mode)
   )
@@ -182,6 +186,7 @@
   (use-package consult ;; Greatly expand upon many built in Emacs minibuffer completion functions
     :after vertico
     :config
+      (setq consult-line-start-from-top t)
       (autoload 'projectile-project-root "projectile")
       (setq consult-project-root-function #'projectile-project-root)
   )
