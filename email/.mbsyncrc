@@ -5,7 +5,7 @@ IMAPAccount gregheiman02@gmail.com
 # Address to connect to
 Host imap.gmail.com
 User gregheiman02@gmail.com
-PassCmd "gpg2 -q --for-your-eyes-only --no-tty -d ~/.emacs.d/email/.mbsyncpass-acc1.gpg"
+PassCmd "gpg2 -q --for-your-eyes-only --no-tty -d ~/.authinfo.gpg | awk '/machine imap.gmail.com login gregheiman02@gmail.com/ {print $NF}'"
 AuthMechs LOGIN
 SSLType IMAPS
 SSLVersions TLSv1.2
@@ -60,7 +60,7 @@ IMAPAccount treebark1378@gmail.com
 # Address to connect to
 Host imap.gmail.com
 User treebark1378@gmail.com
-PassCmd "gpg2 -q --for-your-eyes-only --no-tty -d ~/.emacs.d/email/.mbsyncpass-acc2.gpg"
+PassCmd "gpg2 -q --for-your-eyes-only --no-tty -d ~/.authinfo.gpg | awk '/machine imap.gmail.com login treebark1378@gmail.com/ {print $NF}'"
 AuthMechs LOGIN
 SSLType IMAPS
 SSLVersions TLSv1.2
@@ -115,7 +115,7 @@ IMAPAccount outlook-wsu
 Host outlook.office365.com
 Port 993
 User w459e964@wichita.edu 
-PassCmd "gpg2 -q --for-your-eyes-only --no-tty -d ~/.emacs.d/email/.mbsyncpass-outlookwsu.gpg"
+PassCmd "gpg2 -q --for-your-eyes-only --no-tty -d ~/.authinfo.gpg | awk '/machine imap.outlook.com login w459e964@wichita.edu/ {print $NF}'"
 AuthMechs PLAIN
 SSLType IMAPS
 SSLVersions TLSv1.2

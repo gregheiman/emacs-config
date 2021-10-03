@@ -272,6 +272,10 @@
       ("C-c o r g"   . org-roam-graph)))
     )
 
+  (use-package ox-hugo
+    :after ox
+  )
+
 ;;; Flyspell Mode
   (use-package flyspell
     :hook ((markdown-mode . 'turn-on-flyspell)
