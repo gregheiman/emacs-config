@@ -36,11 +36,10 @@
       ))
 
 ;;; Load Custom Files
-  (add-to-list 'load-path "~/.emacs.d/Custom") ;; The directory that my custom files are kept in
+  (add-to-list 'load-path (expand-file-name "~/.emacs.d/Custom")) ;; The directory that my custom files are kept in
   (add-to-list 'load-path "/usr/local/share/emacs/site-lisp/mu4e")
   (load "functions") ;; Load functions
   (load "mu4e") ;; Load mu4e
- 
 
 ;;; Evil Mode
   (use-package evil ;; Vim keybindings
@@ -51,6 +50,8 @@
         (setq evil-insert-state-message nil)
         (evil-set-undo-system 'undo-tree)
         (evil-set-leader 'normal (kbd "\\"))
+        (evil-define-key 'normal 'global (kbd "C-n") nil)
+        (evil-define-key 'normal 'global (kbd "C-p") nil)
         (evil-define-key 'normal 'global (kbd "<leader>bl") 'list-buffers)
         (evil-define-key 'normal 'global (kbd "<leader>bd") 'kill-this-buffer)
         (evil-define-key 'normal 'global (kbd "]q") 'compilation-next-error)
@@ -62,22 +63,16 @@
         (evil-define-key 'normal 'global (kbd "]B") 'last-buffer)
         (evil-define-key 'normal 'global (kbd "[B") 'first-buffer)
         (evil-define-key 'normal 'global (kbd "gc") 'comment-dwim)
-        (if (executable-find "rg")
-          (evil-define-key 'normal 'global (kbd "<leader>f") 'consult-ripgrep)
-          (evil-define-key 'normal 'global (kbd "<leader>f") 'consult-grep))
-        (evil-define-key 'normal 'global (kbd "<leader>bg") 'consult-buffer)
-        (evil-define-key 'normal 'global (kbd "/") 'consult-line)
+        (evil-define-key 'normal 'global (kbd "<leader>f") 'lgrep)
+        (evil-define-key 'normal 'global (kbd "<leader>bg") 'switch-to-buffer)
         (evil-define-key '(normal insert visual) org-mode-map (kbd "C-j") 'org-next-visible-heading)
         (evil-define-key '(normal insert visual) org-mode-map (kbd "C-k") 'org-previous-visible-heading)
         (evil-define-key '(normal insert visual) org-mode-map (kbd "M-j") 'org-metadown)
         (evil-define-key '(normal insert visual) org-mode-map (kbd "M-k") 'org-metaup)
-
         (eval-after-load 'evil-ex
-          '(if (executable-find "find")
-              (evil-ex-define-cmd "find" 'consult-find)
-              (evil-ex-define-cmd "find" 'projectile-find-file)))
+          '(evil-ex-define-cmd "find" 'projectile-find-file))
         (eval-after-load 'evil-ex
-            '(evil-ex-define-cmd "browse-old" 'recentf-open-files))
+          '(evil-ex-define-cmd "browse-old" 'recentf-open-files))
   )
 
     (use-package evil-collection ;; Extend default evil mode keybindings to more modes
@@ -160,14 +155,22 @@
     )
 
 ;;; Minibuffer Completion etc. 
-  (use-package vertico ;; Minimal minibuffer completion framework without compromises
+  (use-package minibuffer
+    :ensure nil
+    :hook (minibuffer-setup-hook . cursor-intangible-mode)
+    :config
+      ;; Make cursor intangible in minibuffer
+      (setq minibuffer-prompt-properties 
+        '(read-only t cursor-intangible t face minibuffer-prompt))
+  )
+
+  (use-package vertico
     :hook (after-init . vertico-mode)
     :config
       (setq vertico-cycle t)
   )
 
   (use-package orderless ;; Allow for space delimeted searching
-    :after vertico
     :init
        (setq completion-styles '(initials partial-completion orderless))
        (setq completion-category-overrides
@@ -178,17 +181,8 @@
   )
 
   (use-package marginalia ;; Show info about selection canidates in minibuffer
-    :after vertico
     :init
       (marginalia-mode)
-  )
-
-  (use-package consult ;; Greatly expand upon many built in Emacs minibuffer completion functions
-    :after vertico
-    :config
-      (setq consult-line-start-from-top t)
-      (autoload 'projectile-project-root "projectile")
-      (setq consult-project-root-function #'projectile-project-root)
   )
 
 ;;; Which-Key Mode
@@ -434,6 +428,9 @@
      (global-auto-revert-mode 1) ;; Auto update when files change on disk
      (setq auto-revert-verbose nil) ;; Be quite about updating files when they're changed on disk
 
+     (if (not (version< emacs-version "28")) ;; Don't show commands that aren't valid with current modes (Only in Emacs > 28)
+         (setq read-extended-command-predicate #'command-completion-default-include-p))
+
      ;; Set the bell to flash the modeline rather than audio or standard visual bell
      (setq ring-bell-function
       (lambda ()
@@ -494,21 +491,29 @@
                                 (setq auto-revert-verbose nil))) ;; Be quiet about updating Dired
 
 ;;; Grep Configuration
-    (if (executable-find "rg")
-        (setq grep-use-null-device nil) ;; Don't append NUL to end on windows (Not nessacary for rg)
-        (setq-default grep-template "rg -n -H --no-heading -g <F> -e <R> .") ;; For lgrep
-        (setq-default grep-find-template "rg -n -H --no-heading -e <R> -g .") ;; For rgrep
-    )
+  (use-package grep
+    :config
+      (if (executable-find "rg")
+          (grep-apply-setting 'grep-template "rg -n -H --no-heading -g <F> -e <R> .") ;; For lgrep
+          (setq grep-use-null-device nil) ;; Don't append NUL to end on windows (Not nessacary for rg)
+      )
+  )
 
 ;;; Tags Configuration
-    (setq-default tags-revert-without-query t) ;; Don't ask before rereading the TAGS files if they have changed
-    (setq tags-add-tables nil) ;; Don't ask to keep current list of tags tables also
+  (use-package etags
+    :config 
+      (setq-default tags-revert-without-query t) ;; Don't ask before rereading the TAGS files if they have changed
+      (setq tags-add-tables nil) ;; Don't ask to keep current list of tags tables also
+  )
 
 ;;; Markdown Configuration
-    (if (executable-find "pandoc")
-        ;; Set pandoc as the program that gets called when
-        ;; you issue a markdown command
-      (setq markdown-command "pandoc"))
+  (use-package markdown-mode
+    :config
+      (if (executable-find "pandoc")
+          ;; Set pandoc as the program that gets called when
+          ;; you issue a markdown command
+        (setq markdown-command "pandoc"))
+  )
 
 ;;; Emacs Keybindings
     (global-set-key (kbd "<escape>") 'keyboard-escape-quit) ;; Make ESC quit prompts
