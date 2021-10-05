@@ -382,9 +382,7 @@
 ;;; Emacs Configuration
  (use-package emacs
    :hook ((emacs-startup . efs/display-startup-time)
-          (auto-save . full-auto-save)
-          (c-mode . c-mode-configuration)
-          (java-mode . java-mode-configuration))
+          (auto-save . full-auto-save))
    :config
      ;; Set information about ourselves
      (setq user-mail-address "gregheiman02@gmail.com"
@@ -464,31 +462,38 @@
            (org-mode . display-line-numbers-mode)))
 
 ;;; Modeline Configuration
-    (setq-default mode-line-format
-        '((:eval (simple-mode-line-render
-                    ;; left
-                    (format-mode-line
-                     (list
-                      " "
-                      '(:eval (propertize (format "<%s> " (upcase (substring (symbol-name evil-state) 0 1))))) ;; Evil mode
-                      '(:eval (propertize (format "%s " (vc-branch))))
-                      '(:eval (propertize (format "%s" "%b")))
-                      '(:eval (propertize (format " %s " "[%*]")))
-                      ))
-                    ;; right
-                     (format-mode-line
-                      (list
-                       '(:eval (propertize (format "[%s] " (flycheck-indicator))))
-                       '(:eval (propertize (format "%s" (upcase (symbol-name buffer-file-coding-system)))))
-                       '(:eval (propertize (format " %s " "%m")))
-                       '(:eval (propertize (format "%s/%s:%s " "%l" (line-number-at-pos (point-max)) "%c")))
-                       ))
-                    ))))
+  (use-package modeline
+    :ensure nil
+    :init
+      (setq-default mode-line-format
+          '((:eval (simple-mode-line-render
+                      ;; left
+                      (format-mode-line
+                       (list
+                        " "
+                        '(:eval (propertize (format "<%s> " (upcase (substring (symbol-name evil-state) 0 1))))) ;; Evil mode
+                        '(:eval (propertize (format "%s " (vc-branch))))
+                        '(:eval (propertize (format "%s" "%b")))
+                        '(:eval (propertize (format " %s " "[%*]")))
+                        ))
+                      ;; right
+                       (format-mode-line
+                        (list
+                         '(:eval (propertize (format "[%s] " (flycheck-indicator))))
+                         '(:eval (propertize (format "%s" (upcase (symbol-name buffer-file-coding-system)))))
+                         '(:eval (propertize (format " %s " "%m")))
+                         '(:eval (propertize (format "%s/%s:%s " "%l" (line-number-at-pos (point-max)) "%c")))
+                         ))
+                      ))))
+  )
 
 ;;; Dired Configuration
-    (add-hook 'dired-mode-hook (lambda()
-                                (auto-revert-mode 1) ;; Automatically update Dired
-                                (setq auto-revert-verbose nil))) ;; Be quiet about updating Dired
+  (use-package dired
+    :ensure nil
+    :hook (dired-mode . (lambda()
+                          (auto-revert-mode 1) ;; Automatically update Dired
+                          (setq auto-revert-verbose nil))) ;; Be quiet about updating Dired
+  )
 
 ;;; Grep Configuration
   (use-package grep
@@ -513,6 +518,18 @@
           ;; Set pandoc as the program that gets called when
           ;; you issue a markdown command
         (setq markdown-command "pandoc"))
+  )
+
+;;; Java Configuration
+  (use-package java-mode
+    :ensure nil
+    :hook (java-mode . java-mode-configuration)
+  )
+
+;;; C Configuration
+  (use-package c-mode
+    :ensure nil
+    :hook (c-mode . c-mode-configuration)
   )
 
 ;;; Emacs Keybindings
