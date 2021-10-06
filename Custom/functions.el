@@ -209,8 +209,6 @@
     (apply orig-fun extension subtreep pub-dir nil))
   (advice-add 'org-export-output-file-name :around #'org-export-output-file-name-modified)
 
-;;; Minibuffer
-
 ;;; Mu4e
   (defun my-mu4e-set-account ()
         "Set the account for composing a message.
