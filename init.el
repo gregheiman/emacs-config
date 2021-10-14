@@ -109,37 +109,24 @@
     (load-theme 'modus-vivendi t)
   )
 
-;;; Company Mode
-  (use-package company ;; Text auto completion framework
-    :disabled
-    :bind (("C-SPC" . company-complete) ;; The set mark command is v when using Evil-mode, so can rebind
-    :map company-active-map
-      ("<tab>" . company-select-next-or-abort)
-      ("TAB" . company-select-next-or-abort)
-      ("S-TAB" . compnay-select-previous-or-abort)
-      ("<backtab>" . company-select-previous-or-abort))
-    :config
-      (setq company-format-margin-function 'company-text-icons-margin)
-      (setq company-text-icons-add-background t)
-    :hook (prog-mode . global-company-mode)
-  )
-
-  (use-package corfu ;; In buffer text auto complete
+;;; In-Buffer Text Completion 
+  (use-package corfu ;; In buffer text completion
     :hook ((prog-mode . corfu-mode)
            (shell-mode . corfu-mode)
-           (eshell-mode . corfu-mode))
+           (eshell-mode . corfu-mode)
+           (org-mode . corfu-mode))
     :custom
-      (corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
-      (corfu-auto t)                 ;; Enable auto completion
-      (corfu-commit-predicate nil)   ;; Do not commit selected candidates on next input
-      (corfu-quit-at-boundary t)     ;; Automatically quit at word boundary
-      (corfu-quit-no-match t)        ;; Automatically quit if there is no match
-      (corfu-echo-documentation t)   ;; Show documentation in the echo area
+      (corfu-cycle t)
+      (corfu-auto t)
+      (corfu-commit-predicate nil)
+      (corfu-quit-at-boundary t)
+      (corfu-quit-no-match t)
+      (corfu-echo-documentation t)
     :bind (:map corfu-map
-           ("TAB" . corfu-next)
-           ([tab] . corfu-next)
-           ("S-TAB" . corfu-previous)
-           ([backtab] . corfu-previous))
+          ("TAB" . corfu-next)
+          ([tab] . corfu-next)
+          ("S-TAB" . corfu-previous)
+          ([backtab] . corfu-previous))
   )
 
 ;;; LSP and DAP Mode
@@ -186,26 +173,22 @@
         '(read-only t cursor-intangible t face minibuffer-prompt))
   )
 
-  (use-package icomplete ;; Minibuffer completion
+  (use-package icomplete
     :ensure nil
     :hook (after-init . icomplete-mode)
     :config
       (setq icomplete-hide-common-prefix nil)
       (setq icomplete-show-matches-on-no-input t)
     :bind (
-         :map icomplete-minibuffer-map
-         ;;("<return>" . icomplete-force-complete-and-exit)
-         ("<down>" . icomplete-forward-completions)
-         ("C-n" . icomplete-forward-completions)
-         ("<up>" . icomplete-backward-completions)
-         ("C-p" . icomplete-backward-completions))
-  )
-
-  (use-package vertico
-    :disabled
-    :hook (after-init . vertico-mode)
-    :config
-      (setq vertico-cycle t)
+           :map minibuffer-local-completion-map
+             ("SPC" . 'self-insert-command)
+           :map icomplete-minibuffer-map
+             ("<return>" . icomplete-force-complete-and-exit)
+             ("<down>" . icomplete-forward-completions)
+             ("C-n" . icomplete-forward-completions)
+             ("<up>" . icomplete-backward-completions)
+             ("C-p" . icomplete-backward-completions)
+    )
   )
 
   (use-package orderless ;; Allow for space delimeted searching
@@ -216,12 +199,6 @@
        )
     :config
       (setq orderless-smart-case t) 
-  )
-
-  (use-package marginalia ;; Show info about selection canidates in minibuffer
-    :disabled
-    :init
-      (marginalia-mode)
   )
 
 ;;; Which-Key Mode
@@ -304,7 +281,7 @@
       ("C-c o r g"   . org-roam-graph)))
     )
 
-  (use-package ox-hugo
+  (use-package ox-hugo ;; Publish Org mode documents to static websites using Hugo
     :after ox
   )
 
@@ -452,6 +429,7 @@
      (set-default 'truncate-lines t) ;; Disable wrapping of lines
      (setq read-process-output-max (* 1024 1024)) ;; 1MB
      (setq vc-follow-symlinks t) ;; Don't prompt to follow symlinks
+     (setq auto-revert-check-vc-info t) ;; Auto revert vc
      (defalias 'yes-or-no-p 'y-or-n-p) ;; Mad efficiency gains
      (setq custom-file (make-temp-file "emacs-custom-")) ;; Closest thing to disabling custom
      (setq compilation-scroll-output t) ;; Auto scroll to bottom of compilation buffer
