@@ -61,6 +61,8 @@
         ("[B" . first-buffer)
         ("gc" . comment-dwim)
         ("<leader>f" . lgrep)
+        ("C-n" . nil)
+        ("C-p" . nil)
       ) 
     :config
       (setq evil-insert-state-message nil)
@@ -109,6 +111,7 @@
 
 ;;; Company Mode
   (use-package company ;; Text auto completion framework
+    :disabled
     :bind (("C-SPC" . company-complete) ;; The set mark command is v when using Evil-mode, so can rebind
     :map company-active-map
       ("<tab>" . company-select-next-or-abort)
@@ -121,6 +124,23 @@
     :hook (prog-mode . global-company-mode)
   )
 
+  (use-package corfu ;; In buffer text auto complete
+    :hook ((prog-mode . corfu-mode)
+           (shell-mode . corfu-mode)
+           (eshell-mode . corfu-mode))
+    :custom
+      (corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
+      (corfu-auto t)                 ;; Enable auto completion
+      (corfu-commit-predicate nil)   ;; Do not commit selected candidates on next input
+      (corfu-quit-at-boundary t)     ;; Automatically quit at word boundary
+      (corfu-quit-no-match t)        ;; Automatically quit if there is no match
+      (corfu-echo-documentation t)   ;; Show documentation in the echo area
+    :bind (:map corfu-map
+           ("TAB" . corfu-next)
+           ([tab] . corfu-next)
+           ("S-TAB" . corfu-previous)
+           ([backtab] . corfu-previous))
+  )
 
 ;;; LSP and DAP Mode
   (use-package lsp-mode ;; LSP support in Emacs
@@ -166,7 +186,23 @@
         '(read-only t cursor-intangible t face minibuffer-prompt))
   )
 
+  (use-package icomplete ;; Minibuffer completion
+    :ensure nil
+    :hook (after-init . icomplete-mode)
+    :config
+      (setq icomplete-hide-common-prefix nil)
+      (setq icomplete-show-matches-on-no-input t)
+    :bind (
+         :map icomplete-minibuffer-map
+         ;;("<return>" . icomplete-force-complete-and-exit)
+         ("<down>" . icomplete-forward-completions)
+         ("C-n" . icomplete-forward-completions)
+         ("<up>" . icomplete-backward-completions)
+         ("C-p" . icomplete-backward-completions))
+  )
+
   (use-package vertico
+    :disabled
     :hook (after-init . vertico-mode)
     :config
       (setq vertico-cycle t)
@@ -183,6 +219,7 @@
   )
 
   (use-package marginalia ;; Show info about selection canidates in minibuffer
+    :disabled
     :init
       (marginalia-mode)
   )
@@ -254,7 +291,6 @@
     :config
       (setq org-roam-directory (file-truename "~/Org/Org-Roam"))
       (setq org-roam-completion-everywhere t)
-      (add-to-list 'company-backends 'company-capf)
       (org-roam-db-autosync-enable)
     :bind (
       (("C-c o r s"   . org-roam-db-sync)
@@ -299,6 +335,7 @@
 ;;; Email
   (use-package mu4e ;; Email client for Mu indexer. Uses mbsync to retrieve mail.
     :ensure nil
+    :disabled
     :hook (
            (mu4e-view-mode . visual-line-mode) ;; Auto break lines when viewing an email
           ) 
@@ -389,7 +426,6 @@
      ;; Set information about ourselves
      (setq user-mail-address "gregheiman02@gmail.com"
            user-full-name "Greg Heiman")
-
      ;; Font configuration
      (set-face-attribute 'default nil :font "Iosevka-12" ) ;; Set font options
      (set-frame-font "Iosevka-12" nil t)
