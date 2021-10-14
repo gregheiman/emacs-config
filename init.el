@@ -43,35 +43,37 @@
 
 ;;; Evil Mode
   (use-package evil ;; Vim keybindings
-      :hook ((after-init . evil-mode))
-      :init
-        (setq evil-want-keybinding nil) ;; Needed to use evil-collection
-      :config
-        (setq evil-insert-state-message nil)
-        (evil-set-undo-system 'undo-tree)
-        (evil-set-leader 'normal (kbd "\\"))
-        (evil-define-key 'normal 'global (kbd "C-n") nil)
-        (evil-define-key 'normal 'global (kbd "C-p") nil)
-        (evil-define-key 'normal 'global (kbd "<leader>bl") 'list-buffers)
-        (evil-define-key 'normal 'global (kbd "<leader>bd") 'kill-this-buffer)
-        (evil-define-key 'normal 'global (kbd "]q") 'compilation-next-error)
-        (evil-define-key 'normal 'global (kbd "[q") 'compilation-previous-error)
-        (evil-define-key 'normal 'global (kbd "]Q") 'compilation-last-error)
-        (evil-define-key 'normal 'global (kbd "[Q") 'compilation-first-error)
-        (evil-define-key 'normal 'global (kbd "]b") 'next-buffer)
-        (evil-define-key 'normal 'global (kbd "[b") 'previous-buffer)
-        (evil-define-key 'normal 'global (kbd "]B") 'last-buffer)
-        (evil-define-key 'normal 'global (kbd "[B") 'first-buffer)
-        (evil-define-key 'normal 'global (kbd "gc") 'comment-dwim)
-        (evil-define-key 'normal 'global (kbd "<leader>f") 'lgrep)
-        (evil-define-key 'normal 'global (kbd "<leader>bg") 'switch-to-buffer)
-        (evil-define-key '(normal insert visual) org-mode-map (kbd "C-j") 'org-next-visible-heading)
-        (evil-define-key '(normal insert visual) org-mode-map (kbd "C-k") 'org-previous-visible-heading)
-        (evil-define-key '(normal insert visual) org-mode-map (kbd "M-j") 'org-metadown)
-        (evil-define-key '(normal insert visual) org-mode-map (kbd "M-k") 'org-metaup)
-        (eval-after-load 'evil-ex
+    :hook ((after-init . evil-mode))
+    :init
+      (setq evil-want-keybinding nil) ;; Needed to use evil-collection
+    :bind (
+      :map evil-normal-state-map
+        ("<leader>bl" . list-buffers)
+        ("<leader>bd" . kill-this-buffer)
+        ("<leader>bg" . switch-to-buffer)
+        ("]q" . compilation-next-error)
+        ("[q" . compilation-previous-error)
+        ("]Q" . compilation-first-error)
+        ("[Q" . compilation-last-error)
+        ("]b" . next-buffer)
+        ("[b" . previous-buffer)
+        ("]B" . last-buffer)
+        ("[B" . first-buffer)
+        ("gc" . comment-dwim)
+        ("<leader>f" . lgrep)
+      ) 
+    :config
+      (setq evil-insert-state-message nil)
+      (evil-set-undo-system 'undo-tree)
+      (evil-set-leader 'normal (kbd "\\"))
+      (evil-define-key '(normal insert visual) org-mode-map (kbd "C-j") 'org-next-visible-heading)
+      (evil-define-key '(normal insert visual) org-mode-map (kbd "C-k") 'org-previous-visible-heading)
+      (evil-define-key '(normal insert visual) org-mode-map (kbd "M-j") 'org-metadown)
+      (evil-define-key '(normal insert visual) org-mode-map (kbd "M-k") 'org-metaup)
+
+      (eval-after-load 'evil-ex
           '(evil-ex-define-cmd "find" 'projectile-find-file))
-        (eval-after-load 'evil-ex
+      (eval-after-load 'evil-ex
           '(evil-ex-define-cmd "browse-old" 'recentf-open-files))
   )
 
