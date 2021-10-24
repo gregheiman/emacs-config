@@ -139,7 +139,6 @@
       (setq-default lsp-signature-auto-activate nil) ;; Stop signature definitions popping up
       (setq-default lsp-enable-symbol-highlighting nil) ;; Disable highlighting of symbols
       (setq-default lsp-semantic-tokens-enable nil) ;; Not everything needs to be a color
-    :bind-keymap ("C-c l" . lsp-command-map)
     :commands (lsp lsp-deferred))
 
   (use-package lsp-java ;; Support for the Eclipse.jdt.ls language server
@@ -205,6 +204,13 @@
     :hook ((after-init . which-key-mode))
     :commands (which-key))
 
+;;; Hydra
+  (use-package hydra
+    :bind (("C-c o r" . hydra-org-roam/body)
+           ("C-c p" . hydra-projectile/body)
+           ("C-c l" . hydra-lsp/body))
+  )
+
 ;;; Flycheck Mode
   (use-package flycheck ;; Improved linting and checking
     :bind-keymap ("C-c f" . flycheck-command-map)
@@ -222,7 +228,7 @@
         (setq projectile-switch-project-action #'projectile-dired) ;; Auto open dired when opening project
         (if (and (executable-find "rg") (eq projectile-indexing-method 'native)) 
             (setq projectile-git-command "rg --files | rg")) ;; Only works if indexing method is native (Default on Windows)
-    :bind-keymap ("C-c p" . projectile-command-map))
+  )
 
 ;;; Magit Mode
   (use-package magit ;; Git managment within Emacs (Very slow on Windows)
@@ -267,16 +273,6 @@
       (setq org-roam-directory (file-truename "~/Org/Org-Roam"))
       (setq org-roam-completion-everywhere t)
       (org-roam-db-autosync-enable)
-    :bind (
-      (("C-c o r s"   . org-roam-db-sync)
-      ("C-c o r f"   . org-roam-node-find)
-      ("C-c o r d"   . org-roam-dailies-goto-date)
-      ("C-c o r c"   . org-roam-dailies-capture-today)
-      ("C-c o r C r" . org-roam-dailies-capture-tomorrow)
-      ("C-c o r t"   . org-roam-dailies-goto-today)
-      ("C-c o r y"   . org-roam-dailies-goto-yesterday)
-      ("C-c o r r"   . org-roam-dailies-goto-tomorrow)
-      ("C-c o r g"   . org-roam-graph)))
     )
 
   (use-package ox-hugo ;; Publish Org mode documents to static websites using Hugo

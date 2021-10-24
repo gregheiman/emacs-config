@@ -231,3 +231,76 @@
               account-vars)
             (error "No email account found"))))
 
+
+;;; Hydra
+    (defhydra hydra-org-roam (:exit t :color pink :hint nil)
+        "
+        ^Node^             ^Goto^           ^Capture^          ^Misc
+        ^^^^^^^^-----------------------------------------------------------------
+        _f_: Find          _d_: Date        _c_: Today         _s_: Sync DB
+        _i_: Insert        _t_: Today       _u_: Tomorrow      _g_: Graph
+        _r_: Random        _y_: Yesterday        
+                            _T_: Tomorrow       
+        "
+        ("f" org-roam-node-find)
+        ("i" org-roam-node-insert)
+        ("r" org-roam-node-random)
+        ("s" org-roam-db-sync)
+        ("d" org-roam-dailies-goto-date)
+        ("c" org-roam-dailies-capture-today)
+        ("u" org-roam-dailies-capture-tomorrow)
+        ("t" org-roam-dailies-goto-today)
+        ("y" org-roam-dailies-goto-yesterday)
+        ("T" org-roam-dailies-goto-tomorrow)
+        ("g" org-roam-graph)
+        ("q" nil "quit" :color blue))
+
+   (defhydra hydra-projectile (:color pink :columns 5 :exit t)
+    "Projectile"
+    ("f"   projectile-find-file                "Find File")
+    ("r"   projectile-recentf                  "Recent Files")
+    ("z"   projectile-cache-current-file       "Cache Current File")
+    ("x"   projectile-remove-known-project     "Remove Known Project")
+
+    ("d"   projectile-find-dir                 "Find Directory")
+    ("b"   projectile-switch-to-buffer         "Switch to Buffer")
+    ("c"   projectile-invalidate-cache         "Clear Cache")
+    ("X"   projectile-cleanup-known-projects   "Cleanup Known Projects")
+
+    ("o"   projectile-multi-occur              "Multi Occur")
+    ("t"   projectile-regenerate-tags          "Regenerate Tags")
+    ("p"   projectile-switch-project           "Switch Project")
+    ("k"   projectile-kill-buffers             "Kill Buffers")
+
+    ("P"   projectile-test-project             "Test Project")
+    ("K"   projectile-install-project          "Install Project")
+    ("L"   projectile-package-project          "Package Project")
+    ("C"   projectile-compile-project          "Compile Project")
+    ("U"   projectile-run-project              "Run Project")
+    ("q"   nil "Quit" :color blue))
+
+  (defhydra hydra-lsp (:exit t :hint nil :color pink)
+    "
+   Buffer^^               Server^^                   Symbol
+  -------------------------------------------------------------------------------------
+   [_f_] format           [_M-r_] restart            [_d_] declaration  [_i_] implementation  [_o_] documentation
+   [_x_] format region    [_S_]   shutdown           [_D_] definition   [_t_] type            [_r_] rename
+   [_a_] code actions     [_M-s_] describe session   [_R_] references   [_s_] signature
+   "
+    ("d" lsp-find-declaration)
+    ("D" lsp-find-definitions)
+    ("R" lsp-find-references)
+    ("i" lsp-find-implementation)
+    ("t" lsp-find-type-definition)
+    ("s" lsp-signature-help)
+    ("o" lsp-describe-thing-at-point)
+    ("r" lsp-rename)
+  
+    ("f" lsp-format-buffer)
+    ("x" lsp-code-region)
+    ("a" lsp-execute-code-action)
+  
+    ("M-s" lsp-describe-session)
+    ("M-r" lsp-restart-workspace)
+    ("S" lsp-shutdown-workspace)
+    ("q" nil "quit" :color blue))
