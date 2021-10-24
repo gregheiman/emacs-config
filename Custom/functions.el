@@ -139,7 +139,7 @@
   )
 
 ;;; Impatient Mode
-  (defun markdown-html-filter (buffer) ;; Use this filter with impatient mode with M-x imp-set-user-filter RET markdown-html RET
+  (defun gh/markdown-html-filter (buffer) ;; Use this filter with impatient mode with M-x imp-set-user-filter RET markdown-html RET
     "Impatient mode filter to show markdown correctly."
     (princ (with-current-buffer buffer
     (format
@@ -155,17 +155,17 @@
            (current-buffer))
   )
 
-  (defun impatient-markdown-preview () ;; Preview current markdown buffer with impatient mode
+  (defun gh/impatient-markdown-preview () ;; Preview current markdown buffer with impatient mode
     "Preview Markdown in realtime with impatient mode."
     (interactive)
     (unless (process-status "httpd")
         (httpd-start))
     (impatient-mode)
-    (imp-set-user-filter 'markdown-html-filter)
+    (imp-set-user-filter 'gh/markdown-html-filter)
     (imp-visit-buffer)
   )
 
-  (defun impatient-html-preview () ;; Preview current HTML buffer with impatient mode
+  (defun gh/impatient-html-preview () ;; Preview current HTML buffer with impatient mode
     "Preview HTML files in realtime with impatient mode."
     (interactive)
     (unless (process-status "httpd")
@@ -190,6 +190,14 @@
         (propertize (concat (if (string= (eshell/pwd) (getenv "HOME")) "~" (eshell/basename (eshell/pwd))) " λ "))
         ))
 
+;;; Terminal and ANSI-Term
+  (defun gh/open-ansi-term-in-split ()
+    (interactive)
+    (split-window-below)
+    (other-window 1)
+    (ansi-term "/bin/bash")
+  )
+
 ;;; Org Mode
   (defun org-mode-setup ()
     "Startup configuration when using Org mode."
@@ -198,7 +206,7 @@
     (visual-line-mode 1)
     (turn-on-flyspell)
     (turn-on-font-lock)
-    )
+  )
 
   (defun org-export-output-file-name-modified (orig-fun extension &optional subtreep pub-dir)
     "Modifies org-export to place exported files in a different directory"
