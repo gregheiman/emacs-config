@@ -61,8 +61,6 @@
         ("[B" . first-buffer)
         ("gc" . comment-dwim)
         ("<leader>f" . lgrep)
-        ("C-n" . nil)
-        ("C-p" . nil)
       ) 
     :config
       (setq evil-insert-state-message nil)
@@ -74,9 +72,13 @@
       (evil-define-key '(normal insert visual) org-mode-map (kbd "M-k") 'org-metaup)
 
       (eval-after-load 'evil-ex
-          '(evil-ex-define-cmd "find" 'projectile-find-file))
+          '(evil-ex-define-cmd "find" 'find-file))
+      (eval-after-load 'evil-ex
+          '(evil-ex-define-cmd "files" 'projectile-find-file))
       (eval-after-load 'evil-ex
           '(evil-ex-define-cmd "browse-old" 'recentf-open-files))
+      (eval-after-load 'evil-ex
+          '(evil-ex-define-cmd "Term" 'gh/open-ansi-term-in-split))
   )
 
     (use-package evil-collection ;; Extend default evil mode keybindings to more modes
@@ -101,12 +103,22 @@
 
 ;;; Theme
   (use-package modus-themes ;; High contrast themes 
+    :disabled
     :init
     (setq modus-themes-paren-match '(bold underline)
           modus-themes-bold-constructs t
           modus-themes-subtle-line-numbers t
           modus-themes-mode-line '(borderless))
     (load-theme 'modus-vivendi t)
+  )
+
+  (use-package doom-themes ;; A set of modern beautiful themes
+    :init
+      (load-theme 'doom-dark+ t)
+    :config
+      (setq doom-themes-enable-bold t)
+      (setq doom-themes-enable-italic nil)
+      (doom-themes-org-config)
   )
 
 ;;; In-Buffer Text Completion 
@@ -193,7 +205,7 @@
 
   (use-package orderless ;; Allow for space delimeted searching
     :init
-       (setq completion-styles '(initials partial-completion orderless))
+       (setq completion-styles '(substring initials flex partial-completion orderless))
        (setq completion-category-overrides
              '((file (styles . (partial-completion orderless))))
        )
@@ -233,8 +245,8 @@
 
 ;;; Impatient Mode
   (use-package impatient-mode ;; Live preview HTML and Markdown files
-    :bind (("C-c i m" . impatient-markdown-preview)
-           ("C-c i h" . impatient-html-preview))
+    :bind (("C-c i m" . gh/impatient-markdown-preview)
+           ("C-c i h" . gh/impatient-html-preview))
     )
 
 ;;; Org Mode Et Al.
@@ -395,6 +407,38 @@
              ))
   )
 
+  (use-package gnus
+    :ensure nil
+    :config
+      (setq gnus-select-method '(nnnil nil))
+      (setq gnus-secondary-select-methods
+      '((nnimap "gregheiman02@gmail.com"
+                (nnimap-address "imap.gmail.com")
+                (nnimap-server-port 993)
+                (nnimap-stream ssl)
+                (nnir-search-engine imap)
+                (nnmail-expiry-target "nnimap+gregheiman02Gmail.com:[Gmail]/Trash")
+                (nnmail-expiry-wait 'immediate))
+        (nnimap "treebark1378@gmail.com"
+                (nnimap-address "imap.gmail.com")
+                (nnimap-server-port 993)
+                (nnimap-stream ssl)
+                (nnir-search-engine imap)
+                (nnmail-expiry-target "nnimap+treebark1378@gmail.com:[Gmail]/Trash")
+                (nnmail-expiry-wait 'immediate))
+        (nnimap "w459e964@wichita.edu"
+                (nnimap-address "outlook.office365.com")
+                (nnimap-server-port 993)
+                (nnimap-stream ssl)
+                (nnir-search-engine imap)
+                (nnmail-expiry-target "nnimap+w459e964@wichita.edu:Trash")
+                (nnmail-expiry-wait 'immediate))))
+
+      (setq smtpmail-smtp-server "smtp.gmail.com"
+        smtpmail-smtp-service 587
+        gnus-ignored-newsgroups "^to\\.\\|^[0-9. ]+\\( \\|$\\)\\|^[\"]\"[#'()]")
+  )
+
 ;;; Emacs Configuration
  (use-package emacs
    :hook ((emacs-startup . efs/display-startup-time)
@@ -545,7 +589,9 @@
 ;;; C Configuration
   (use-package c-mode
     :ensure nil
-    :hook (c-mode . c-mode-configuration)
+    :hook ((c-mode . c-mode-configuration)
+           (c++-mode . c-mode-configuration)
+           (objc-mode . c-mode-configuration))
   )
 
 ;;; Emacs Keybindings
