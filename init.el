@@ -37,9 +37,7 @@
 
 ;;; Load Custom Files
   (add-to-list 'load-path (expand-file-name "~/.emacs.d/Custom")) ;; The directory that my custom files are kept in
-  (add-to-list 'load-path "/usr/local/share/emacs/site-lisp/mu4e")
   (load "functions") ;; Load functions
-  (load "mu4e") ;; Load mu4e
 
 ;;; Evil Mode
   (use-package evil ;; Vim keybindings
@@ -74,9 +72,9 @@
       (eval-after-load 'evil-ex
           '(evil-ex-define-cmd "find" 'find-file))
       (eval-after-load 'evil-ex
-          '(evil-ex-define-cmd "files" 'projectile-find-file))
-      (eval-after-load 'evil-ex
           '(evil-ex-define-cmd "browse-old" 'recentf-open-files))
+      (eval-after-load 'evil-ex
+          '(evil-ex-define-cmd "Files" 'projectile-find-file))
       (eval-after-load 'evil-ex
           '(evil-ex-define-cmd "Term" 'gh/open-ansi-term-in-split))
   )
@@ -103,18 +101,16 @@
 
 ;;; Theme
   (use-package modus-themes ;; High contrast themes 
-    :disabled
     :init
     (setq modus-themes-paren-match '(bold underline)
           modus-themes-bold-constructs t
           modus-themes-subtle-line-numbers t
           modus-themes-mode-line '(borderless))
-    (load-theme 'modus-vivendi t)
+    (load-theme 'modus-operandi t)
   )
 
   (use-package doom-themes ;; A set of modern beautiful themes
     :init
-      (load-theme 'doom-dark+ t)
     :config
       (setq doom-themes-enable-bold t)
       (setq doom-themes-enable-italic nil)
@@ -258,7 +254,8 @@
 ;;; Org Mode Et Al.
   ;; Prefix all org modes with C-c o (So for org-agenda C-c o a)
   (use-package org ;; Powerful plain text note taking and more
-    :hook (org-mode . org-mode-setup)
+    :hook ((org-mode . org-mode-setup)
+           (after-save . org-latex-preview))
     :bind-keymap ("C-c o o" . org-mode-map)
     :config
       (setq org-src-fontify-natively t
@@ -267,7 +264,9 @@
         org-edit-src-content-indentation 2
         org-hide-block-startup nil
         org-src-preserve-indentation nil
-        org-cycle-separator-lines 2)
+        org-cycle-separator-lines 2
+        org-startup-with-latex-preview t
+        org-startup-indented t)
       (if (executable-find "latexmk") ;; Set the command for org -> latex -> pdf
         (setq-default org-latex-pdf-process '("latexmk -output-directory=%o -pdflatex='pdflatex -interaction nonstopmode' -pdf -bibtex -f %f")))
   )
@@ -291,6 +290,15 @@
 
   (use-package ox-hugo ;; Publish Org mode documents to static websites using Hugo
     :after ox
+  )
+
+;;; LaTeX
+  (use-package auctex ;; Powerful LaTeX tool suite
+
+  )
+
+  (use-package cdlatex ;; Fast insertion of environment templates and math in LaTeX
+
   )
 
 ;;; Flyspell Mode
@@ -317,93 +325,8 @@
       (setq-default eshell-prompt-function 'eshell-prompt)
       (setq-default eshell-highlight-prompt nil))
 
-;;; Email
-  (use-package mu4e ;; Email client for Mu indexer. Uses mbsync to retrieve mail.
-    :ensure nil
-    :disabled
-    :hook (
-           (mu4e-view-mode . visual-line-mode) ;; Auto break lines when viewing an email
-          ) 
-    :config
-      (setq-default mu4e-view-prefer-html t)
-      (setq-default mu4e-view-show-images t)
-      (setq-default mu4e-view-show-addresses 't)
-      (setq-default shr-color-visible-luminance-min 100) ;; Allow better colors for html messages on dark themes
-      (setq-default mu4e-get-mail-command "mbsync -c ~/.emacs.d/email/.mbsyncrc -a") ;; Since location of .mbsyncrc is non standard
-      (setq-default mu4e-change-filenames-when-moving t)
-      (setq-default mu4e-update-interval 600) ;; 10 minutes
-      (setq-default mu4e-maildir (expand-file-name "~/Mail"))
-      (setq-default mu4e-sent-messages-behavior 'delete)
-      ;; don't keep message buffers around
-      (setq message-kill-buffer-on-exit t)
-      (setq mail-specify-envelope-from t)
-      (setq message-sendmail-envelope-from 'header)
-      (setq-default mail-envelope-from 'header)
-      ;; Create contexts for storing mail in the correct folders
-      (setq mu4e-contexts
-            (list
-             (make-mu4e-context
-              :name "gregheiman02@gmail.com"
-              :match-func
-              (lambda (msg)
-                (when msg
-                  (string-prefix-p "/gregheiman02@gmail.com" (mu4e-message-field msg :maildir))))
-              :vars '((user-mail-address . "gregheiman02@gmail.com")
-                      (user-full-name . "Greg Heiman")
-                      (mu4e-drafts-folder  . "/gregheiman02@gmail.com/[Gmail]/Drafts")
-                      (mu4e-sent-folder . "/gregheiman02@gmail.com/[Gmail]/Sent Mail")
-                      (mu4e-refile-folder . "/gregheiman02@gmail.com/[Gmail]/All Mail")
-                      (mu4e-trash-folder . "/gregheiman02@gmail.com/[Gmail]/Trash")
-                      (user-mail-address . "gregheiman02@gmail.com")
-                      (smtpmail-smtp-user . "gregheiman02")
-                      (smtpmail-local-domain . "gmail.com")
-                      (smtpmail-default-smtp-server . "smtp.gmail.com")
-                      (smtpmail-smtp-server . "smtp.gmail.com")
-                      (smtpmail-smtp-service . 587))
-              )
-             (make-mu4e-context
-              :name "treebark1378@gmail.com"
-              :match-func
-              (lambda (msg)
-                (when msg
-                  (string-prefix-p "/treebark1378@gmail.com" (mu4e-message-field msg :maildir))))
-              :vars '((user-mail-address . "treebark1378@gmail.com")
-                      (user-full-name . "Tree Bark")
-                      (mu4e-drafts-folder  . "/treebark1378@gmail.com/[Gmail]/Drafts")
-                      (mu4e-sent-folder . "/treebark1378@gmail.com/[Gmail]/Sent Mail")
-                      (mu4e-refile-folder . "/treebark1378@gmail.com/[Gmail]/All Mail")
-                      (mu4e-trash-folder . "/treebark1378@gmail.com/[Gmail]/Trash")
-                      (user-mail-address . "treebark1378@gmail.com")
-                      (smtpmail-smtp-user . "treebark1378")
-                      (smtpmail-local-domain . "gmail.com")
-                      (smtpmail-default-smtp-server . "smtp.gmail.com")
-                      (smtpmail-smtp-server . "smtp.gmail.com")
-                      (smtpmail-smtp-service . 587))
-              )
-             (make-mu4e-context
-              :name "w459e964@wichita.edu"
-              :match-func
-              (lambda (msg)
-                (when msg
-                  (string-prefix-p "/outlook-wsu" (mu4e-message-field msg :maildir))))
-              :vars '((user-mail-address . "w459e964@wichita.edu")
-                      (user-full-name . "Greg Heiman")
-                      (mu4e-drafts-folder  . "/outlook-wsu/Drafts")
-                      (mu4e-sent-folder . "/outlook-wsu/Sent Mail")
-                      (mu4e-refile-folder . "/outlook-wsu/All Mail")
-                      (mu4e-trash-folder . "/outlook-wsu/Trash")
-                      (user-mail-address . "w459e964@wichita.edu")
-                      (smtpmail-smtp-user . "w459e964")
-                      (smtpmail-local-domain . "wichita.edu")
-                      (smtpmail-default-smtp-server . "smtp.office365.com")
-                      (smtpmail-smtp-server . "smtp.office365.com")
-                      (smtpmail-smtp-service . 587)
-                      (smtpmail-stream-type . starttls))
-              )
-             ))
-  )
-
-  (use-package gnus
+;;; Gnus
+  (use-package gnus ;; Builtin Emacs news reader that can be configured for email
     :ensure nil
     :config
       (setq gnus-select-method '(nnnil nil))
@@ -413,14 +336,7 @@
                 (nnimap-server-port 993)
                 (nnimap-stream ssl)
                 (nnir-search-engine imap)
-                (nnmail-expiry-target "nnimap+gregheiman02Gmail.com:[Gmail]/Trash")
-                (nnmail-expiry-wait 'immediate))
-        (nnimap "treebark1378@gmail.com"
-                (nnimap-address "imap.gmail.com")
-                (nnimap-server-port 993)
-                (nnimap-stream ssl)
-                (nnir-search-engine imap)
-                (nnmail-expiry-target "nnimap+treebark1378@gmail.com:[Gmail]/Trash")
+                (nnmail-expiry-target "nnimap+gregheiman02@gmail.com:[Gmail]/Trash")
                 (nnmail-expiry-wait 'immediate))
         (nnimap "w459e964@wichita.edu"
                 (nnimap-address "outlook.office365.com")
@@ -429,10 +345,17 @@
                 (nnir-search-engine imap)
                 (nnmail-expiry-target "nnimap+w459e964@wichita.edu:Trash")
                 (nnmail-expiry-wait 'immediate))))
-
-      (setq smtpmail-smtp-server "smtp.gmail.com"
-        smtpmail-smtp-service 587
-        gnus-ignored-newsgroups "^to\\.\\|^[0-9. ]+\\( \\|$\\)\\|^[\"]\"[#'()]")
+      (setq gnus-ignored-newsgroups "^to\\.\\|^[0-9. ]+\\( \\|$\\)\\|^[\"]\"[#'()]") ;; Make gnus NOT ignore [Gmail] folders
+      (setq gnus-posting-styles ;; Correct way to set up responding to emails with the correct email
+            '((".*" ;; Matches all groups of messages
+               (address "Greg Heiman <gregheiman02@gmail.com>")
+               ("X-Message-SMTP-Method" "smtp smtp.gmail.com 587 gregheiman02@gmail.com"))
+              ("w459e964@wichita.edu" ;; Matches Gnus group called w459e964@wichita.edu
+               (address "Greg Heiman <w459e964@wichita.edu")
+               (organization "Wichita State University")
+               ("X-Message-SMTP-Method" "smtp smtp.office365.com 587 w459e964@wichita.edu"))
+              )
+      )
   )
 
 ;;; Emacs Configuration

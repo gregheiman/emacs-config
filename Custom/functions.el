@@ -192,6 +192,7 @@
 
 ;;; Terminal and ANSI-Term
   (defun gh/open-ansi-term-in-split ()
+    "Open up an ansi-term window in a new horizontal split"
     (interactive)
     (split-window-below)
     (other-window 1)
@@ -201,21 +202,22 @@
 ;;; Org Mode
   (defun org-mode-setup ()
     "Startup configuration when using Org mode."
-    (org-indent-mode)
-    (auto-fill-mode 0)
-    (visual-line-mode 1)
+    (auto-fill-mode nil)
+    (visual-line-mode t)
     (turn-on-flyspell)
     (turn-on-font-lock)
+    (turn-on-org-cdlatex)
+    (prettify-symbols-mode)
   )
 
-  (defun org-export-output-file-name-modified (orig-fun extension &optional subtreep pub-dir)
+  (defun gh/org-export-output-file-name-modified (orig-fun extension &optional subtreep pub-dir)
     "Modifies org-export to place exported files in a different directory"
     (unless pub-dir
       (setq pub-dir (expand-file-name "~/Org/Org-Exported-Files"))
       (unless (file-directory-p pub-dir)
         (make-directory pub-dir)))
     (apply orig-fun extension subtreep pub-dir nil))
-  (advice-add 'org-export-output-file-name :around #'org-export-output-file-name-modified)
+  (advice-add 'org-export-output-file-name :around #'gh/org-export-output-file-name-modified)
 
 ;;; Mu4e
   (defun my-mu4e-set-account ()
