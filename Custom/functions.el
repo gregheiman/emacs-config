@@ -200,16 +200,6 @@
   )
 
 ;;; Org Mode
-  (defun org-mode-setup ()
-    "Startup configuration when using Org mode."
-    (auto-fill-mode nil)
-    (visual-line-mode t)
-    (turn-on-flyspell)
-    (turn-on-font-lock)
-    (turn-on-org-cdlatex)
-    (prettify-symbols-mode)
-  )
-
   (defun gh/org-export-output-file-name-modified (orig-fun extension &optional subtreep pub-dir)
     "Modifies org-export to place exported files in a different directory"
     (unless pub-dir
@@ -314,3 +304,27 @@
     ("M-r" lsp-restart-workspace)
     ("S" lsp-shutdown-workspace)
     ("q" nil "quit" :color blue))
+
+   (defhydra hydra-project (:color pink :columns 5 :exit t)
+    "Project.el"
+    ("f"   project-find-file                   "Find File")
+    ("g"   project-find-regexp                 "Project Find Regexp")
+    ("r"   project-query-replace-regexp        "Project Query Replace Regexp")
+    ("F"   project-or-external-find-file       "Project or External Find File")
+    ("G"   project-or-external-find-regexp     "Project or External Find Regexp")
+
+    ("d"   project-find-dir                    "Find Directory")
+    ("b"   project-switch-to-buffer            "Switch to Buffer")
+    ("v"   project-vc-dir                      "Project VC Dir")
+    ("p"   project-switch-project              "Switch Project")
+    ("D"   project-dired                       "Project Direc")
+    ("k"   project-kill-buffers                "Kill Buffers")
+
+    ("s"   project-shell                       "Project Shell")
+    ("!"   project-shell-command               "Project Shell Command")
+    ("&"   project-async-shell-command         "Project Async Shell Command")
+    ("e"   project-eshell                      "Project Eshell")
+
+    ("c"   project-compile-project             "Compile Project")
+    ("x"   project-execute-exdented-command    "Project Execute Extended Command")
+    ("q"   nil "Quit" :color blue))

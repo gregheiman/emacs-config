@@ -74,7 +74,7 @@
       (eval-after-load 'evil-ex
           '(evil-ex-define-cmd "browse-old" 'recentf-open-files))
       (eval-after-load 'evil-ex
-          '(evil-ex-define-cmd "Files" 'projectile-find-file))
+          '(evil-ex-define-cmd "Files" 'project-find-file))
       (eval-after-load 'evil-ex
           '(evil-ex-define-cmd "Term" 'gh/open-ansi-term-in-split))
   )
@@ -217,7 +217,7 @@
 ;;; Hydra
   (use-package hydra
     :bind (("C-c o r" . hydra-org-roam/body)
-           ("C-c p" . hydra-projectile/body)
+           ("C-c p" . hydra-project/body)
            ("C-c l" . hydra-lsp/body))
   )
 
@@ -229,15 +229,23 @@
       (setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc)) ;; Stop flycheck from treating init.el as package file
     :hook (prog-mode . global-flycheck-mode))
 
-;;; Projectile Mode
+;;; Project Management
   (use-package projectile ;; Project management
-    :hook ((prog-mode . projectile-mode))
+    :disabled
     :config
         (when (file-directory-p "~/Documents/Code") ;; Projectile will search this path for projects
             (setq projectile-project-search-path '("~/Documents/Code")))
         (setq projectile-switch-project-action #'projectile-dired) ;; Auto open dired when opening project
         (if (and (executable-find "rg") (eq projectile-indexing-method 'native)) 
             (setq projectile-git-command "rg --files | rg")) ;; Only works if indexing method is native (Default on Windows)
+  )
+
+  (use-package project ;; Built-in project managment package
+    :ensure nil
+    :config
+      (when (file-directory-p "~/Documents/Code")
+        (eval-after-load 'project (project-remember-projects-under "~/Documents/Code" t))
+      )
   )
 
 ;;; Magit Mode
@@ -254,7 +262,11 @@
 ;;; Org Mode Et Al.
   ;; Prefix all org modes with C-c o (So for org-agenda C-c o a)
   (use-package org ;; Powerful plain text note taking and more
-    :hook ((org-mode . org-mode-setup)
+    :hook ((org-mode . visual-line-mode)
+           (org-mode . prettify-symbols-mode)
+           (org-mode . flyspell-mode)
+           (org-mode . font-lock-mode)
+           (org-mode . org-cdlatex-mode)
            (after-save . org-latex-preview))
     :bind-keymap ("C-c o o" . org-mode-map)
     :config
