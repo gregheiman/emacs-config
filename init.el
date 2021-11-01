@@ -80,21 +80,19 @@
   )
 
     (use-package evil-collection ;; Extend default evil mode keybindings to more modes
-      :demand
       :after evil
       :config
         (evil-collection-init)
-      :custom ((evil-collection-company-use-tng nil)) ;; Don't autocomplete like vim
+      :custom
+        (evil-collection-company-use-tng nil) ;; Don't autocomplete like vim
     )
 
     (use-package evil-surround ;; Port of vim-surround to emacs
-      :demand
       :after evil
       :config
         (global-evil-surround-mode 1))
 
     (use-package undo-tree ;; Undo tree to enable redoing with Evil
-      :demand
       :after evil
       :config
         (global-undo-tree-mode t))
@@ -130,11 +128,13 @@
       (corfu-quit-at-boundary t)
       (corfu-quit-no-match t)
       (corfu-echo-documentation t)
-    :bind (:map corfu-map
-          ("TAB" . corfu-next)
-          ([tab] . corfu-next)
-          ("S-TAB" . corfu-previous)
-          ([backtab] . corfu-previous))
+    :bind (
+      :map corfu-map
+            ("TAB" . corfu-next)
+            ([tab] . corfu-next)
+            ("S-TAB" . corfu-previous)
+            ([backtab] . corfu-previous)
+    )
   )
 
 ;;; LSP and DAP Mode
@@ -180,9 +180,8 @@
         '(read-only t cursor-intangible t face minibuffer-prompt))
   )
 
-  (use-package icomplete
+  (use-package icomplete ;; Builtin minibuffer completion system
     :ensure nil
-    :hook (after-init . icomplete-mode)
     :config
       (setq icomplete-hide-common-prefix nil)
       (setq icomplete-show-matches-on-no-input t)
@@ -196,6 +195,17 @@
              ("<up>" . icomplete-backward-completions)
              ("C-p" . icomplete-backward-completions)
     )
+  )
+
+  (use-package vertico ;; Fast, lightweight, and improved minibuffer completion system
+    :hook (after-init . vertico-mode)
+    :config
+      (setq vertico-cycle t)
+  )
+
+  (use-package marginalia ;; Documentation in the minibuffer
+    :init
+      (marginalia-mode)
   )
 
   (use-package orderless ;; Allow for space delimeted searching
@@ -229,6 +239,12 @@
       (setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc)) ;; Stop flycheck from treating init.el as package file
     :hook (prog-mode . global-flycheck-mode))
 
+;;; Expand Region
+  (use-package expand-region ;; Semantically select regions of text easily
+    :bind
+      ("C-=" . er/expand-region)
+  )
+
 ;;; Project Management
   (use-package projectile ;; Project management
     :disabled
@@ -248,10 +264,18 @@
       )
   )
 
-;;; Magit Mode
+;;; Version Control
   (use-package magit ;; Git managment within Emacs (Very slow on Windows)
     :bind-keymap ("C-c m" . magit-mode-map)
-    :commands (magit))
+    :commands (magit)
+  )
+
+  (use-package vc-mode ;; Built in version control mode
+    :ensure nil
+    :config
+     (setq vc-follow-symlinks t) ;; Don't prompt to follow symlinks
+     (setq auto-revert-check-vc-info t) ;; Auto revert vc
+  )
 
 ;;; Impatient Mode
   (use-package impatient-mode ;; Live preview HTML and Markdown files
@@ -403,8 +427,6 @@
      ;; Personal preference
      (set-default 'truncate-lines t) ;; Disable wrapping of lines
      (setq read-process-output-max (* 1024 1024)) ;; 1MB
-     (setq vc-follow-symlinks t) ;; Don't prompt to follow symlinks
-     (setq auto-revert-check-vc-info t) ;; Auto revert vc
      (defalias 'yes-or-no-p 'y-or-n-p) ;; Mad efficiency gains
      (setq custom-file (make-temp-file "emacs-custom-")) ;; Closest thing to disabling custom
      (setq compilation-scroll-output t) ;; Auto scroll to bottom of compilation buffer
