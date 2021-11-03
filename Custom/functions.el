@@ -328,3 +328,9 @@
     ("c"   project-compile-project             "Compile Project")
     ("x"   project-execute-exdented-command    "Project Execute Extended Command")
     ("q"   nil "Quit" :color blue))
+
+;;; Dired
+  (defun gh/dired-preview-file ()
+    (interactive)
+    (dired-find-file-other-window)
+    (local-set-key (kbd "q") 'View-quit))

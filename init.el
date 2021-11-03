@@ -39,11 +39,12 @@
   (add-to-list 'load-path (expand-file-name "~/.emacs.d/Custom")) ;; The directory that my custom files are kept in
   (load "functions") ;; Load functions
 
-;;; Evil Mode
+;;; Evil Mode and Evil Mode Extras
   (use-package evil ;; Vim keybindings
-    :hook ((after-init . evil-mode))
+    :hook (after-init . evil-mode)
     :init
       (setq evil-want-keybinding nil) ;; Needed to use evil-collection
+      (setq evil-insert-state-message nil) ;; Remove INSERT message from minivuffer
     :bind (
       :map evil-normal-state-map
         ("<leader>bl" . list-buffers)
@@ -59,9 +60,8 @@
         ("[B" . first-buffer)
         ("gc" . comment-dwim)
         ("<leader>f" . lgrep)
-      ) 
+      )
     :config
-      (setq evil-insert-state-message nil)
       (evil-set-undo-system 'undo-tree)
       (evil-set-leader 'normal (kbd "\\"))
       (evil-define-key '(normal insert visual) org-mode-map (kbd "C-j") 'org-next-visible-heading)
@@ -79,23 +79,25 @@
           '(evil-ex-define-cmd "Term" 'gh/open-ansi-term-in-split))
   )
 
-    (use-package evil-collection ;; Extend default evil mode keybindings to more modes
+  (use-package evil-collection ;; Extend default evil mode keybindings to more modes
       :after evil
-      :config
+      :init
         (evil-collection-init)
-      :custom
-        (evil-collection-company-use-tng nil) ;; Don't autocomplete like vim
-    )
-
-    (use-package evil-surround ;; Port of vim-surround to emacs
-      :after evil
       :config
-        (global-evil-surround-mode 1))
+        (setq-default evil-collection-company-use-tng nil) ;; Don't autocomplete like vim
+  )
 
-    (use-package undo-tree ;; Undo tree to enable redoing with Evil
+  (use-package evil-surround ;; Port of vim-surround to emacs
       :after evil
-      :config
-        (global-undo-tree-mode t))
+      :init
+        (global-evil-surround-mode 1)
+  )
+
+  (use-package undo-tree ;; Undo tree to enable redoing with Evil
+      :after evil
+      :init
+        (global-undo-tree-mode t)
+  )
 
 ;;; Theme
   (use-package modus-themes ;; High contrast themes 
@@ -270,13 +272,6 @@
     :commands (magit)
   )
 
-  (use-package vc-mode ;; Built in version control mode
-    :ensure nil
-    :config
-     (setq vc-follow-symlinks t) ;; Don't prompt to follow symlinks
-     (setq auto-revert-check-vc-info t) ;; Auto revert vc
-  )
-
 ;;; Impatient Mode
   (use-package impatient-mode ;; Live preview HTML and Markdown files
     :bind (("C-c i m" . gh/impatient-markdown-preview)
@@ -284,10 +279,9 @@
     )
 
 ;;; Org Mode Et Al.
-  ;; Prefix all org modes with C-c o (So for org-agenda C-c o a)
   (use-package org ;; Powerful plain text note taking and more
     :hook ((org-mode . visual-line-mode)
-           (org-mode . prettify-symbols-mode)
+           (org-mode . org-toggle-pretty-entities)
            (org-mode . flyspell-mode)
            (org-mode . font-lock-mode)
            (org-mode . org-cdlatex-mode)
@@ -434,7 +428,11 @@
      ;; Set default line endings and encoding
      (setq-default buffer-file-coding-system 'utf-8-unix) 
      (set-default-coding-systems 'utf-8-unix) ;; Automatically use unix line endings and utf-8
- 
+
+     ;; Version control settings
+     (setq vc-follow-symlinks t) ;; Don't prompt to follow symlinks
+     (setq auto-revert-check-vc-info t) ;; Auto revert vc
+
      ;; Auto revert files
      (global-auto-revert-mode 1) ;; Auto update when files change on disk
      (setq auto-revert-verbose nil) ;; Be quite about updating files when they're changed on disk
@@ -503,9 +501,12 @@
 ;;; Dired Configuration
   (use-package dired
     :ensure nil
+    :bind-keymap ("C-c d" . dired-mode-map)
     :hook (dired-mode . (lambda()
                           (auto-revert-mode 1) ;; Automatically update Dired
                           (setq auto-revert-verbose nil))) ;; Be quiet about updating Dired
+    :bind (:map dired-mode-map
+           ("C-c d v" . 'gh/dired-preview-file))
   )
 
 ;;; Grep Configuration
