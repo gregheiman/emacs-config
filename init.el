@@ -81,7 +81,7 @@
 
     (use-package evil-collection ;; Extend default evil mode keybindings to more modes
       :after evil
-      :config
+      :init
         (evil-collection-init)
       :custom
         (evil-collection-company-use-tng nil) ;; Don't autocomplete like vim
@@ -140,7 +140,6 @@
 ;;; LSP and DAP Mode
   (use-package lsp-mode ;; LSP support in Emacs
     :hook (lsp-mode . lsp-enable-which-key-integration)
-          (java-mode . lsp)
           ((c-mode c++-mode objc-mode) . (lambda () (when (executable-find "clangd") (lsp))))
     :config
       (setq-default lsp-completion-provider :none)
@@ -149,12 +148,16 @@
       (setq-default lsp-signature-auto-activate nil) ;; Stop signature definitions popping up
       (setq-default lsp-enable-symbol-highlighting nil) ;; Disable highlighting of symbols
       (setq-default lsp-semantic-tokens-enable nil) ;; Not everything needs to be a color
-    :commands (lsp lsp-deferred))
+      :commands (lsp lsp-deferred)
+  )
 
   (use-package lsp-java ;; Support for the Eclipse.jdt.ls language server
-    :after lsp-mode)
+    :after lsp-mode
+    :hook (java-mode . lsp)
+  )
 
   (use-package lsp-pyright ;; Support for the Pyright language server
+    :after lsp-mode
     :hook (python-mode . (lambda ()
                             (require 'lsp-pyright)
                             (lsp)))
@@ -168,7 +171,7 @@
       (add-hook 'dap-stack-frame-changed-hook (lambda (session)
                                               (when (dap--session-running session)
                                                 (+dap-running-session-mode 1))))
-    )
+  )
 
 ;;; Minibuffer Completion etc. 
   (use-package minibuffer
@@ -270,13 +273,6 @@
     :commands (magit)
   )
 
-  (use-package vc-mode ;; Built in version control mode
-    :ensure nil
-    :config
-     (setq vc-follow-symlinks t) ;; Don't prompt to follow symlinks
-     (setq auto-revert-check-vc-info t) ;; Auto revert vc
-  )
-
 ;;; Impatient Mode
   (use-package impatient-mode ;; Live preview HTML and Markdown files
     :bind (("C-c i m" . gh/impatient-markdown-preview)
@@ -322,7 +318,15 @@
       (setq org-roam-directory (file-truename "~/Org/Org-Roam"))
       (setq org-roam-completion-everywhere t)
       (org-roam-db-autosync-enable)
-    )
+      (setq org-roam-capture-templates
+       '(
+         ("d" "default" plain
+           "%?"
+           :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+author: Greg Heiman\n#+date: %U\n#+filetags:\n")
+           :unnarrowed t)
+         )
+      )
+  )
 
   (use-package ox-hugo ;; Publish Org mode documents to static websites using Hugo
     :after ox
@@ -439,7 +443,12 @@
      (global-auto-revert-mode 1) ;; Auto update when files change on disk
      (setq auto-revert-verbose nil) ;; Be quite about updating files when they're changed on disk
 
-     (if (not (version< emacs-version "28")) ;; Don't show commands that aren't valid with current modes (Only in Emacs > 28)
+     ;; Auto follow vc symlinks and auto-revert vc changes
+     (setq vc-follow-symlinks t) ;; Don't prompt to follow symlinks
+     (setq auto-revert-check-vc-info t) ;; Auto revert vc
+
+     ;; Don't show commands that aren't valid with current modes (Only in Emacs > 28)
+     (if (not (version< emacs-version "28")) 
          (setq read-extended-command-predicate #'command-completion-default-include-p))
 
      ;; Set the bell to flash the modeline rather than audio or standard visual bell
