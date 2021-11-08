@@ -209,6 +209,16 @@
     (apply orig-fun extension subtreep pub-dir nil))
   (advice-add 'org-export-output-file-name :around #'gh/org-export-output-file-name-modified)
 
+  (defvar org-electric-pairs '((?$ . ?$)) "Electric pairs for org-mode.")
+  (defun gh/org-add-electric-pairs ()
+    (interactive)
+    (setq-local electric-pair-pairs (append electric-pair-pairs org-electric-pairs))
+    (setq-local electric-pair-text-pairs electric-pair-pairs)
+    (setq-local electric-pair-inhibit-predicate ;; Stop electric pair mode from pairing < and >
+                   `(lambda (c)
+                      (if (char-equal c ?<) t (,electric-pair-inhibit-predicate c))))
+    )
+
 ;;; Mu4e
   (defun my-mu4e-set-account ()
         "Set the account for composing a message.

@@ -285,6 +285,7 @@
            (org-mode . flyspell-mode)
            (org-mode . font-lock-mode)
            (org-mode . org-cdlatex-mode)
+           (org-mode . gh/org-add-electric-pairs)
            (after-save . org-latex-preview))
     :bind-keymap ("C-c o o" . org-mode-map)
     :config
