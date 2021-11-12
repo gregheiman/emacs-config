@@ -150,7 +150,7 @@
       (setq-default lsp-signature-auto-activate nil) ;; Stop signature definitions popping up
       (setq-default lsp-enable-symbol-highlighting nil) ;; Disable highlighting of symbols
       (setq-default lsp-semantic-tokens-enable nil) ;; Not everything needs to be a color
-      :commands (lsp lsp-deferred)
+    :commands (lsp lsp-deferred)
   )
 
   (use-package lsp-java ;; Support for the Eclipse.jdt.ls language server
@@ -160,19 +160,20 @@
 
   (use-package lsp-pyright ;; Support for the Pyright language server
     :after lsp-mode
-    :hook (python-mode . (lambda ()
-                            (require 'lsp-pyright)
-                            (lsp)))
+    :hook (python-mode . (lambda () (require 'lsp-pyright) (lsp)))
   )
 
   (use-package dap-mode ;; DAP support for Emacs
     :after lsp-mode
     :hook ((dap-session-created . +dap-running-session-mode)
-           (dap-stopped . +dap-running-session-mode))
+           (dap-stopped . +dap-running-session-mode)
+           (dap-stack-frame-changed .(lambda (session)
+                                      (when (dap--session-running session)
+                                      (+dap-running-session-mode 1)))))
     :config
-      (add-hook 'dap-stack-frame-changed-hook (lambda (session)
-                                              (when (dap--session-running session)
-                                                (+dap-running-session-mode 1))))
+      (require 'dap-cpptools)
+      (require 'dap-gdb-lldb)
+      (require 'dap-lldb)
   )
 
 ;;; Minibuffer Completion etc. 
