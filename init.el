@@ -106,11 +106,11 @@
           modus-themes-bold-constructs t
           modus-themes-subtle-line-numbers t
           modus-themes-mode-line '(borderless))
-    (load-theme 'modus-operandi t)
   )
 
   (use-package doom-themes ;; A set of modern beautiful themes
     :init
+      (load-theme 'doom-sourcerer t)
     :config
       (setq doom-themes-enable-bold t)
       (setq doom-themes-enable-italic nil)
