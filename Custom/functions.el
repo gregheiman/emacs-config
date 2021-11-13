@@ -250,7 +250,7 @@
         _f_: Find          _d_: Date        _c_: Today         _s_: Sync DB
         _i_: Insert        _t_: Today       _u_: Tomorrow      _g_: Graph
         _r_: Random        _y_: Yesterday        
-                            _T_: Tomorrow       
+                          _T_: Tomorrow       
         "
         ("f" org-roam-node-find)
         ("i" org-roam-node-insert)

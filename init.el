@@ -231,10 +231,11 @@
     :commands (which-key))
 
 ;;; Hydra
-  (use-package hydra
+  (use-package hydra ;; Beautiful, practical custom keybind menus
     :bind (("C-c o r" . hydra-org-roam/body)
            ("C-c p" . hydra-project/body)
-           ("C-c l" . hydra-lsp/body))
+           ("C-c l" . hydra-lsp/body)
+           ("C-c a" . dap-hydra))
   )
 
 ;;; Flycheck Mode
