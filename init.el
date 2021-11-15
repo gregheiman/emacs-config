@@ -228,7 +228,7 @@
     :commands (which-key))
 
 ;;; Hydra
-  (use-package hydra
+  (use-package hydra ;; Beautiful, practical custom keybind menus
     :bind (("C-c o r" . hydra-org-roam/body)
            ("C-c p" . hydra-project/body)
            ("C-c l" . hydra-lsp/body)
@@ -437,8 +437,14 @@
      (setq compilation-scroll-output t) ;; Auto scroll to bottom of compilation buffer
  
      ;; Set default line endings and encoding
-     (setq-default buffer-file-coding-system 'utf-8-unix) 
-     (set-default-coding-systems 'utf-8-unix) ;; Automatically use unix line endings and utf-8
+     (set-default-coding-systems 'utf-8-unix)
+     (set-locale-environment "en_US.UTF-8")
+     (setq buffer-file-coding-system 'utf-8-unix)
+     (setq default-file-name-coding-system 'utf-8-unix)
+     (setq default-keyboard-coding-system 'utf-8-unix)
+     (setq default-process-coding-system '(utf-8-unix . utf-8-unix))
+     (setq default-sendmail-coding-system 'utf-8-unix)
+     (setq default-terminal-coding-system 'utf-8-unix)
 
      ;; Version control settings
      (setq vc-follow-symlinks t) ;; Don't prompt to follow symlinks
