@@ -165,15 +165,12 @@
 
   (use-package dap-mode ;; DAP support for Emacs
     :after lsp-mode
-    :hook ((dap-session-created . +dap-running-session-mode)
-           (dap-stopped . +dap-running-session-mode)
-           (dap-stack-frame-changed .(lambda (session)
-                                      (when (dap--session-running session)
-                                      (+dap-running-session-mode 1)))))
+    :hook (dap-stopped . (lambda (arg) (call-interactively #'dap-hydra)))
     :config
-      (require 'dap-cpptools)
+      (setq dap-auto-configure-features '(sessions locals expressions tooltip))
       (require 'dap-gdb-lldb)
-      (require 'dap-lldb)
+      (require 'dap-java)
+      (require 'dap-python)
   )
 
 ;;; Minibuffer Completion etc. 
@@ -234,7 +231,8 @@
   (use-package hydra
     :bind (("C-c o r" . hydra-org-roam/body)
            ("C-c p" . hydra-project/body)
-           ("C-c l" . hydra-lsp/body))
+           ("C-c l" . hydra-lsp/body)
+           ("C-c a" . dap-hydra))
   )
 
 ;;; Flycheck Mode
