@@ -1,6 +1,6 @@
 ;; Uses Outline-Minor-Mode
-;; C-c @ C-c Hide entry
-;; C-c @ C-e Show entry
+;; C-c @ C-c or zo (Evil mode) - Hide entry
+;; C-c @ C-e or zc (Evil mode) - Show entry
 
 ;;; Package Configuration
   (require 'package) ;; Add package repos
@@ -13,7 +13,6 @@
       (package-refresh-contents))
 
 ;;; Use-Package Configuration
-
   (unless (package-installed-p 'use-package) ;; Download use-package if not present
     (package-install 'use-package))
 
@@ -80,29 +79,29 @@
   )
 
   (use-package evil-collection ;; Extend default evil mode keybindings to more modes
-      :after evil
-      :init
-        (evil-collection-init)
-      :config
-        (setq-default evil-collection-company-use-tng nil) ;; Don't autocomplete like vim
+    :after evil
+    :init
+      (evil-collection-init)
+    :config
+      (setq-default evil-collection-company-use-tng nil) ;; Don't autocomplete like vim
   )
 
   (use-package evil-surround ;; Port of vim-surround to emacs
-      :after evil
-      :init
-        (global-evil-surround-mode 1)
+    :after evil
+    :init
+      (global-evil-surround-mode 1)
   )
 
   (use-package undo-tree ;; Undo tree to enable redoing with Evil
-      :after evil
-      :init
-        (global-undo-tree-mode t)
+    :after evil
+    :init
+      (global-undo-tree-mode t)
   )
 
 ;;; Theme
   (use-package modus-themes ;; High contrast themes 
     :init
-    (setq modus-themes-paren-match '(bold underline)
+      (setq modus-themes-paren-match '(bold underline)
           modus-themes-bold-constructs t
           modus-themes-subtle-line-numbers t
           modus-themes-mode-line '(borderless))
@@ -110,7 +109,7 @@
 
   (use-package doom-themes ;; A set of modern beautiful themes
     :init
-      (load-theme 'doom-sourcerer t)
+      (load-theme 'doom-rouge t)
     :config
       (setq doom-themes-enable-bold t)
       (setq doom-themes-enable-italic nil)
@@ -122,7 +121,9 @@
     :hook ((prog-mode . corfu-mode)
            (shell-mode . corfu-mode)
            (eshell-mode . corfu-mode)
-           (org-mode . corfu-mode))
+           (term-mode . corfu-mode)
+           (org-mode . corfu-mode)
+           (markdown-mode . corfu-mode))
     :custom
       (corfu-cycle t)
       (corfu-auto t)
@@ -154,12 +155,10 @@
   )
 
   (use-package lsp-java ;; Support for the Eclipse.jdt.ls language server
-    :after lsp-mode
     :hook (java-mode . lsp)
   )
 
   (use-package lsp-pyright ;; Support for the Pyright language server
-    :after lsp-mode
     :hook (python-mode . (lambda () (require 'lsp-pyright) (lsp)))
   )
 
@@ -225,7 +224,8 @@
   (use-package which-key ;; Show possible keybindings when you pause a keycord
     :defer 5
     :hook ((after-init . which-key-mode))
-    :commands (which-key))
+    :commands (which-key)
+  )
 
 ;;; Hydra
   (use-package hydra ;; Beautiful, practical custom keybind menus
@@ -237,11 +237,12 @@
 
 ;;; Flycheck Mode
   (use-package flycheck ;; Improved linting and checking
+    :hook ((prog-mode . flycheck-mode))
     :bind-keymap ("C-c f" . flycheck-command-map)
     :config
       (setq flycheck-display-error-function #'flycheck-display-error-messages) ;; Show error messages in echo area
       (setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc)) ;; Stop flycheck from treating init.el as package file
-    :hook (prog-mode . global-flycheck-mode))
+  )
 
 ;;; Expand Region
   (use-package expand-region ;; Semantically select regions of text easily
@@ -353,18 +354,19 @@
     
 
 ;;; Outline-Minor-Mode
-    (use-package outline ;; Minor mode that allows for folding code
-      :config
-        (setq outline-blank-line t) ;; Have a blank line before a heading
-      :hook (
-             (emacs-lisp-mode . outline-minor-mode)
-             (outline-minor-mode . outline-hide-body)))
+  (use-package outline ;; Minor mode that allows for folding code
+    :hook ((emacs-lisp-mode . outline-minor-mode)
+            (outline-minor-mode . outline-hide-body))
+    :config
+      (setq outline-blank-line t) ;; Have a blank line before a heading
+  )
 
 ;;; Eshell Mode
   (use-package eshell
     :config
       (setq-default eshell-prompt-function 'eshell-prompt)
-      (setq-default eshell-highlight-prompt nil))
+      (setq-default eshell-highlight-prompt nil)
+  )
 
 ;;; Gnus
   (use-package gnus ;; Builtin Emacs news reader that can be configured for email
@@ -492,7 +494,8 @@
     :hook ((text-mode . display-line-numbers-mode)
            (prog-mode . display-line-numbers-mode)
            (conf-mode . display-line-numbers-mode)
-           (org-mode . display-line-numbers-mode)))
+           (org-mode . display-line-numbers-mode))
+  )
 
 ;;; Modeline Configuration
   (use-package modeline
@@ -523,12 +526,14 @@
 ;;; Dired Configuration
   (use-package dired
     :ensure nil
-    :bind-keymap ("C-c d" . dired-mode-map)
     :hook (dired-mode . (lambda()
                           (auto-revert-mode 1) ;; Automatically update Dired
                           (setq auto-revert-verbose nil))) ;; Be quiet about updating Dired
-    :bind (:map dired-mode-map
-           ("C-c d v" . 'gh/dired-preview-file))
+    :bind-keymap ("C-c d" . dired-mode-map)
+    :bind (
+           :map dired-mode-map
+             ("C-c d v" . 'gh/dired-preview-file)
+    )
   )
 
 ;;; Grep Configuration
@@ -550,9 +555,7 @@
 ;;; Markdown Configuration
   (use-package markdown-mode
     :config
-      (if (executable-find "pandoc")
-          ;; Set pandoc as the program that gets called when
-          ;; you issue a markdown command
+      (if (executable-find "pandoc") ;; Set pandoc as the program that gets called when you issue a markdown command
         (setq markdown-command "pandoc"))
   )
 
@@ -572,4 +575,3 @@
 
 ;;; Emacs Keybindings
     (global-set-key (kbd "<escape>") 'keyboard-escape-quit) ;; Make ESC quit prompts
-

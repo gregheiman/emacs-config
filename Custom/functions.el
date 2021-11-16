@@ -178,7 +178,7 @@
   (defun gh/open-ansi-term-in-split ()
     "Open up an ansi-term window in a new horizontal split"
     (interactive)
-    (split-window-below)
+    (split-window-right)
     (other-window 1)
     (ansi-term "/bin/bash")
   )
