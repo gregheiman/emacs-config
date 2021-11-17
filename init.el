@@ -43,20 +43,16 @@
     :hook (after-init . evil-mode)
     :init
       (setq evil-want-keybinding nil) ;; Needed to use evil-collection
-      (setq evil-insert-state-message nil) ;; Remove INSERT message from minivuffer
+      (setq evil-insert-state-message nil) ;; Remove INSERT message from minibuffer
     :bind (
       :map evil-normal-state-map
         ("<leader>bl" . list-buffers)
         ("<leader>bd" . kill-this-buffer)
         ("<leader>bg" . switch-to-buffer)
-        ("]q" . compilation-next-error)
-        ("[q" . compilation-previous-error)
-        ("]Q" . compilation-first-error)
-        ("[Q" . compilation-last-error)
+        ("]q" . next-error)
+        ("[q" . previous-error)
         ("]b" . next-buffer)
         ("[b" . previous-buffer)
-        ("]B" . last-buffer)
-        ("[B" . first-buffer)
         ("gc" . comment-dwim)
         ("<leader>f" . lgrep)
       )
@@ -116,7 +112,7 @@
       (doom-themes-org-config)
   )
 
-;;; In-Buffer Text Completion 
+;;; In-Buffer Text Completion
   (use-package corfu ;; In buffer text completion
     :hook ((prog-mode . corfu-mode)
            (shell-mode . corfu-mode)
@@ -127,7 +123,6 @@
     :custom
       (corfu-cycle t)
       (corfu-auto t)
-      (corfu-commit-predicate nil)
       (corfu-quit-at-boundary t)
       (corfu-quit-no-match t)
       (corfu-echo-documentation t)
@@ -172,13 +167,13 @@
       (require 'dap-python)
   )
 
-;;; Minibuffer Completion etc. 
+;;; Minibuffer Completion etc.
   (use-package minibuffer
     :ensure nil
     :hook (minibuffer-setup-hook . cursor-intangible-mode)
     :config
       ;; Make cursor intangible in minibuffer
-      (setq minibuffer-prompt-properties 
+      (setq minibuffer-prompt-properties
         '(read-only t cursor-intangible t face minibuffer-prompt))
   )
 
@@ -254,8 +249,8 @@
   (use-package projectile ;; Project management
     :disabled
     :config
-        (when (file-directory-p "~/Documents/Code") ;; Projectile will search this path for projects
-            (setq projectile-project-search-path '("~/Documents/Code")))
+        (when (file-directory-p "~/Dev") ;; Projectile will search this path for projects
+            (setq projectile-project-search-path '("~/Dev")))
         (setq projectile-switch-project-action #'projectile-dired) ;; Auto open dired when opening project
         (if (and (executable-find "rg") (eq projectile-indexing-method 'native)) 
             (setq projectile-git-command "rg --files | rg")) ;; Only works if indexing method is native (Default on Windows)
@@ -264,8 +259,8 @@
   (use-package project ;; Built-in project managment package
     :ensure nil
     :config
-      (when (file-directory-p "~/Documents/Code")
-        (eval-after-load 'project (project-remember-projects-under "~/Documents/Code" t))
+      (when (file-directory-p "~/Dev")
+        (eval-after-load 'project (project-remember-projects-under "~/Dev" t))
       )
   )
 
@@ -497,8 +492,18 @@
            (org-mode . display-line-numbers-mode))
   )
 
+;;; Whitespace Mode
+  (use-package whitespace ;; Highlight various whitespaces in files
+    :ensure nil
+    :hook ((prog-mode . whitespace-mode))
+    :config
+      ;; Highlight lines longer than 80 chars. and trailing spaces
+      (setq whitespace-style '(face trailing lines-tail))
+      (setq whitespace-line-column 80)
+  )
+
 ;;; Modeline Configuration
-  (use-package modeline
+  (use-package modeline ;; The status line at the bottom of the screen
     :ensure nil
     :init
       (setq-default mode-line-format
