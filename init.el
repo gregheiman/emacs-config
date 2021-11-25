@@ -95,7 +95,7 @@
   )
 
 ;;; Theme
-  (use-package modus-themes ;; High contrast themes 
+  (use-package modus-themes ;; High contrast themes
     :init
       (setq modus-themes-paren-match '(bold underline)
           modus-themes-bold-constructs t
@@ -104,12 +104,16 @@
   )
 
   (use-package doom-themes ;; A set of modern beautiful themes
+    ;; :hook (global-hl-line-mode . (lambda () (set-face-background 'hl-line "#1F2A3F")))
     :init
-      (load-theme 'doom-rouge t)
-    :config
       (setq doom-themes-enable-bold t)
-      (setq doom-themes-enable-italic nil)
+      (setq doom-themes-enable-italic t)
       (doom-themes-org-config)
+  )
+
+  (use-package kaolin-themes ;; Set of cool themes
+    :init
+      (load-theme 'kaolin-aurora t)
   )
 
 ;;; In-Buffer Text Completion
@@ -186,7 +190,7 @@
            :map minibuffer-local-completion-map
              ("SPC" . 'self-insert-command)
            :map icomplete-minibuffer-map
-             ("<return>" . icomplete-force-complete-and-exit)
+             ;; ("<return>" . icomplete-force-complete-and-exit)
              ("<down>" . icomplete-forward-completions)
              ("C-n" . icomplete-forward-completions)
              ("<up>" . icomplete-backward-completions)
@@ -405,34 +409,34 @@
      (setq user-mail-address "gregheiman02@gmail.com"
            user-full-name "Greg Heiman")
      ;; Font configuration
-     (set-face-attribute 'default nil :font "Iosevka-12" ) ;; Set font options
-     (set-frame-font "Iosevka-12" nil t)
+     (set-face-attribute 'default nil :font "JetBrains Mono 11" ) ;; Set font options
+     (set-frame-font "JetBrains Mono 11" nil t)
 
      ;; Add to the interface
-     (global-hl-line-mode) ;; Highlight the current line
+     (global-hl-line-mode 1) ;; Highlight the current line
      (column-number-mode t) ;; Show column numbers in modeline
      (show-paren-mode t) ;; Highlight matching delimeter pair
      (setq-default show-paren-style 'parenthesis)
- 
+
      ;; Bring Emacs into the 21st century
      (recentf-mode 1) ;; Keep a list of recently opened files
      (delete-selection-mode t) ;; Whatever is highlighted will be replaced with whatever is typed or pasted
      (electric-pair-mode 1) ;; Auto pair delimeters
      (auto-save-visited-mode) ;; Auto save files without the #filename#
- 
-     ;; Indent configuration 
+
+     ;; Indent configuration
      (setq-default indent-tabs-mode nil) ;; Use spaces for tabs instead of tab characters
      (setq tab-width 4) ;; Set the tab width to 4 characters
      (setq electric-indent-inhibit t) ;; Make return key indent to current indent level
      (setq backward-delete-char-untabify-method 'hungry) ;; Have Emacs backspace the entire tab at a time
- 
+
      ;; Personal preference
      (set-default 'truncate-lines t) ;; Disable wrapping of lines
      (setq read-process-output-max (* 1024 1024)) ;; 1MB
      (defalias 'yes-or-no-p 'y-or-n-p) ;; Mad efficiency gains
      (setq custom-file (make-temp-file "emacs-custom-")) ;; Closest thing to disabling custom
      (setq compilation-scroll-output t) ;; Auto scroll to bottom of compilation buffer
- 
+
      ;; Set default line endings and encoding
      (set-default-coding-systems 'utf-8-unix)
      (set-locale-environment "en_US.UTF-8")
@@ -456,7 +460,7 @@
      (setq auto-revert-check-vc-info t) ;; Auto revert vc
 
      ;; Don't show commands that aren't valid with current modes (Only in Emacs > 28)
-     (if (not (version< emacs-version "28")) 
+     (if (not (version< emacs-version "28"))
          (setq read-extended-command-predicate #'command-completion-default-include-p))
 
      ;; Set the bell to flash the modeline rather than audio or standard visual bell
@@ -473,7 +477,7 @@
      (setq mouse-wheel-follow-mouse 't) ;; scroll window under mouse
      (setq scroll-step 1) ;; keyboard scroll one line at a time
      (setq mouse-wheel-scroll-amount '(5)) ;; mouse wheel scroll 5 lines at a time
- 
+
      ;; Backup file configuration
      (setq backup-directory-alist '(("." . "~/.emacs.d/backup")) ;; Write backups to ~/.emacs.d/backup/
          backup-by-copying      t  ; Don't de-link hard links
@@ -573,9 +577,21 @@
 ;;; C Configuration
   (use-package c-mode
     :ensure nil
-    :hook ((c-mode . c-mode-configuration)
-           (c++-mode . c-mode-configuration)
-           (objc-mode . c-mode-configuration))
+    :hook (c-mode . c-mode-configuration)
+  )
+
+  (use-package c++-mode
+    :ensure nil
+    :hook (c++-mode . c-mode-configuration)
+  )
+
+  (use-package cmake-mode ;; Add a mode for CMake files
+
+  )
+
+  (use-package objc-mode
+    :ensure nil
+    :hook (objc-mode . c-mode-configuration)
   )
 
 ;;; Emacs Keybindings
