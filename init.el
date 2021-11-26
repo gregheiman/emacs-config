@@ -1,7 +1,7 @@
 ;; Uses Outline-Minor-Mode
 ;; C-c @ C-c or zo (Evil mode) - Hide entry
 ;; C-c @ C-e or zc (Evil mode) - Show entry
-
+  
 ;;; Package Configuration
   (require 'package) ;; Add package repos
     (setq package-archives
@@ -216,7 +216,7 @@
              '((file (styles . (partial-completion orderless))))
        )
     :config
-      (setq orderless-smart-case t) 
+      (setq orderless-smart-case t)
   )
 
 ;;; Which-Key Mode
@@ -287,8 +287,7 @@
            (org-mode . flyspell-mode)
            (org-mode . font-lock-mode)
            (org-mode . org-cdlatex-mode)
-           (org-mode . gh/org-add-electric-pairs)
-           (after-save . org-latex-preview))
+           (org-mode . gh/org-add-electric-pairs))
     :bind-keymap ("C-c o o" . org-mode-map)
     :config
       (setq org-src-fontify-natively t
