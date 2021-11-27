@@ -1,14 +1,14 @@
 ;; Uses Outline-Minor-Mode
 ;; C-c @ C-c or zo (Evil mode) - Hide entry
 ;; C-c @ C-e or zc (Evil mode) - Show entry
-  
+
 ;;; Package Configuration
   (require 'package) ;; Add package repos
     (setq package-archives
     '(("melpa" . "https://melpa.org/packages/")
-    ("org" . "http://orgmode.org/elpa/")
-    ("elpa" . "https://elpa.gnu.org/packages/")))
-    (package-initialize) ;; Initialize package.el  
+      ("nongnu-elpa" . "https://elpa.nongnu.org/nongnu/")
+      ("elpa" . "https://elpa.gnu.org/packages/")))
+    (package-initialize) ;; Initialize package.el
     (unless package-archive-contents ;; Auto download package archive repository manifest if not present
       (package-refresh-contents))
 
@@ -96,6 +96,7 @@
 
 ;;; Theme
   (use-package modus-themes ;; High contrast themes
+    :ensure nil
     :init
       (setq modus-themes-paren-match '(bold underline)
           modus-themes-bold-constructs t
@@ -104,6 +105,7 @@
   )
 
   (use-package doom-themes ;; A set of modern beautiful themes
+    :ensure nil
     ;; :hook (global-hl-line-mode . (lambda () (set-face-background 'hl-line "#1F2A3F")))
     :init
       (setq doom-themes-enable-bold t)
@@ -121,9 +123,7 @@
     :hook ((prog-mode . corfu-mode)
            (shell-mode . corfu-mode)
            (eshell-mode . corfu-mode)
-           (term-mode . corfu-mode)
-           (org-mode . corfu-mode)
-           (markdown-mode . corfu-mode))
+           (term-mode . corfu-mode))
     :custom
       (corfu-cycle t)
       (corfu-auto t)
@@ -283,14 +283,17 @@
 ;;; Org Mode Et Al.
   (use-package org ;; Powerful plain text note taking and more
     :hook ((org-mode . visual-line-mode)
-           (org-mode . org-toggle-pretty-entities)
            (org-mode . flyspell-mode)
            (org-mode . font-lock-mode)
            (org-mode . org-cdlatex-mode)
+           (org-mode . org-fragtog-mode)
+           (org-mode . org-appear-mode)
            (org-mode . gh/org-add-electric-pairs))
     :bind-keymap ("C-c o o" . org-mode-map)
     :config
       (setq org-src-fontify-natively t
+        org-startup-with-inline-images t
+        org-hide-emphasis-markers t
         org-fontify-quote-and-verse-blocks t
         org-src-tab-acts-natively t
         org-edit-src-content-indentation 2
@@ -299,6 +302,8 @@
         org-cycle-separator-lines 2
         org-startup-with-latex-preview t
         org-startup-indented t)
+      (plist-put org-format-latex-options :scale 1.5) ;; Increase size of latex previews
+      (plist-put org-format-latex-options :foreground "#62D2DB") ;; Change foreground color of latex previews 
       (if (executable-find "latexmk") ;; Set the command for org -> latex -> pdf
         (setq-default org-latex-pdf-process '("latexmk -output-directory=%o -pdflatex='pdflatex -interaction nonstopmode' -pdf -bibtex -f %f")))
   )
@@ -332,6 +337,19 @@
     :after ox
   )
 
+  (use-package org-fragtog ;; Auto toggle org latex previews
+    :after org
+  )
+
+  (use-package org-appear ;; Auto toggle all auto hidden org elements
+    :after org
+    :config
+    (setq org-appear-autolinks t
+          org-appear-autosubmarkers t
+          org-appear-autoentities t
+          org-appear-autokeywords t)
+  )
+
 ;;; LaTeX
   (use-package auctex ;; Powerful LaTeX tool suite
 
@@ -344,12 +362,12 @@
 ;;; Flyspell Mode
   (use-package flyspell
     :hook ((markdown-mode . 'turn-on-flyspell)
-           (LaTeX-mode . 'turn-on-flyspell)) 
+           (LaTeX-mode . 'turn-on-flyspell))
     :config
       (if (executable-find "aspell") ;; Use aspell if available
         (setq ispell-program-name "aspell"))
   )
-    
+
 
 ;;; Outline-Minor-Mode
   (use-package outline ;; Minor mode that allows for folding code
@@ -555,7 +573,7 @@
 
 ;;; Tags Configuration
   (use-package etags
-    :config 
+    :config
       (setq-default tags-revert-without-query t) ;; Don't ask before rereading the TAGS files if they have changed
       (setq tags-add-tables nil) ;; Don't ask to keep current list of tags tables also
   )
