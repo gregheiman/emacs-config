@@ -434,6 +434,7 @@
      (column-number-mode t) ;; Show column numbers in modeline
      (show-paren-mode t) ;; Highlight matching delimeter pair
      (setq-default show-paren-style 'parenthesis)
+     (add-to-list 'initial-frame-alist '(fullscreen . maximized)) ;; Start emacs fullscreen and maximized
 
      ;; Bring Emacs into the 21st century
      (recentf-mode 1) ;; Keep a list of recently opened files
