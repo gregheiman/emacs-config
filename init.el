@@ -95,24 +95,6 @@
   )
 
 ;;; Theme
-  (use-package modus-themes ;; High contrast themes
-    :ensure nil
-    :init
-      (setq modus-themes-paren-match '(bold underline)
-          modus-themes-bold-constructs t
-          modus-themes-subtle-line-numbers t
-          modus-themes-mode-line '(borderless))
-  )
-
-  (use-package doom-themes ;; A set of modern beautiful themes
-    :ensure nil
-    ;; :hook (global-hl-line-mode . (lambda () (set-face-background 'hl-line "#1F2A3F")))
-    :init
-      (setq doom-themes-enable-bold t)
-      (setq doom-themes-enable-italic t)
-      (doom-themes-org-config)
-  )
-
   (use-package kaolin-themes ;; Set of cool themes
     :init
       (load-theme 'kaolin-aurora t)
@@ -143,13 +125,18 @@
   (use-package lsp-mode ;; LSP support in Emacs
     :hook (lsp-mode . lsp-enable-which-key-integration)
           ((c-mode c++-mode objc-mode) . (lambda () (when (executable-find "clangd") (lsp))))
+          (lsp-mode . (lambda ()
+                        (define-key evil-normal-state-map "K" 'lsp-describe-thing-at-point)
+                        (define-key evil-normal-state-map "gd" 'lsp-find-definition)
+                        (define-key evil-normal-state-map "gr" 'lsp-find-references)
+                        (define-key evil-normal-state-map "gi" 'lsp-find-implementation)
+                        (define-key evil-normal-state-map "gt" 'lsp-find-type-definition)))
     :config
-      (setq-default lsp-completion-provider :none)
-      (setq-default lsp-keymap-prefix "C-c l")
-      (setq-default lsp-headerline-breadcrumb-enable nil) ;; Remove top header line
-      (setq-default lsp-signature-auto-activate nil) ;; Stop signature definitions popping up
-      (setq-default lsp-enable-symbol-highlighting nil) ;; Disable highlighting of symbols
-      (setq-default lsp-semantic-tokens-enable nil) ;; Not everything needs to be a color
+      (setq lsp-headerline-breadcrumb-enable nil) ;; Remove top header line
+      (setq lsp-signature-auto-activate nil) ;; Stop signature definitions popping up
+      (setq lsp-enable-symbol-highlighting nil) ;; Disable highlighting of symbols
+      (setq lsp-semantic-tokens-enable nil) ;; Not everything needs to be a color
+      (setq lsp-eldoc-enable-hover nil) ;; Remove documentation from echo area
     :commands (lsp lsp-deferred)
   )
 
@@ -179,23 +166,6 @@
       ;; Make cursor intangible in minibuffer
       (setq minibuffer-prompt-properties
         '(read-only t cursor-intangible t face minibuffer-prompt))
-  )
-
-  (use-package icomplete ;; Builtin minibuffer completion system
-    :ensure nil
-    :config
-      (setq icomplete-hide-common-prefix nil)
-      (setq icomplete-show-matches-on-no-input t)
-    :bind (
-           :map minibuffer-local-completion-map
-             ("SPC" . 'self-insert-command)
-           :map icomplete-minibuffer-map
-             ;; ("<return>" . icomplete-force-complete-and-exit)
-             ("<down>" . icomplete-forward-completions)
-             ("C-n" . icomplete-forward-completions)
-             ("<up>" . icomplete-backward-completions)
-             ("C-p" . icomplete-backward-completions)
-    )
   )
 
   (use-package vertico ;; Fast, lightweight, and improved minibuffer completion system
@@ -239,14 +209,7 @@
     :hook ((prog-mode . flycheck-mode))
     :bind-keymap ("C-c f" . flycheck-command-map)
     :config
-      (setq flycheck-display-error-function #'flycheck-display-error-messages) ;; Show error messages in echo area
       (setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc)) ;; Stop flycheck from treating init.el as package file
-  )
-
-;;; Expand Region
-  (use-package expand-region ;; Semantically select regions of text easily
-    :bind
-      ("C-=" . er/expand-region)
   )
 
 ;;; Project Management
@@ -273,12 +236,6 @@
     :bind-keymap ("C-c m" . magit-mode-map)
     :commands (magit)
   )
-
-;;; Impatient Mode
-  (use-package impatient-mode ;; Live preview HTML and Markdown files
-    :bind (("C-c i m" . gh/impatient-markdown-preview)
-           ("C-c i h" . gh/impatient-html-preview))
-    )
 
 ;;; Org Mode Et Al.
   (use-package org ;; Powerful plain text note taking and more

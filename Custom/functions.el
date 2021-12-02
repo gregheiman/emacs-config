@@ -122,42 +122,6 @@
         (visit-tags-table default-directory nil))
   )
 
-;;; Impatient Mode
-  (defun gh/markdown-html-filter (buffer) ;; Use this filter with impatient mode with M-x imp-set-user-filter RET markdown-html RET
-    "Impatient mode filter to show markdown correctly."
-    (princ (with-current-buffer buffer
-    (format
-     "<!DOCTYPE html>
-      <html>
-        <title>Impatient Markdown Preview</title>
-        <xmp theme=\"spacelab\">
-          %s
-        </xmp>
-        <script type=\"text/javascript\" src=\"http://strapdownjs.com/v/0.2/strapdown.js\"></script>
-      </html>"
-     (buffer-substring-no-properties (point-min) (point-max))))
-           (current-buffer))
-  )
-
-  (defun gh/impatient-markdown-preview () ;; Preview current markdown buffer with impatient mode
-    "Preview Markdown in realtime with impatient mode."
-    (interactive)
-    (unless (process-status "httpd")
-        (httpd-start))
-    (impatient-mode)
-    (imp-set-user-filter 'gh/markdown-html-filter)
-    (imp-visit-buffer)
-  )
-
-  (defun gh/impatient-html-preview () ;; Preview current HTML buffer with impatient mode
-    "Preview HTML files in realtime with impatient mode."
-    (interactive)
-    (unless (process-status "httpd")
-        (httpd-start))
-    (impatient-mode)
-    (imp-visit-buffer)
-  )
-
 ;;; Eshell
  (defun git-prompt-branch-name ()
     "Get current git branch name"
@@ -202,29 +166,6 @@
                    `(lambda (c)
                       (if (char-equal c ?<) t (,electric-pair-inhibit-predicate c))))
     )
-
-;;; Mu4e
-  (defun my-mu4e-set-account ()
-        "Set the account for composing a message.
-         This function is taken from: 
-           https://www.djcbsoftware.nl/code/mu/mu4e/Multiple-accounts.html"
-        (let* ((account
-          (if mu4e-compose-parent-message
-              (let ((maildir (mu4e-message-field mu4e-compose-parent-message :maildir)))
-          (string-match "/\\(.*?\\)/" maildir)
-          (match-string 1 maildir))
-            (completing-read (format "Compose with account: (%s) "
-                   (mapconcat #'(lambda (var) (car var))
-                  my-mu4e-account-alist "/"))
-                 (mapcar #'(lambda (var) (car var)) my-mu4e-account-alist)
-                 nil t nil nil (caar my-mu4e-account-alist))))
-         (account-vars (cdr (assoc account my-mu4e-account-alist))))
-          (if account-vars
-        (mapc #'(lambda (var)
-            (set (car var) (cadr var)))
-              account-vars)
-            (error "No email account found"))))
-
 
 ;;; Hydra
     (defhydra hydra-org-roam (:exit t :color pink :hint nil)
