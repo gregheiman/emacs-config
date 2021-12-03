@@ -19,24 +19,33 @@
         (if (and (buffer-file-name) (buffer-modified-p))
             (basic-save-buffer)))))
 
+;;; Custom Theme Faces
+  (defun gh/custom-theme-faces ()
+    "Set custom faces for the current theme"
+    (custom-set-faces '(font-lock-variable-name-face ((t (:foreground nil :inherit default)))))
+    (font-lock-add-keywords nil
+    `(("[-+]?\\b[0-9]*\\.?[0-9]+\\(?:[eE][-+]?[0-9]+\\)?\\b" . font-lock-warning-face) ;; Numbers
+      ("\\(?:\\.\\|->\\)\\_<\\([_a-zA-Z]*[a-zA-Z0-9_]+\\)\\([\t]*\\)(" 1 font-lock-function-name-face))) ;; Member functions
+  )
+
 ;;; C Mode Configuration
- (defun c-mode-configuration ()
+ (defun gh/c-mode-configuration ()
     "Set C style configuration"
     (setq c-basic-offset 4) ;; Set 4 space tabs
-    (c-set-offset 'substatement-open 0) 
+    (c-set-offset 'substatement-open 0)
     (setq c-set-style "k&r") ;; The God style
   )
 
 ;;; Java Mode Configuration
-  (defun java-mode-configuration ()
+  (defun gh/java-mode-configuration ()
     "Set Java style configuration."
     (c-set-offset 'case-label '+) ;; Properly indent case statments
   )
 
 ;;; Elisp Mode Configuration
-  (defun elisp-mode-configuration ()
-    "Set elisp style configuration"
-    (setq tab-width 2) ;; 2 space tabs
+  (defun gh/elisp-mode-configuration ()
+    "Set Elisp style configuration"
+    (setq-local tab-width 2) ;; 2 space tabs
   )
 
 ;;; Modeline
@@ -94,16 +103,16 @@
   (defun create-tags-etags (dir-name)
     "Create tags file usig Etags."
     (interactive "DDirectory: ")
-    (eshell-command 
+    (eshell-command
         (format "find %s -type f -name \"*.[ch]\" | etags -" dir-name))
   )
 
-  ;;;  Jonas.Jarnestrom<at>ki.ericsson.se A smarter               
-  ;;;  find-tag that automagically reruns etags when it cant find a               
-  ;;;  requested item and then makes a new try to locate it.                      
-  ;;;  Fri Mar 15 09:52:14 2002    
+  ;;;  Jonas.Jarnestrom<at>ki.ericsson.se A smarter
+  ;;;  find-tag that automagically reruns etags when it cant find a
+  ;;;  requested item and then makes a new try to locate it.
+  ;;;  Fri Mar 15 09:52:14 2002
   (defadvice find-tag (around refresh-etags activate)
-    "Rerun etags and reload tags if tag not found and redo find-tag.              
+    "Rerun etags and reload tags if tag not found and redo find-tag.
     If buffer is modified, ask about save before running etags."
     (let ((extension (file-name-extension (buffer-file-name))))
     (condition-case err
@@ -118,7 +127,7 @@
     "Run etags on all peer files in current dir and reload them silently."
     (interactive)
     (shell-command (format "etags *.%s" (or extension "el")))
-    (let ((tags-revert-without-query t))  ; don't query, revert silently          
+    (let ((tags-revert-without-query t))  ; don't query, revert silently
         (visit-tags-table default-directory nil))
   )
 
@@ -142,8 +151,9 @@
   (defun gh/open-ansi-term-in-split ()
     "Open up an ansi-term window in a new horizontal split"
     (interactive)
-    (split-window-right)
+    (split-window-below)
     (other-window 1)
+    (shrink-window 10)
     (ansi-term "/bin/bash")
   )
 
@@ -174,8 +184,8 @@
         ^^^^^^^^-----------------------------------------------------------------
         _f_: Find          _d_: Date        _c_: Today         _s_: Sync DB
         _i_: Insert        _t_: Today       _u_: Tomorrow      _g_: Graph
-        _r_: Random        _y_: Yesterday        
-                          _T_: Tomorrow       
+        _r_: Random        _y_: Yesterday
+                          _T_: Tomorrow
         "
         ("f" org-roam-node-find)
         ("i" org-roam-node-insert)
@@ -230,11 +240,11 @@
     ("s" lsp-signature-help)
     ("o" lsp-describe-thing-at-point)
     ("r" lsp-rename)
-  
+
     ("f" lsp-format-buffer)
     ("x" lsp-code-region)
     ("a" lsp-execute-code-action)
-  
+
     ("M-s" lsp-describe-session)
     ("M-r" lsp-restart-workspace)
     ("S" lsp-shutdown-workspace)

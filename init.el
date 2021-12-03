@@ -53,7 +53,6 @@
         ("[q" . previous-error)
         ("]b" . next-buffer)
         ("[b" . previous-buffer)
-        ("gc" . comment-dwim)
         ("<leader>f" . lgrep)
       )
     :config
@@ -82,10 +81,16 @@
       (setq-default evil-collection-company-use-tng nil) ;; Don't autocomplete like vim
   )
 
-  (use-package evil-surround ;; Port of vim-surround to emacs
+  (use-package evil-surround ;; Port of vim-surround to Evil
     :after evil
     :init
       (global-evil-surround-mode 1)
+  )
+
+  (use-package evil-commentary ;; Port of vim-commentary to Evil
+    :after evil
+    :init
+      (evil-commentary-mode)
   )
 
   (use-package undo-tree ;; Undo tree to enable redoing with Evil
@@ -95,9 +100,12 @@
   )
 
 ;;; Theme
-  (use-package kaolin-themes ;; Set of cool themes
+  (use-package modus-themes ;; High contrast themes
+    :hook (prog-mode . (lambda () (gh/custom-theme-faces)))
     :init
-      (load-theme 'kaolin-aurora t)
+      (setq modus-themes-paren-match '(bold underline)
+            modus-themes-subtle-line-numbers t)
+      (load-theme 'modus-vivendi t)
   )
 
 ;;; In-Buffer Text Completion
@@ -260,7 +268,7 @@
         org-startup-with-latex-preview t
         org-startup-indented t)
       (plist-put org-format-latex-options :scale 1.5) ;; Increase size of latex previews
-      (plist-put org-format-latex-options :foreground "#62D2DB") ;; Change foreground color of latex previews 
+      (plist-put org-format-latex-options :foreground "#6ae4b9") ;; Change foreground color of latex previews 
       (if (executable-find "latexmk") ;; Set the command for org -> latex -> pdf
         (setq-default org-latex-pdf-process '("latexmk -output-directory=%o -pdflatex='pdflatex -interaction nonstopmode' -pdf -bibtex -f %f")))
   )
@@ -546,18 +554,18 @@
 ;;; Java Configuration
   (use-package java-mode
     :ensure nil
-    :hook (java-mode . java-mode-configuration)
+    :hook (java-mode . gh/java-mode-configuration)
   )
 
 ;;; C Configuration
   (use-package c-mode
     :ensure nil
-    :hook (c-mode . c-mode-configuration)
+    :hook (c-mode . gh/c-mode-configuration)
   )
 
   (use-package c++-mode
     :ensure nil
-    :hook (c++-mode . c-mode-configuration)
+    :hook (c++-mode . gh/c-mode-configuration)
   )
 
   (use-package cmake-mode ;; Add a mode for CMake files
@@ -566,7 +574,13 @@
 
   (use-package objc-mode
     :ensure nil
-    :hook (objc-mode . c-mode-configuration)
+    :hook (objc-mode . gh/c-mode-configuration)
+  )
+
+;;; Elisp Configuration
+  (use-package elisp-mode
+    :ensure nil
+    :hook (elisp-mode . gh/elisp-mode-configuration)
   )
 
 ;;; Emacs Keybindings
