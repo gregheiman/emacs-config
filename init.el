@@ -100,12 +100,10 @@
   )
 
 ;;; Theme
-  (use-package modus-themes ;; High contrast themes
+  (use-package kaolin-themes
     :hook (prog-mode . (lambda () (gh/custom-theme-faces)))
     :init
-      (setq modus-themes-paren-match '(bold underline)
-            modus-themes-subtle-line-numbers t)
-      (load-theme 'modus-vivendi t)
+      (load-theme 'kaolin-aurora t)
   )
 
 ;;; In-Buffer Text Completion
