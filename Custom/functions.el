@@ -68,7 +68,7 @@
 		    (propertize "✔" 'face '(:inherit success))
       (concat
          (propertize (format "%s" (match-string 2 (flycheck-mode-line-status-text))) 'face '(:inherit error))
-         (propertize (format "%s" "|") 'face '(:inherit font-lock-modeline-face))
+         (propertize (format "%s" "|") 'face '(:inherit mode-line))
          (propertize (format "%s" (match-string 3 (flycheck-mode-line-status-text))) 'face '(:inherit flycheck-error-list-warning))
       ))
   )
@@ -77,7 +77,7 @@
   (defadvice vc-git-mode-line-string (after plus-minus (file) compile activate)
   "Show the information of git diff on modeline."
   (setq ad-return-value
-	(concat (propertize ad-return-value 'face '(:inherit font-lock-modeline-face))
+	(concat (propertize ad-return-value 'face '(:inherit mode-line))
 		" ["
 		(let ((plus-minus (vc-git--run-command-string
 				   file "diff" "--numstat" "--")))
