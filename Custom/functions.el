@@ -4,20 +4,22 @@
 ;; C-c @ C-e Show entry
 
 ;;; Emacs functions
-  (defun efs/display-startup-time () ;; Log startup time
-        (message "Emacs loaded in %s with %d garbage collections."
-                (format "%.2f seconds"
-                        (float-time
-                        (time-subtract after-init-time before-init-time)))
-                gcs-done))
+  (defun efs/display-startup-time ()
+    "Log startup time and garbage collections to echo area"
+    (message "Emacs loaded in %s with %d garbage collections."
+      (format "%.2f seconds" (float-time (time-subtract after-init-time before-init-time)))
+      gcs-done)
+  )
 
-  (defun full-auto-save () ;; Auto save all buffers when autosave fires
+  (defun full-auto-save ()
+    "Auto save all buffers when autosave fires"
     (interactive)
     (save-excursion
         (dolist (buf (buffer-list))
         (set-buffer buf)
         (if (and (buffer-file-name) (buffer-modified-p))
-            (basic-save-buffer)))))
+            (basic-save-buffer))))
+  )
 
 ;;; Custom Theme Faces
   (defun gh/custom-theme-faces ()
@@ -139,13 +141,15 @@
         (apply #'process-file "git" nil (list t nil) nil args)
         (unless (bobp)
           (goto-char (point-min))
-          (buffer-substring-no-properties (point) (line-end-position))))))
+          (buffer-substring-no-properties (point) (line-end-position)))))
+  )
 
   (defun eshell-prompt ()
       (concat
         (propertize (or (ignore-errors (format "(%s) " (git-prompt-branch-name))) ""))
         (propertize (concat (if (string= (eshell/pwd) (getenv "HOME")) "~" (eshell/basename (eshell/pwd))) " λ "))
-        ))
+        )
+  )
 
 ;;; Terminal and ANSI-Term
   (defun gh/open-ansi-term-in-split ()
@@ -164,18 +168,20 @@
       (setq pub-dir (expand-file-name "~/Org/Org-Exported-Files"))
       (unless (file-directory-p pub-dir)
         (make-directory pub-dir)))
-    (apply orig-fun extension subtreep pub-dir nil))
+    (apply orig-fun extension subtreep pub-dir nil)
+  )
   (advice-add 'org-export-output-file-name :around #'gh/org-export-output-file-name-modified)
 
   (defvar org-electric-pairs '((?$ . ?$)) "Electric pairs for org-mode.")
   (defun gh/org-add-electric-pairs ()
+    "Add pairs to electric pair mode for org mode"
     (interactive)
     (setq-local electric-pair-pairs (append electric-pair-pairs org-electric-pairs))
     (setq-local electric-pair-text-pairs electric-pair-pairs)
     (setq-local electric-pair-inhibit-predicate ;; Stop electric pair mode from pairing < and >
                    `(lambda (c)
                       (if (char-equal c ?<) t (,electric-pair-inhibit-predicate c))))
-    )
+  )
 
 ;;; Hydra
     (defhydra hydra-org-roam (:exit t :color pink :hint nil)
@@ -276,6 +282,8 @@
 
 ;;; Dired
   (defun gh/dired-preview-file ()
+    "Preview file in Dired mode"
     (interactive)
     (dired-find-file-other-window)
-    (local-set-key (kbd "q") 'View-quit))
+    (local-set-key (kbd "q") 'View-quit)
+  )
