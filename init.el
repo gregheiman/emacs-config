@@ -127,41 +127,23 @@
     )
   )
 
-;;; LSP and DAP Mode
-  (use-package lsp-mode ;; LSP support in Emacs
-    :hook (lsp-mode . lsp-enable-which-key-integration)
-          ((c-mode c++-mode objc-mode) . (lambda () (when (executable-find "clangd") (lsp))))
-          (lsp-mode . (lambda ()
-                        (define-key evil-normal-state-map "K" 'lsp-describe-thing-at-point)
-                        (define-key evil-normal-state-map "gd" 'lsp-find-definition)
-                        (define-key evil-normal-state-map "gr" 'lsp-find-references)
-                        (define-key evil-normal-state-map "gi" 'lsp-find-implementation)
-                        (define-key evil-normal-state-map "gt" 'lsp-find-type-definition)))
+;;; Eglot
+  (use-package eglot
+    :hook (((c-mode c++-mode objc-mode) . (lambda () (when (executable-find "clangd") (eglot-ensure))))
+           (python-mode . (lambda () (when (executable-find "pylsp") (eglot-ensure)))))
     :config
-      (setq lsp-headerline-breadcrumb-enable nil) ;; Remove top header line
-      (setq lsp-signature-auto-activate nil) ;; Stop signature definitions popping up
-      (setq lsp-enable-symbol-highlighting nil) ;; Disable highlighting of symbols
-      (setq lsp-semantic-tokens-enable nil) ;; Not everything needs to be a color
-      (setq lsp-eldoc-enable-hover nil) ;; Remove documentation from echo area
-    :commands (lsp lsp-deferred)
-  )
-
-  (use-package lsp-java ;; Support for the Eclipse.jdt.ls language server
-    :hook (java-mode . lsp)
-  )
-
-  (use-package lsp-pyright ;; Support for the Pyright language server
-    :hook (python-mode . (lambda () (require 'lsp-pyright) (lsp)))
-  )
-
-  (use-package dap-mode ;; DAP support for Emacs
-    :after lsp-mode
-    :hook (dap-stopped . (lambda (arg) (call-interactively #'dap-hydra)))
-    :config
-      (setq dap-auto-configure-features '(sessions locals expressions tooltip))
-      (require 'dap-gdb-lldb)
-      (require 'dap-java)
-      (require 'dap-python)
+      (with-eval-after-load 'eglot
+          (define-key evil-normal-state-map "K" 'eldoc)
+          (define-key evil-normal-state-map "gd" 'xref-find-definitions)
+          (define-key evil-normal-state-map "gr" 'xref-find-references)
+      )
+      (setq eldoc-echo-area-prefer-doc-buffer t)
+      (setq eldoc-echo-area-use-multiline-p 1)
+      (setq eldoc-echo-area-display-truncation-message nil)
+      (add-to-list 'eglot-server-programs
+                   `(python-mode . ("pylsp" "-v" "--tcp" "--host" "localhost" "--port" :autoport))
+      )
+      (add-to-list 'eglot-ignored-server-capabilites :documentHighlightProvider :signatureHelpProvider)
   )
 
 ;;; Minibuffer Completion etc.
@@ -188,9 +170,7 @@
   (use-package orderless ;; Allow for space delimeted searching
     :init
        (setq completion-styles '(substring initials flex partial-completion orderless))
-       (setq completion-category-overrides
-             '((file (styles . (partial-completion orderless))))
-       )
+       (setq completion-category-overrides '((file (styles . (partial-completion orderless)))))
     :config
       (setq orderless-smart-case t)
   )
@@ -199,7 +179,6 @@
   (use-package which-key ;; Show possible keybindings when you pause a keycord
     :defer 5
     :hook ((after-init . which-key-mode))
-    :commands (which-key)
   )
 
 ;;; Hydra
@@ -219,16 +198,6 @@
   )
 
 ;;; Project Management
-  (use-package projectile ;; Project management
-    :disabled
-    :config
-        (when (file-directory-p "~/Dev") ;; Projectile will search this path for projects
-            (setq projectile-project-search-path '("~/Dev")))
-        (setq projectile-switch-project-action #'projectile-dired) ;; Auto open dired when opening project
-        (if (and (executable-find "rg") (eq projectile-indexing-method 'native)) 
-            (setq projectile-git-command "rg --files | rg")) ;; Only works if indexing method is native (Default on Windows)
-  )
-
   (use-package project ;; Built-in project managment package
     :ensure nil
     :config
@@ -240,7 +209,6 @@
 ;;; Version Control
   (use-package magit ;; Git managment within Emacs (Very slow on Windows)
     :bind-keymap ("C-c m" . magit-mode-map)
-    :commands (magit)
   )
 
 ;;; Org Mode Et Al.
@@ -297,6 +265,7 @@
   )
 
   (use-package ox-hugo ;; Publish Org mode documents to static websites using Hugo
+    :ensure nil
     :after ox
   )
 
@@ -307,30 +276,28 @@
   (use-package org-appear ;; Auto toggle all auto hidden org elements
     :after org
     :config
-    (setq org-appear-autolinks t
-          org-appear-autosubmarkers t
-          org-appear-autoentities t
-          org-appear-autokeywords t)
+      (setq org-appear-autolinks t
+            org-appear-autosubmarkers t
+            org-appear-autoentities t
+            org-appear-autokeywords t)
   )
 
 ;;; LaTeX
-  (use-package auctex ;; Powerful LaTeX tool suite
-
+  (use-package LaTeX-mode ;; Builtin latex mode
+    :ensure nil
+    :hook (LaTex-mode . flyspell-mode)
   )
 
-  (use-package cdlatex ;; Fast insertion of environment templates and math in LaTeX
+  (use-package auctex) ;; Powerful LaTeX tool suite
 
-  )
+  (use-package cdlatex) ;; Fast insertion of environment templates and math in LaTeX
 
 ;;; Flyspell Mode
-  (use-package flyspell
-    :hook ((markdown-mode . 'turn-on-flyspell)
-           (LaTeX-mode . 'turn-on-flyspell))
+  (use-package flyspell ;; Builtin spell checking
     :config
       (if (executable-find "aspell") ;; Use aspell if available
         (setq ispell-program-name "aspell"))
   )
-
 
 ;;; Outline-Minor-Mode
   (use-package outline ;; Minor mode that allows for folding code
@@ -341,7 +308,7 @@
   )
 
 ;;; Eshell Mode
-  (use-package eshell
+  (use-package eshell ;; Emacs lisp shell
     :config
       (setq-default eshell-prompt-function 'eshell-prompt)
       (setq-default eshell-highlight-prompt nil)
@@ -498,8 +465,8 @@
                        (list
                         " "
                         '(:eval (propertize (format "<%s> " (upcase (substring (symbol-name evil-state) 0 1))))) ;; Evil mode
-                        '(:eval (propertize (format "%s " (vc-branch))))
-                        '(:eval (propertize (format "%s" "%b")))
+                        '(vc-mode vc-mode)
+                        '(:eval (propertize (format " %s" "%b")))
                         '(:eval (propertize (format " %s " "[%*]")))
                         ))
                       ;; right
@@ -514,7 +481,7 @@
   )
 
 ;;; Dired Configuration
-  (use-package dired
+  (use-package dired ;; Builtin file manager
     :ensure nil
     :hook (dired-mode . (lambda()
                           (auto-revert-mode 1) ;; Automatically update Dired
@@ -544,6 +511,7 @@
 
 ;;; Markdown Configuration
   (use-package markdown-mode
+    :hook ((markdown-mode . flyspell-mode))
     :config
       (if (executable-find "pandoc") ;; Set pandoc as the program that gets called when you issue a markdown command
         (setq markdown-command "pandoc"))
@@ -567,12 +535,18 @@
   )
 
   (use-package cmake-mode ;; Add a mode for CMake files
-
+    :ensure nil
   )
 
   (use-package objc-mode
     :ensure nil
     :hook (objc-mode . gh/c-mode-configuration)
+  )
+
+;;; Python Configuration
+  (use-package pipenv ;; Make Pipenv a first class citizen in Emacs
+    :ensure nil
+    :hook (python-mode . (lambda () (when (executable-find "pipenv") (pipenv-mode))))
   )
 
 ;;; Elisp Configuration
