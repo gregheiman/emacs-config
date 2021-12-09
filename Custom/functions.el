@@ -160,103 +160,93 @@
   )
 
 ;;; Hydra
-  (lambda () (require "hydra")
-    (defhydra hydra-org-roam (:exit t :color pink :hint nil)
-        "
-        ^Node^             ^Goto^           ^Capture^          ^Misc
-        ^^^^^^^^-----------------------------------------------------------------
-        _f_: Find          _d_: Date        _c_: Today         _s_: Sync DB
-        _i_: Insert        _t_: Today       _u_: Tomorrow      _g_: Graph
-        _r_: Random        _y_: Yesterday
-                            _T_: Tomorrow
-        "
-        ("f" org-roam-node-find)
-        ("i" org-roam-node-insert)
-        ("r" org-roam-node-random)
-        ("s" org-roam-db-sync)
-        ("d" org-roam-dailies-goto-date)
-        ("c" org-roam-dailies-capture-today)
-        ("u" org-roam-dailies-capture-tomorrow)
-        ("t" org-roam-dailies-goto-today)
-        ("y" org-roam-dailies-goto-yesterday)
-        ("T" org-roam-dailies-goto-tomorrow)
-        ("g" org-roam-graph)
-        ("q" nil "quit" :color blue))
+  (defhydra hydra-org-roam (:exit t :color pink :hint nil)
+    "
+    ^Node^             ^Goto^           ^Capture^          ^Misc
+    ^^^^^^^^-----------------------------------------------------------------
+    _f_: Find          _d_: Date        _c_: Today         _s_: Sync DB
+    _i_: Insert        _t_: Today       _u_: Tomorrow      _g_: Graph
+    _r_: Random        _y_: Yesterday
+                     _T_: Tomorrow
+    "
+    ("f" org-roam-node-find)
+    ("i" org-roam-node-insert)
+    ("r" org-roam-node-random)
+    ("s" org-roam-db-sync)
+    ("d" org-roam-dailies-goto-date)
+    ("c" org-roam-dailies-capture-today)
+    ("u" org-roam-dailies-capture-tomorrow)
+    ("t" org-roam-dailies-goto-today)
+    ("y" org-roam-dailies-goto-yesterday)
+    ("T" org-roam-dailies-goto-tomorrow)
+    ("g" org-roam-graph)
+    ("q" nil "quit" :color blue))
 
-     (defhydra hydra-projectile (:color pink :columns 5 :exit t)
-      "Projectile"
-      ("f"   projectile-find-file                "Find File")
-      ("r"   projectile-recentf                  "Recent Files")
-      ("z"   projectile-cache-current-file       "Cache Current File")
-      ("x"   projectile-remove-known-project     "Remove Known Project")
+  (defhydra hydra-projectile (:color pink :columns 5 :exit t)
+    "Projectile"
+    ("f"   projectile-find-file                "Find File")
+    ("r"   projectile-recentf                  "Recent Files")
+    ("z"   projectile-cache-current-file       "Cache Current File")
+    ("x"   projectile-remove-known-project     "Remove Known Project")
+    ("d"   projectile-find-dir                 "Find Directory")
+    ("b"   projectile-switch-to-buffer         "Switch to Buffer")
+    ("c"   projectile-invalidate-cache         "Clear Cache")
+    ("X"   projectile-cleanup-known-projects   "Cleanup Known Projects")
+    ("o"   projectile-multi-occur              "Multi Occur")
+    ("t"   projectile-regenerate-tags          "Regenerate Tags")
+    ("p"   projectile-switch-project           "Switch Project")
+    ("k"   projectile-kill-buffers             "Kill Buffers")
+    ("P"   projectile-test-project             "Test Project")
+    ("K"   projectile-install-project          "Install Project")
+    ("L"   projectile-package-project          "Package Project")
+    ("C"   projectile-compile-project          "Compile Project")
+    ("U"   projectile-run-project              "Run Project")
+    ("q"   nil "Quit" :color blue))
 
-      ("d"   projectile-find-dir                 "Find Directory")
-      ("b"   projectile-switch-to-buffer         "Switch to Buffer")
-      ("c"   projectile-invalidate-cache         "Clear Cache")
-      ("X"   projectile-cleanup-known-projects   "Cleanup Known Projects")
-
-      ("o"   projectile-multi-occur              "Multi Occur")
-      ("t"   projectile-regenerate-tags          "Regenerate Tags")
-      ("p"   projectile-switch-project           "Switch Project")
-      ("k"   projectile-kill-buffers             "Kill Buffers")
-
-      ("P"   projectile-test-project             "Test Project")
-      ("K"   projectile-install-project          "Install Project")
-      ("L"   projectile-package-project          "Package Project")
-      ("C"   projectile-compile-project          "Compile Project")
-      ("U"   projectile-run-project              "Run Project")
-      ("q"   nil "Quit" :color blue))
-
-    (defhydra hydra-lsp (:exit t :hint nil :color pink)
-      "
-     Buffer^^               Server^^                   Symbol
+  (defhydra hydra-lsp (:exit t :hint nil :color pink)
+    "
+    Buffer^^               Server^^                   Symbol
     -------------------------------------------------------------------------------------
-     [_f_] format           [_M-r_] restart            [_d_] declaration  [_i_] implementation  [_o_] documentation
-     [_x_] format region    [_S_]   shutdown           [_D_] definition   [_t_] type            [_r_] rename
-     [_a_] code actions     [_M-s_] describe session   [_R_] references   [_s_] signature
-     "
-      ("d" lsp-find-declaration)
-      ("D" lsp-find-definitions)
-      ("R" lsp-find-references)
-      ("i" lsp-find-implementation)
-      ("t" lsp-find-type-definition)
-      ("s" lsp-signature-help)
-      ("o" lsp-describe-thing-at-point)
-      ("r" lsp-rename)
+    [_f_] format           [_M-r_] restart            [_d_] declaration  [_i_] implementation  [_o_] documentation
+    [_x_] format region    [_S_]   shutdown           [_D_] definition   [_t_] type            [_r_] rename
+    [_a_] code actions     [_M-s_] describe session   [_R_] references   [_s_] signature
+    "
+    ("d" lsp-find-declaration)
+    ("D" lsp-find-definitions)
+    ("R" lsp-find-references)
+    ("i" lsp-find-implementation)
+    ("t" lsp-find-type-definition)
+    ("s" lsp-signature-help)
+    ("o" lsp-describe-thing-at-point)
+    ("r" lsp-rename)
+        ("f" lsp-format-buffer)
+    ("x" lsp-code-region)
+    ("a" lsp-execute-code-action)
+        ("M-s" lsp-describe-session)
+    ("M-r" lsp-restart-workspace)
+    ("S" lsp-shutdown-workspace)
+    ("q" nil "quit" :color blue))
 
-      ("f" lsp-format-buffer)
-      ("x" lsp-code-region)
-      ("a" lsp-execute-code-action)
-
-      ("M-s" lsp-describe-session)
-      ("M-r" lsp-restart-workspace)
-      ("S" lsp-shutdown-workspace)
-      ("q" nil "quit" :color blue))
-
-     (defhydra hydra-project (:color pink :columns 5 :exit t)
-      "Project.el"
-      ("f"   project-find-file                   "Find File")
-      ("g"   project-find-regexp                 "Project Find Regexp")
-      ("r"   project-query-replace-regexp        "Project Query Replace Regexp")
-      ("F"   project-or-external-find-file       "Project or External Find File")
-      ("G"   project-or-external-find-regexp     "Project or External Find Regexp")
-
-      ("d"   project-find-dir                    "Find Directory")
-      ("b"   project-switch-to-buffer            "Switch to Buffer")
-      ("v"   project-vc-dir                      "Project VC Dir")
-      ("p"   project-switch-project              "Switch Project")
-      ("D"   project-dired                       "Project Direc")
-      ("k"   project-kill-buffers                "Kill Buffers")
-
-      ("s"   project-shell                       "Project Shell")
-      ("!"   project-shell-command               "Project Shell Command")
-      ("&"   project-async-shell-command         "Project Async Shell Command")
-      ("e"   project-eshell                      "Project Eshell")
-
-      ("c"   project-compile-project             "Compile Project")
-      ("x"   project-execute-exdented-command    "Project Execute Extended Command")
-      ("q"   nil "Quit" :color blue))
-  )
+  (defhydra hydra-project (:color pink :columns 5 :exit t)
+    "Project.el"
+    ("f"   project-find-file                   "Find File")
+    ("g"   project-find-regexp                 "Project Find Regexp")
+    ("r"   project-query-replace-regexp        "Project Query Replace Regexp")
+    ("F"   project-or-external-find-file       "Project or External Find File")
+    ("G"   project-or-external-find-regexp     "Project or External Find Regexp")  
+        ("d"   project-find-dir                    "Find Directory")
+    ("b"   project-switch-to-buffer            "Switch to Buffer")
+    ("v"   project-vc-dir                      "Project VC Dir")
+    ("p"   project-switch-project              "Switch Project")
+    ("D"   project-dired                       "Project Direc")
+    ("k"   project-kill-buffers                "Kill Buffers")
+        ("s"   project-shell                       "Project Shell")
+    ("!"   project-shell-command               "Project Shell Command")
+    ("&"   project-async-shell-command         "Project Async Shell Command")
+    ("e"   project-eshell                      "Project Eshell")
+        ("c"   project-compile-project             "Compile Project")
+    ("x"   project-execute-exdented-command    "Project Execute Extended Command")
+    ("q"   nil "Quit" :color blue))
 
 ;;; Dired
   (defun gh/dired-preview-file ()
