@@ -127,23 +127,37 @@
     )
   )
 
-;;; Eglot
-  (use-package eglot
-    :hook (((c-mode c++-mode objc-mode) . (lambda () (when (executable-find "clangd") (eglot-ensure))))
-           (python-mode . (lambda () (when (executable-find "pylsp") (eglot-ensure)))))
+;;; LSP and DAP Mode
+  (use-package lsp-mode ;; LSP support in Emacs
+    :hook ((lsp-mode . lsp-enable-which-key-integration)
+           ((c-mode c++-mode objc-mode) . (lambda () (when (executable-find "clangd") (lsp))))
+           (python-mode . (lambda () (when (executable-find "pylsp") (lsp))))
+           (lsp-mode . (lambda ()
+                        (define-key evil-normal-state-map "K" 'lsp-describe-thing-at-point)
+                        (define-key evil-normal-state-map "gd" 'lsp-find-definition)
+                        (define-key evil-normal-state-map "gr" 'lsp-find-references)
+                        (define-key evil-normal-state-map "gi" 'lsp-find-implementation)
+                        (define-key evil-normal-state-map "gt" 'lsp-find-type-definition))))
     :config
-      (with-eval-after-load 'eglot
-          (define-key evil-normal-state-map "K" 'eldoc)
-          (define-key evil-normal-state-map "gd" 'xref-find-definitions)
-          (define-key evil-normal-state-map "gr" 'xref-find-references)
-      )
-      (setq eldoc-echo-area-prefer-doc-buffer t)
-      (setq eldoc-echo-area-use-multiline-p 1)
-      (setq eldoc-echo-area-display-truncation-message nil)
-      (add-to-list 'eglot-server-programs
-                   `(python-mode . ("pylsp" "-v" "--tcp" "--host" "localhost" "--port" :autoport))
-      )
-      (add-to-list 'eglot-ignored-server-capabilites :documentHighlightProvider :signatureHelpProvider)
+      (setq lsp-headerline-breadcrumb-enable nil) ;; Remove top header line
+      (setq lsp-signature-auto-activate nil) ;; Stop signature definitions popping up
+      (setq lsp-enable-symbol-highlighting nil) ;; Disable highlighting of symbols
+      (setq lsp-semantic-tokens-enable nil) ;; Not everything needs to be a color
+      (setq lsp-eldoc-enable-hover nil) ;; Remove documentation from echo area
+  )
+
+  (use-package lsp-java ;; Support for the Eclipse.jdt.ls language server
+    :hook (java-mode . lsp)
+  )
+
+  (use-package dap-mode ;; DAP support for Emacs
+    :after lsp-mode
+    :hook (dap-stopped . (lambda (arg) (call-interactively #'dap-hydra)))
+    :config
+      (setq dap-auto-configure-features '(sessions locals expressions tooltip))
+      (require 'dap-gdb-lldb)
+      (require 'dap-java)
+      (require 'dap-python)
   )
 
 ;;; Minibuffer Completion etc.
@@ -310,7 +324,7 @@
 ;;; Eshell Mode
   (use-package eshell ;; Emacs lisp shell
     :config
-      (setq-default eshell-prompt-function 'eshell-prompt)
+    (setq-default eshell-prompt-function 'gh/eshell-prompt)
       (setq-default eshell-highlight-prompt nil)
   )
 
@@ -350,7 +364,7 @@
 ;;; Emacs Configuration
  (use-package emacs
    :hook ((emacs-startup . efs/display-startup-time)
-          (auto-save . full-auto-save))
+          (auto-save . gh/full-auto-save))
    :config
      ;; Set information about ourselves
      (setq user-mail-address "gregheiman02@gmail.com"
@@ -459,12 +473,12 @@
     :ensure nil
     :init
       (setq-default mode-line-format
-          '((:eval (simple-mode-line-render
+          '((:eval (gh/simple-mode-line-render
                       ;; left
                       (format-mode-line
                        (list
                         " "
-                        '(:eval (propertize (format "<%s> " (upcase (substring (symbol-name evil-state) 0 1))))) ;; Evil mode
+                        '(:eval (propertize (format "<%s>" (upcase (substring (symbol-name evil-state) 0 1))))) ;; Evil mode
                         '(vc-mode vc-mode)
                         '(:eval (propertize (format " %s" "%b")))
                         '(:eval (propertize (format " %s " "[%*]")))
@@ -472,7 +486,7 @@
                       ;; right
                        (format-mode-line
                         (list
-                         '(:eval (propertize (format "[%s] " (flycheck-indicator))))
+                         '(:eval (propertize (format "[%s] " (gh/flycheck-indicator))))
                          '(:eval (propertize (format "%s" (upcase (symbol-name buffer-file-coding-system)))))
                          '(:eval (propertize (format " %s " "%m")))
                          '(:eval (propertize (format "%s/%s:%s " "%l" (line-number-at-pos (point-max)) "%c")))
@@ -541,12 +555,6 @@
   (use-package objc-mode
     :ensure nil
     :hook (objc-mode . gh/c-mode-configuration)
-  )
-
-;;; Python Configuration
-  (use-package pipenv ;; Make Pipenv a first class citizen in Emacs
-    :ensure nil
-    :hook (python-mode . (lambda () (when (executable-find "pipenv") (pipenv-mode))))
   )
 
 ;;; Elisp Configuration

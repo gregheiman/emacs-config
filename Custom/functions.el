@@ -1,7 +1,7 @@
 ;; Functions, Advice, and Custom Minor Modes
 ;; Uses Outline-Minor-Mode
-;; C-c @ C-c Hide entry
-;; C-c @ C-e Show entry
+;; C-c @ C-c or zo (Evil mode) - Hide entry
+;; C-c @ C-e or zc (Evil mode) - Show entry
 
 ;;; Emacs functions
   (defun efs/display-startup-time ()
@@ -11,7 +11,7 @@
       gcs-done)
   )
 
-  (defun full-auto-save ()
+  (defun gh/full-auto-save ()
     "Auto save all buffers when autosave fires"
     (interactive)
     (save-excursion
@@ -51,20 +51,20 @@
   )
 
 ;;; Modeline
-  (defun simple-mode-line-render (left right) ;; Allows items to be right aligned on modeline
+  (defun gh/simple-mode-line-render (left right) ;; Allows items to be right aligned on modeline
     "Return a string of `window-width' length containing LEFT, and RIGHT
     aligned respectively."
     (let* ((available-width (- (window-width) (length left) 2)))
       (format (format " %%s %%%ds " available-width) left right))
   )
 
-  (defun vc-branch () ;; Cut out the Git from vc-mode
+  (defun gh/vc-branch () ;; Cut out the Git from vc-mode
     "Retrieve just the git branch name for the current file"
     (let ((backend (vc-backend (buffer-file-name))))
         (substring vc-mode (+ (if (eq backend 'Hg) 2 3) 2)))
   )
 
-  (defun flycheck-indicator () ;; Results in errors|warnings
+  (defun gh/flycheck-indicator () ;; Results in errors|warnings
     "Display just the errors and warning from the Flycheck indicator"
     (if (equal (string-match "\\(FlyC:\\)\\([0-9]+\\)|\\([0-9]+\\)" (flycheck-mode-line-status-text)) nil)
 		    (propertize "✔" 'face '(:inherit success))
@@ -109,32 +109,8 @@
         (format "find %s -type f -name \"*.[ch]\" | etags -" dir-name))
   )
 
-  ;;;  Jonas.Jarnestrom<at>ki.ericsson.se A smarter
-  ;;;  find-tag that automagically reruns etags when it cant find a
-  ;;;  requested item and then makes a new try to locate it.
-  ;;;  Fri Mar 15 09:52:14 2002
-  (defadvice find-tag (around refresh-etags activate)
-    "Rerun etags and reload tags if tag not found and redo find-tag.
-    If buffer is modified, ask about save before running etags."
-    (let ((extension (file-name-extension (buffer-file-name))))
-    (condition-case err
-    ad-do-it
-        (error (and (buffer-modified-p)
-            (not (ding))
-            (y-or-n-p "Buffer is modified, save it? ")
-            (save-buffer))
-            (er-refresh-etags extension)
-            ad-do-it))))
-    (defun er-refresh-etags (&optional extension)
-    "Run etags on all peer files in current dir and reload them silently."
-    (interactive)
-    (shell-command (format "etags *.%s" (or extension "el")))
-    (let ((tags-revert-without-query t))  ; don't query, revert silently
-        (visit-tags-table default-directory nil))
-  )
-
 ;;; Eshell
- (defun git-prompt-branch-name ()
+ (defun gh/git-prompt-branch-name ()
     "Get current git branch name"
     (let ((args '("symbolic-ref" "HEAD" "--short")))
       (with-temp-buffer
@@ -144,9 +120,9 @@
           (buffer-substring-no-properties (point) (line-end-position)))))
   )
 
-  (defun eshell-prompt ()
+  (defun gh/eshell-prompt ()
       (concat
-        (propertize (or (ignore-errors (format "(%s) " (git-prompt-branch-name))) ""))
+        (propertize (or (ignore-errors (format "(%s) " (gh/git-prompt-branch-name))) ""))
         (propertize (concat (if (string= (eshell/pwd) (getenv "HOME")) "~" (eshell/basename (eshell/pwd))) " λ "))
         )
   )
@@ -184,6 +160,7 @@
   )
 
 ;;; Hydra
+  (lambda () (require "hydra")
     (defhydra hydra-org-roam (:exit t :color pink :hint nil)
         "
         ^Node^             ^Goto^           ^Capture^          ^Misc
@@ -191,7 +168,7 @@
         _f_: Find          _d_: Date        _c_: Today         _s_: Sync DB
         _i_: Insert        _t_: Today       _u_: Tomorrow      _g_: Graph
         _r_: Random        _y_: Yesterday
-                          _T_: Tomorrow
+                            _T_: Tomorrow
         "
         ("f" org-roam-node-find)
         ("i" org-roam-node-insert)
@@ -206,79 +183,80 @@
         ("g" org-roam-graph)
         ("q" nil "quit" :color blue))
 
-   (defhydra hydra-projectile (:color pink :columns 5 :exit t)
-    "Projectile"
-    ("f"   projectile-find-file                "Find File")
-    ("r"   projectile-recentf                  "Recent Files")
-    ("z"   projectile-cache-current-file       "Cache Current File")
-    ("x"   projectile-remove-known-project     "Remove Known Project")
+     (defhydra hydra-projectile (:color pink :columns 5 :exit t)
+      "Projectile"
+      ("f"   projectile-find-file                "Find File")
+      ("r"   projectile-recentf                  "Recent Files")
+      ("z"   projectile-cache-current-file       "Cache Current File")
+      ("x"   projectile-remove-known-project     "Remove Known Project")
 
-    ("d"   projectile-find-dir                 "Find Directory")
-    ("b"   projectile-switch-to-buffer         "Switch to Buffer")
-    ("c"   projectile-invalidate-cache         "Clear Cache")
-    ("X"   projectile-cleanup-known-projects   "Cleanup Known Projects")
+      ("d"   projectile-find-dir                 "Find Directory")
+      ("b"   projectile-switch-to-buffer         "Switch to Buffer")
+      ("c"   projectile-invalidate-cache         "Clear Cache")
+      ("X"   projectile-cleanup-known-projects   "Cleanup Known Projects")
 
-    ("o"   projectile-multi-occur              "Multi Occur")
-    ("t"   projectile-regenerate-tags          "Regenerate Tags")
-    ("p"   projectile-switch-project           "Switch Project")
-    ("k"   projectile-kill-buffers             "Kill Buffers")
+      ("o"   projectile-multi-occur              "Multi Occur")
+      ("t"   projectile-regenerate-tags          "Regenerate Tags")
+      ("p"   projectile-switch-project           "Switch Project")
+      ("k"   projectile-kill-buffers             "Kill Buffers")
 
-    ("P"   projectile-test-project             "Test Project")
-    ("K"   projectile-install-project          "Install Project")
-    ("L"   projectile-package-project          "Package Project")
-    ("C"   projectile-compile-project          "Compile Project")
-    ("U"   projectile-run-project              "Run Project")
-    ("q"   nil "Quit" :color blue))
+      ("P"   projectile-test-project             "Test Project")
+      ("K"   projectile-install-project          "Install Project")
+      ("L"   projectile-package-project          "Package Project")
+      ("C"   projectile-compile-project          "Compile Project")
+      ("U"   projectile-run-project              "Run Project")
+      ("q"   nil "Quit" :color blue))
 
-  (defhydra hydra-lsp (:exit t :hint nil :color pink)
-    "
-   Buffer^^               Server^^                   Symbol
-  -------------------------------------------------------------------------------------
-   [_f_] format           [_M-r_] restart            [_d_] declaration  [_i_] implementation  [_o_] documentation
-   [_x_] format region    [_S_]   shutdown           [_D_] definition   [_t_] type            [_r_] rename
-   [_a_] code actions     [_M-s_] describe session   [_R_] references   [_s_] signature
-   "
-    ("d" lsp-find-declaration)
-    ("D" lsp-find-definitions)
-    ("R" lsp-find-references)
-    ("i" lsp-find-implementation)
-    ("t" lsp-find-type-definition)
-    ("s" lsp-signature-help)
-    ("o" lsp-describe-thing-at-point)
-    ("r" lsp-rename)
+    (defhydra hydra-lsp (:exit t :hint nil :color pink)
+      "
+     Buffer^^               Server^^                   Symbol
+    -------------------------------------------------------------------------------------
+     [_f_] format           [_M-r_] restart            [_d_] declaration  [_i_] implementation  [_o_] documentation
+     [_x_] format region    [_S_]   shutdown           [_D_] definition   [_t_] type            [_r_] rename
+     [_a_] code actions     [_M-s_] describe session   [_R_] references   [_s_] signature
+     "
+      ("d" lsp-find-declaration)
+      ("D" lsp-find-definitions)
+      ("R" lsp-find-references)
+      ("i" lsp-find-implementation)
+      ("t" lsp-find-type-definition)
+      ("s" lsp-signature-help)
+      ("o" lsp-describe-thing-at-point)
+      ("r" lsp-rename)
 
-    ("f" lsp-format-buffer)
-    ("x" lsp-code-region)
-    ("a" lsp-execute-code-action)
+      ("f" lsp-format-buffer)
+      ("x" lsp-code-region)
+      ("a" lsp-execute-code-action)
 
-    ("M-s" lsp-describe-session)
-    ("M-r" lsp-restart-workspace)
-    ("S" lsp-shutdown-workspace)
-    ("q" nil "quit" :color blue))
+      ("M-s" lsp-describe-session)
+      ("M-r" lsp-restart-workspace)
+      ("S" lsp-shutdown-workspace)
+      ("q" nil "quit" :color blue))
 
-   (defhydra hydra-project (:color pink :columns 5 :exit t)
-    "Project.el"
-    ("f"   project-find-file                   "Find File")
-    ("g"   project-find-regexp                 "Project Find Regexp")
-    ("r"   project-query-replace-regexp        "Project Query Replace Regexp")
-    ("F"   project-or-external-find-file       "Project or External Find File")
-    ("G"   project-or-external-find-regexp     "Project or External Find Regexp")
+     (defhydra hydra-project (:color pink :columns 5 :exit t)
+      "Project.el"
+      ("f"   project-find-file                   "Find File")
+      ("g"   project-find-regexp                 "Project Find Regexp")
+      ("r"   project-query-replace-regexp        "Project Query Replace Regexp")
+      ("F"   project-or-external-find-file       "Project or External Find File")
+      ("G"   project-or-external-find-regexp     "Project or External Find Regexp")
 
-    ("d"   project-find-dir                    "Find Directory")
-    ("b"   project-switch-to-buffer            "Switch to Buffer")
-    ("v"   project-vc-dir                      "Project VC Dir")
-    ("p"   project-switch-project              "Switch Project")
-    ("D"   project-dired                       "Project Direc")
-    ("k"   project-kill-buffers                "Kill Buffers")
+      ("d"   project-find-dir                    "Find Directory")
+      ("b"   project-switch-to-buffer            "Switch to Buffer")
+      ("v"   project-vc-dir                      "Project VC Dir")
+      ("p"   project-switch-project              "Switch Project")
+      ("D"   project-dired                       "Project Direc")
+      ("k"   project-kill-buffers                "Kill Buffers")
 
-    ("s"   project-shell                       "Project Shell")
-    ("!"   project-shell-command               "Project Shell Command")
-    ("&"   project-async-shell-command         "Project Async Shell Command")
-    ("e"   project-eshell                      "Project Eshell")
+      ("s"   project-shell                       "Project Shell")
+      ("!"   project-shell-command               "Project Shell Command")
+      ("&"   project-async-shell-command         "Project Async Shell Command")
+      ("e"   project-eshell                      "Project Eshell")
 
-    ("c"   project-compile-project             "Compile Project")
-    ("x"   project-execute-exdented-command    "Project Execute Extended Command")
-    ("q"   nil "Quit" :color blue))
+      ("c"   project-compile-project             "Compile Project")
+      ("x"   project-execute-exdented-command    "Project Execute Extended Command")
+      ("q"   nil "Quit" :color blue))
+  )
 
 ;;; Dired
   (defun gh/dired-preview-file ()
