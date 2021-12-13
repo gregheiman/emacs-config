@@ -100,10 +100,10 @@
   )
 
 ;;; Theme
-  (use-package kaolin-themes
+  (use-package doom-themes
     :hook (prog-mode . (lambda () (gh/custom-theme-faces)))
     :init
-      (load-theme 'kaolin-aurora t)
+      (load-theme 'doom-dark+ t)
   )
 
 ;;; In-Buffer Text Completion
@@ -144,6 +144,7 @@
       (setq lsp-enable-symbol-highlighting nil) ;; Disable highlighting of symbols
       (setq lsp-semantic-tokens-enable nil) ;; Not everything needs to be a color
       (setq lsp-eldoc-enable-hover nil) ;; Remove documentation from echo area
+      (setq lsp-enable-snippet nil) ;; Disable snippet support
   )
 
   (use-package lsp-java ;; Support for the Eclipse.jdt.ls language server
@@ -385,6 +386,7 @@
      (delete-selection-mode t) ;; Whatever is highlighted will be replaced with whatever is typed or pasted
      (electric-pair-mode 1) ;; Auto pair delimeters
      (auto-save-visited-mode) ;; Auto save files without the #filename#
+     (setq exec-path (append exec-path '("~/.local/bin")))
 
      ;; Indent configuration
      (setq-default indent-tabs-mode nil) ;; Use spaces for tabs instead of tab characters
