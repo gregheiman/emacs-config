@@ -98,7 +98,7 @@
         "Create tags file using Ctags."
         (interactive "DDirectory: ")
         (shell-command
-         (format "ctags -a -e -R --kinds-all=* %s" (directory-file-name dir-name))
+         (format "ctags -a -e -R %s" (directory-file-name dir-name))
          ))
   )
 
@@ -203,29 +203,24 @@
     ("U"   projectile-run-project              "Run Project")
     ("q"   nil "Quit" :color blue))
 
-  (defhydra hydra-lsp (:exit t :hint nil :color pink)
-    "
-    Buffer^^               Server^^                   Symbol
-    -------------------------------------------------------------------------------------
-    [_f_] format           [_M-r_] restart            [_d_] declaration  [_i_] implementation  [_o_] documentation
-    [_x_] format region    [_S_]   shutdown           [_D_] definition   [_t_] type            [_r_] rename
-    [_a_] code actions     [_M-s_] describe session   [_R_] references   [_s_] signature
-    "
-    ("d" lsp-find-declaration)
-    ("D" lsp-find-definitions)
-    ("R" lsp-find-references)
-    ("i" lsp-find-implementation)
-    ("t" lsp-find-type-definition)
-    ("s" lsp-signature-help)
-    ("o" lsp-describe-thing-at-point)
-    ("r" lsp-rename)
-        ("f" lsp-format-buffer)
-    ("x" lsp-code-region)
-    ("a" lsp-execute-code-action)
-        ("M-s" lsp-describe-session)
-    ("M-r" lsp-restart-workspace)
-    ("S" lsp-shutdown-workspace)
-    ("q" nil "quit" :color blue))
+   (defhydra hydra-eglot (:exit t :hint nil :color pink)
+      "
+      Buffer^^               Server^^                   Symbol
+      -------------------------------------------------------------------------------------
+      [_f_] format           [_M-r_] restart            [_d_] declaration  [_i_] implementation  [_o_] documentation
+      [_a_] code actions     [_S_]   shutdown           [_R_] references   [_t_] type            [_r_] rename
+      "
+      ("d" xref-find-definitions)
+      ("R" xref-find-references)
+      ("i" eglot-find-implementation)
+      ("t" eglot-find-typeDefinition)
+      ("o" eldoc)
+      ("r" eglot-rename)
+      ("f" eglot-format-buffer)
+      ("a" eglot-code-actions)
+      ("M-r" eglot-reconnect)
+      ("S" eglot-shutdown)
+      ("q" nil "quit" :color blue))
 
   (defhydra hydra-project (:color pink :columns 5 :exit t)
     "Project.el"

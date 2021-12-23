@@ -54,6 +54,9 @@
         ("]b" . next-buffer)
         ("[b" . previous-buffer)
         ("<leader>f" . lgrep)
+        ("K" . eldoc)
+        ("gd" . xref-find-definitions)
+        ("gr" . xref-find-references)
       )
     :config
       (evil-set-undo-system 'undo-tree)
@@ -100,10 +103,10 @@
   )
 
 ;;; Theme
-  (use-package doom-themes
+  (use-package zenburn-theme
     :hook (prog-mode . (lambda () (gh/custom-theme-faces)))
     :init
-      (load-theme 'doom-dark+ t)
+      (load-theme 'zenburn t)
   )
 
 ;;; In-Buffer Text Completion
@@ -118,6 +121,7 @@
       (corfu-quit-at-boundary t)
       (corfu-quit-no-match t)
       (corfu-echo-documentation t)
+      (corfu-preselect-first nil)
     :bind (
       :map corfu-map
             ("TAB" . corfu-next)
@@ -127,38 +131,17 @@
     )
   )
 
-;;; LSP and DAP Mode
-  (use-package lsp-mode ;; LSP support in Emacs
-    :hook ((lsp-mode . lsp-enable-which-key-integration)
-           ((c-mode c++-mode objc-mode) . (lambda () (when (executable-find "clangd") (lsp))))
-           (python-mode . (lambda () (when (executable-find "pylsp") (lsp))))
-           (lsp-mode . (lambda ()
-                        (define-key evil-normal-state-map "K" 'lsp-describe-thing-at-point)
-                        (define-key evil-normal-state-map "gd" 'lsp-find-definition)
-                        (define-key evil-normal-state-map "gr" 'lsp-find-references)
-                        (define-key evil-normal-state-map "gi" 'lsp-find-implementation)
-                        (define-key evil-normal-state-map "gt" 'lsp-find-type-definition))))
+;;; Eglot Mode
+  (use-package eglot ;; Minimal LSP client
+    :hook (((c-mode c++-mode objc-mode) . (lambda () (when (executable-find "clangd") (eglot-ensure))))
+           (python-mode . (lambda () (when (executable-find "pylsp") (eglot-ensure))))
+           (rust-mode . (lambda () (when (executable-find "rls") (eglot-ensure)))))
     :config
-      (setq lsp-headerline-breadcrumb-enable nil) ;; Remove top header line
-      (setq lsp-signature-auto-activate nil) ;; Stop signature definitions popping up
-      (setq lsp-enable-symbol-highlighting nil) ;; Disable highlighting of symbols
-      (setq lsp-semantic-tokens-enable nil) ;; Not everything needs to be a color
-      (setq lsp-eldoc-enable-hover nil) ;; Remove documentation from echo area
-      (setq lsp-enable-snippet nil) ;; Disable snippet support
-  )
-
-  (use-package lsp-java ;; Support for the Eclipse.jdt.ls language server
-    :hook (java-mode . lsp)
-  )
-
-  (use-package dap-mode ;; DAP support for Emacs
-    :after lsp-mode
-    :hook (dap-stopped . (lambda (arg) (call-interactively #'dap-hydra)))
-    :config
-      (setq dap-auto-configure-features '(sessions locals expressions tooltip))
-      (require 'dap-gdb-lldb)
-      (require 'dap-java)
-      (require 'dap-python)
+      (define-key evil-normal-state-map "gi" 'eglot-find-implementation)
+      (define-key evil-normal-state-map "gt" 'eglot-find-typeDefinition)
+      (setq eglot-ignored-server-capabilities '(list :documentHighlightProvider))
+      (setq eldoc-echo-area-use-multiline-p 0)
+      (setq eldoc-echo-area-prefer-doc-buffer t)
   )
 
 ;;; Minibuffer Completion etc.
@@ -200,8 +183,7 @@
   (use-package hydra ;; Beautiful, practical custom keybind menus
     :bind (("C-c o r" . hydra-org-roam/body)
            ("C-c p" . hydra-project/body)
-           ("C-c l" . hydra-lsp/body)
-           ("C-c a" . dap-hydra))
+           ("C-c l" . hydra-eglot/body))
   )
 
 ;;; Flycheck Mode
@@ -249,7 +231,7 @@
         org-startup-with-latex-preview t
         org-startup-indented t)
       (plist-put org-format-latex-options :scale 1.5) ;; Increase size of latex previews
-      (plist-put org-format-latex-options :foreground "#6ae4b9") ;; Change foreground color of latex previews 
+      (plist-put org-format-latex-options :foreground "#AFD8AF") ;; Change latex previews foreground color
       (if (executable-find "latexmk") ;; Set the command for org -> latex -> pdf
         (setq-default org-latex-pdf-process '("latexmk -output-directory=%o -pdflatex='pdflatex -interaction nonstopmode' -pdf -bibtex -f %f")))
   )
@@ -309,6 +291,7 @@
 
 ;;; Flyspell Mode
   (use-package flyspell ;; Builtin spell checking
+    :ensure nil
     :config
       (if (executable-find "aspell") ;; Use aspell if available
         (setq ispell-program-name "aspell"))
@@ -316,6 +299,7 @@
 
 ;;; Outline-Minor-Mode
   (use-package outline ;; Minor mode that allows for folding code
+    :ensure nil
     :hook ((emacs-lisp-mode . outline-minor-mode)
             (outline-minor-mode . outline-hide-body))
     :config
@@ -324,8 +308,9 @@
 
 ;;; Eshell Mode
   (use-package eshell ;; Emacs lisp shell
+    :ensure nil
     :config
-    (setq-default eshell-prompt-function 'gh/eshell-prompt)
+      (setq-default eshell-prompt-function 'gh/eshell-prompt)
       (setq-default eshell-highlight-prompt nil)
   )
 
@@ -364,6 +349,7 @@
 
 ;;; Emacs Configuration
  (use-package emacs
+   :ensure nil
    :hook ((emacs-startup . efs/display-startup-time)
           (auto-save . gh/full-auto-save))
    :config
@@ -386,7 +372,8 @@
      (delete-selection-mode t) ;; Whatever is highlighted will be replaced with whatever is typed or pasted
      (electric-pair-mode 1) ;; Auto pair delimeters
      (auto-save-visited-mode) ;; Auto save files without the #filename#
-     (setq exec-path (append exec-path '("~/.local/bin")))
+     (when (string-equal system-type "gnu/linux")
+       (setq exec-path (append exec-path '("~/.local/bin") '("~/.cargo/bin"))))
 
      ;; Indent configuration
      (setq-default indent-tabs-mode nil) ;; Use spaces for tabs instead of tab characters
@@ -511,6 +498,7 @@
 
 ;;; Grep Configuration
   (use-package grep
+    :ensure nil
     :config
       (if (executable-find "rg")
           (grep-apply-setting 'grep-template "rg -n -H --no-heading -g <F> -e <R> .") ;; For lgrep
@@ -520,6 +508,7 @@
 
 ;;; Tags Configuration
   (use-package etags
+    :ensure nil
     :config
       (setq-default tags-revert-without-query t) ;; Don't ask before rereading the TAGS files if they have changed
       (setq tags-add-tables nil) ;; Don't ask to keep current list of tags tables also
