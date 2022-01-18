@@ -1,3 +1,4 @@
+;; -*- lexical-binding: t -*-
 ;; Functions, Advice, and Custom Minor Modes
 ;; Uses Outline-Minor-Mode
 ;; C-c @ C-c or zo (Evil mode) - Hide entry
@@ -27,7 +28,8 @@
     (custom-set-faces '(font-lock-variable-name-face ((t (:foreground nil :inherit default)))))
     (font-lock-add-keywords nil
     `(("[-+]?\\b[0-9]*\\.?[0-9]+\\(?:[eE][-+]?[0-9]+\\)?\\b" . font-lock-warning-face) ;; Numbers
-      ("\\(?:\\.\\|->\\)\\_<\\([_a-zA-Z]*[a-zA-Z0-9_]+\\)\\([\t]*\\)(" 1 font-lock-function-name-face))) ;; Member functions
+      ("\\(?:\\.\\|->\\)\\_<\\([_a-zA-Z]*[a-zA-Z0-9_]+\\)\\([\t]*\\)(" 1 font-lock-function-name-face) ;; Member functions
+      ("\\(?:\\.\\|->\\)\\~\\_<\\([_a-zA-Z]*[a-zA-Z0-9_]+\\)\\([\t]*\\)(" 1 font-lock-type-face))) ;; Destructors 
   )
 
 ;;; C Mode Configuration
@@ -35,6 +37,7 @@
     "Set C style configuration"
     (setq c-basic-offset 4) ;; Set 4 space tabs
     (c-set-offset 'substatement-open 0)
+    (eldoc-add-command 'c-electric-paren) 
     (setq c-set-style "k&r") ;; The God style
   )
 
@@ -92,14 +95,13 @@
 		"]"))
   )
 
-;;; Tags
-  (when (executable-find "ctags")
-    (defun create-tags-ctags (dir-name)
-        "Create tags file using Ctags."
-        (interactive "DDirectory: ")
-        (shell-command
-         (format "ctags -a -e -R %s" (directory-file-name dir-name))
-         ))
+;;; Tags  (when (executable-find "ctags")
+  (defun create-tags-ctags (dir-name)
+    "Create tags file using Ctags."
+    (interactive "DDirectory: ")
+    (shell-command
+        (format "ctags -a -e -R %s" (directory-file-name dir-name))
+    )
   )
 
   (defun create-tags-etags (dir-name)
@@ -108,6 +110,7 @@
     (eshell-command
         (format "find %s -type f -name \"*.[ch]\" | etags -" dir-name))
   )
+
 
 ;;; Eshell
  (defun gh/git-prompt-branch-name ()
@@ -229,18 +232,18 @@
     ("r"   project-query-replace-regexp        "Project Query Replace Regexp")
     ("F"   project-or-external-find-file       "Project or External Find File")
     ("G"   project-or-external-find-regexp     "Project or External Find Regexp")  
-        ("d"   project-find-dir                    "Find Directory")
+    ("d"   project-find-dir                    "Find Directory")
     ("b"   project-switch-to-buffer            "Switch to Buffer")
     ("v"   project-vc-dir                      "Project VC Dir")
     ("p"   project-switch-project              "Switch Project")
     ("D"   project-dired                       "Project Direc")
     ("k"   project-kill-buffers                "Kill Buffers")
-        ("s"   project-shell                       "Project Shell")
+    ("s"   project-shell                       "Project Shell")
     ("!"   project-shell-command               "Project Shell Command")
     ("&"   project-async-shell-command         "Project Async Shell Command")
     ("e"   project-eshell                      "Project Eshell")
-        ("c"   project-compile-project             "Compile Project")
-    ("x"   project-execute-exdented-command    "Project Execute Extended Command")
+    ("c"   project-compile-project             "Compile Project")
+    ("x"   project-execute-extended-command    "Project Execute Extended Command")
     ("q"   nil "Quit" :color blue))
 
 ;;; Dired
@@ -248,18 +251,27 @@
     "Preview file in Dired mode"
     (interactive)
     (dired-find-file-other-window)
-    (local-set-key (kbd "q") 'View-quit)
-    )
-
-;;; Exec Path
-  (defun gh/set-exec-path-from-shell-PATH ()
-    "Set up Emacs' `exec-path' and PATH environment variable to match
-     that used by the user's shell."
-    (interactive)
-    (let ((path-from-shell (replace-regexp-in-string
-			    "[ \t\n]*$" "" (shell-command-to-string
-					    "$SHELL --login -c 'echo $PATH'"
-						      ))))
-      (setenv "PATH" path-from-shell)
-      (setq exec-path (split-string path-from-shell path-separator)))
+    (evil-local-set-key 'normal (kbd "q") 'quit-window)
+    (local-set-key (kbd "q") 'quit-window)
   )
+
+;;; Eglot Mode
+  (defun gh/eglot-eldoc-toggle-order+ ()
+    "Toggle the precedence of flymake notifications in eldoc."
+    (interactive)
+    (unless (bound-and-true-p eglot--managed-mode)
+      (user-error "Must be called from an `eglot' managed buffer"))
+    (let* ((pos (cl-position #'flymake-eldoc-function eldoc-documentation-functions)))
+      (setq eldoc-documentation-functions
+            (if (eq pos 0)
+                (append (cdr eldoc-documentation-functions) (list #'flymake-eldoc-function))
+              (append (list #'flymake-eldoc-function)
+                      (if (zerop pos)
+                          (cdr eldoc-documentation-functions)
+                        (let ((last (nthcdr (1- pos) eldoc-documentation-functions)))
+                          (setcdr last (cddr last))
+                          eldoc-documentation-functions)))))
+      (message "Message priority: %s"
+               (if (eq pos 0)
+                   (propertize "Documentation" 'face 'compilation-info)
+                 (propertize "Errors" 'face 'compilation-error)))))

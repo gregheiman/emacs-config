@@ -1,3 +1,4 @@
+;; -*- lexical-binding: t -*-
 ;; Uses Outline-Minor-Mode
 ;; C-c @ C-c or zo (Evil mode) - Hide entry
 ;; C-c @ C-e or zc (Evil mode) - Show entry
@@ -15,24 +16,20 @@
 ;;; Use-Package Configuration
   (unless (package-installed-p 'use-package) ;; Download use-package if not present
     (package-install 'use-package))
-
   (eval-when-compile ;; Use use-package to manage packages
     (require 'use-package))
-
   (require 'use-package)
     (setq use-package-always-ensure t) ;; Always download packages that are marked under use-package if they aren't installed
     (setq use-package-always-defer t) ;; Always defer package loading. If absolutely nessacary use :demand to override
 
 ;;; Native Comp
-  (when (and (fboundp 'native-comp-available-p)
-             (native-comp-available-p))
+  (when (and (fboundp 'native-comp-available-p) (native-comp-available-p))
     (progn
       (setq-default native-comp-async-report-warnings-errors nil)
       (setq-default comp-deferred-compilation t)
       (setq-default native-comp-speed 2)
       (add-to-list 'native-comp-eln-load-path (expand-file-name "eln-cache/" user-emacs-directory))
-      (setq package-native-compile t)
-      ))
+      (setq package-native-compile t)))
 
 ;;; Load Custom Files
   (add-to-list 'load-path (expand-file-name "~/.emacs.d/Custom")) ;; The directory that my custom files are kept in
@@ -61,11 +58,6 @@
     :config
       (evil-set-undo-system 'undo-tree)
       (evil-set-leader 'normal (kbd "\\"))
-      (evil-define-key '(normal insert visual) org-mode-map (kbd "C-j") 'org-next-visible-heading)
-      (evil-define-key '(normal insert visual) org-mode-map (kbd "C-k") 'org-previous-visible-heading)
-      (evil-define-key '(normal insert visual) org-mode-map (kbd "M-j") 'org-metadown)
-      (evil-define-key '(normal insert visual) org-mode-map (kbd "M-k") 'org-metaup)
-
       (eval-after-load 'evil-ex
           '(evil-ex-define-cmd "find" 'find-file))
       (eval-after-load 'evil-ex
@@ -103,10 +95,21 @@
   )
 
 ;;; Theme
-  (use-package zenburn-theme
+  (use-package modus-themes ;; High contrast themes
     :hook (prog-mode . (lambda () (gh/custom-theme-faces)))
     :init
-      (load-theme 'zenburn t)
+      (setq modus-themes-operandi-color-overrides '(list (bg-main . "#d7d7d7")))
+      (custom-set-faces
+       '(hl-line ((t (:background "#cbcbcb"))))
+       '(corfu-default ((t (:background "#e9e9e9"))))
+       '(completions-common-part ((t (:foreground "#004850" :background "#8eecf4"))))
+       '(completions-first-difference ((t (:foreground "#000000" :background "#d5baff" :inherit bold)))))
+      (setq modus-themes-paren-match '(bold underline)
+          modus-themes-bold-constructs t
+          modus-themes-italic-constructs t
+          modus-themes-lang-checkers '(straight-underline)
+          modus-themes-subtle-line-numbers t)
+      (load-theme 'modus-operandi t)
   )
 
 ;;; In-Buffer Text Completion
@@ -122,8 +125,7 @@
       (corfu-quit-no-match t)
       (corfu-echo-documentation t)
       (corfu-preselect-first nil)
-    :bind (
-      :map corfu-map
+    :bind (:map corfu-map
             ("TAB" . corfu-next)
             ([tab] . corfu-next)
             ("S-TAB" . corfu-previous)
@@ -135,12 +137,21 @@
   (use-package eglot ;; Minimal LSP client
     :hook (((c-mode c++-mode objc-mode) . (lambda () (when (executable-find "clangd") (eglot-ensure))))
            (python-mode . (lambda () (when (executable-find "pylsp") (eglot-ensure))))
-           (rust-mode . (lambda () (when (executable-find "rls") (eglot-ensure)))))
+           (rust-mode . (lambda () (when (executable-find "rls") (eglot-ensure))))
+           (eglot-managed-mode . (lambda () (gh/eglot-eldoc-toggle-order+)))) ;; Priortize errors over eldoc
+    :bind (:map evil-normal-state-map
+                ("gi" . eglot-find-implementation)
+                ("gt" . eglot-find-typeDefinition)
+                ("C-=" . gh/eglot-eldoc-toggle-order+))
     :config
-      (define-key evil-normal-state-map "gi" 'eglot-find-implementation)
-      (define-key evil-normal-state-map "gt" 'eglot-find-typeDefinition)
       (setq eglot-ignored-server-capabilities '(list :documentHighlightProvider))
-      (setq eldoc-echo-area-use-multiline-p 0)
+  )
+
+;;; Eldoc Mode
+  (use-package eldoc ;; Built-in documentation mode
+    :config
+      (setq eldoc-echo-area-use-multiline-p nil)
+      (setq eldoc-echo-area-display-truncation-message nil)
       (setq eldoc-echo-area-prefer-doc-buffer t)
   )
 
@@ -170,7 +181,7 @@
        (setq completion-styles '(substring initials flex partial-completion orderless))
        (setq completion-category-overrides '((file (styles . (partial-completion orderless)))))
     :config
-      (setq orderless-smart-case t)
+    (setq orderless-smart-case t)
   )
 
 ;;; Which-Key Mode
@@ -184,6 +195,14 @@
     :bind (("C-c o r" . hydra-org-roam/body)
            ("C-c p" . hydra-project/body)
            ("C-c l" . hydra-eglot/body))
+  )
+
+;;; Avy
+  (use-package avy ;; Quickly jump to visible location
+    :after evil
+    :bind (:map evil-normal-state-map
+                ("s" . avy-goto-char-2)
+                ("gl" . avy-goto-line))
   )
 
 ;;; Flycheck Mode
@@ -229,11 +248,16 @@
         org-src-preserve-indentation nil
         org-cycle-separator-lines 2
         org-startup-with-latex-preview t
-        org-startup-indented t)
+        org-startup-indented t
+        org-return-follows-link t)
       (plist-put org-format-latex-options :scale 1.5) ;; Increase size of latex previews
-      (plist-put org-format-latex-options :foreground "#AFD8AF") ;; Change latex previews foreground color
       (if (executable-find "latexmk") ;; Set the command for org -> latex -> pdf
         (setq-default org-latex-pdf-process '("latexmk -output-directory=%o -pdflatex='pdflatex -interaction nonstopmode' -pdf -bibtex -f %f")))
+      (evil-define-key '(normal insert visual) org-mode-map (kbd "C-j") 'org-next-visible-heading)
+      (evil-define-key '(normal insert visual) org-mode-map (kbd "C-k") 'org-previous-visible-heading)
+      (evil-define-key '(normal insert visual) org-mode-map (kbd "M-j") 'org-metadown)
+      (evil-define-key '(normal insert visual) org-mode-map (kbd "M-k") 'org-metaup)
+      (evil-define-key '(normal) org-mode-map (kbd "RET") 'org-return)
   )
 
   (use-package org-agenda ;; Powerful TODO list and agenda tracking
@@ -241,10 +265,11 @@
     :after org
     :bind-keymap ("C-c o a" . org-agenda-mode-map)
     :config
-      (setq org-agenda-files (directory-files-recursively (expand-file-name "~/Org/Org-Agenda") "\\.org$"))) ;; Add all .org files in folder to org agenda list
+      (setq org-agenda-files (directory-files-recursively (expand-file-name "~/Org/Org-Agenda") "\\.org$")) ;; Add all .org files in folder to org agenda list
       (setq org-log-done 'time) ;; Auto mark time when TODO item is marked done
+  )
 
-  (use-package org-roam ;; Add powerful non-hierarchical note taking tools to org
+  (use-package org-roam ;; Add powerful non-hierarchical note taking tools to Org
     :init
       (setq org-roam-v2-ack t)
     :config
@@ -255,15 +280,10 @@
        '(
          ("d" "default" plain
            "%?"
-           :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+author: Greg Heiman\n#+date: %U\n#+filetags:\n")
+           :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+author: Greg Heiman\n#+date: %U\n#+filetags: ")
            :unnarrowed t)
          )
       )
-  )
-
-  (use-package ox-hugo ;; Publish Org mode documents to static websites using Hugo
-    :ensure nil
-    :after ox
   )
 
   (use-package org-fragtog ;; Auto toggle org latex previews
@@ -273,21 +293,10 @@
   (use-package org-appear ;; Auto toggle all auto hidden org elements
     :after org
     :config
-      (setq org-appear-autolinks t
-            org-appear-autosubmarkers t
+      (setq org-appear-autosubmarkers t
             org-appear-autoentities t
             org-appear-autokeywords t)
   )
-
-;;; LaTeX
-  (use-package LaTeX-mode ;; Builtin latex mode
-    :ensure nil
-    :hook (LaTex-mode . flyspell-mode)
-  )
-
-  (use-package auctex) ;; Powerful LaTeX tool suite
-
-  (use-package cdlatex) ;; Fast insertion of environment templates and math in LaTeX
 
 ;;; Flyspell Mode
   (use-package flyspell ;; Builtin spell checking
@@ -490,8 +499,7 @@
                           (auto-revert-mode 1) ;; Automatically update Dired
                           (setq auto-revert-verbose nil))) ;; Be quiet about updating Dired
     :bind-keymap ("C-c d" . dired-mode-map)
-    :bind (
-           :map dired-mode-map
+    :bind (:map dired-mode-map
              ("C-c d v" . 'gh/dired-preview-file)
     )
   )
@@ -501,8 +509,8 @@
     :ensure nil
     :config
       (if (executable-find "rg")
-          (grep-apply-setting 'grep-template "rg -n -H --no-heading -g <F> -e <R> .") ;; For lgrep
-          (setq grep-use-null-device nil) ;; Don't append NUL to end on windows (Not nessacary for rg)
+          (setq grep-template "rg -n -H --no-heading -g <F> -e <R> .")
+          (setq grep-use-null-device nil)
       )
   )
 
@@ -510,7 +518,7 @@
   (use-package etags
     :ensure nil
     :config
-      (setq-default tags-revert-without-query t) ;; Don't ask before rereading the TAGS files if they have changed
+      (setq tags-revert-without-query t) ;; Don't ask before rereading the TAGS files if they have changed
       (setq tags-add-tables nil) ;; Don't ask to keep current list of tags tables also
   )
 
@@ -537,10 +545,6 @@
   (use-package c++-mode
     :ensure nil
     :hook (c++-mode . gh/c-mode-configuration)
-  )
-
-  (use-package cmake-mode ;; Add a mode for CMake files
-    :ensure nil
   )
 
   (use-package objc-mode
