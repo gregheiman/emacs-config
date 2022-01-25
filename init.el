@@ -34,6 +34,7 @@
 ;;; Load Custom Files
   (add-to-list 'load-path (expand-file-name "~/.emacs.d/Custom")) ;; The directory that my custom files are kept in
   (load "functions") ;; Load functions
+  (load "skeletons") ;; Skeletons
 
 ;;; Evil Mode and Evil Mode Extras
   (use-package evil ;; Vim keybindings
@@ -138,10 +139,11 @@
     :hook (((c-mode c++-mode objc-mode) . (lambda () (when (executable-find "clangd") (eglot-ensure))))
            (python-mode . (lambda () (when (executable-find "pylsp") (eglot-ensure))))
            (rust-mode . (lambda () (when (executable-find "rls") (eglot-ensure))))
+           (haskell-mode . (lambda () (when (executable-find "haskell-language-server") (eglot-ensure))))
            (eglot-managed-mode . (lambda () (gh/eglot-eldoc-toggle-order+)))) ;; Priortize errors over eldoc
     :bind (:map evil-normal-state-map
                 ("gi" . eglot-find-implementation)
-                ("gt" . eglot-find-typeDefinition)
+                ("gy" . eglot-find-typeDefinition)
                 ("C-=" . gh/eglot-eldoc-toggle-order+))
     :config
       (setq eglot-ignored-server-capabilities '(list :documentHighlightProvider))
@@ -181,7 +183,7 @@
        (setq completion-styles '(substring initials flex partial-completion orderless))
        (setq completion-category-overrides '((file (styles . (partial-completion orderless)))))
     :config
-    (setq orderless-smart-case t)
+      (setq orderless-smart-case t)
   )
 
 ;;; Which-Key Mode
@@ -520,6 +522,13 @@
     :config
       (setq tags-revert-without-query t) ;; Don't ask before rereading the TAGS files if they have changed
       (setq tags-add-tables nil) ;; Don't ask to keep current list of tags tables also
+  )
+
+;;; Auto-Insert Configuration
+  (use-package auto-insert ;; Insert skeletons for new files. Run with M-x auto-insert
+    :ensure nil
+    :init
+      (define-auto-insert '(java-mode . "Java Class Skeleton") 'java-class-skeleton)
   )
 
 ;;; Markdown Configuration
