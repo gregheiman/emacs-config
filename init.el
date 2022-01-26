@@ -180,8 +180,7 @@
     :init
        (setq completion-styles '(substring initials flex partial-completion orderless))
        (setq completion-category-overrides '((file (styles . (partial-completion orderless)))))
-    :config
-    (setq orderless-smart-case t)
+       (setq completion-ignore-case t)
   )
 
 ;;; Which-Key Mode
@@ -275,6 +274,7 @@
     :config
       (setq org-roam-directory (file-truename "~/Org/Org-Roam"))
       (setq org-roam-completion-everywhere t)
+      (setq org-roam-node-display-template "${title:*} ${tags:50}")
       (org-roam-db-autosync-enable)
       (setq org-roam-capture-templates
        '(
