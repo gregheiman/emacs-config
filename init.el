@@ -140,6 +140,7 @@
            (python-mode . (lambda () (when (executable-find "pylsp") (eglot-ensure))))
            (rust-mode . (lambda () (when (executable-find "rls") (eglot-ensure))))
            (haskell-mode . (lambda () (when (executable-find "haskell-language-server") (eglot-ensure))))
+           (javascript-mode . (lambda () (when (executable-find "typescript-language-server" (eglot-ensure)))))
            (eglot-managed-mode . (lambda () (gh/eglot-eldoc-toggle-order+)))) ;; Priortize errors over eldoc
     :bind (:map evil-normal-state-map
                 ("gi" . eglot-find-implementation)
