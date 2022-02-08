@@ -20,7 +20,7 @@
     (require 'use-package))
   (require 'use-package)
     (setq use-package-always-ensure t) ;; Always download packages that are marked under use-package if they aren't installed
-    (setq use-package-always-defer t) ;; Always defer package loading. If absolutely nessacary use :demand to override
+    (setq use-package-always-defer t) ;; Always defer package loading. If absolutely necessary use :demand to override
 
 ;;; Native Comp
   (when (and (fboundp 'native-comp-available-p) (native-comp-available-p))
@@ -183,8 +183,7 @@
     :init
        (setq completion-styles '(substring initials flex partial-completion orderless))
        (setq completion-category-overrides '((file (styles . (partial-completion orderless)))))
-    :config
-      (setq orderless-smart-case t)
+       (setq completion-ignore-case t)
   )
 
 ;;; Which-Key Mode
@@ -278,6 +277,7 @@
     :config
       (setq org-roam-directory (file-truename "~/Org/Org-Roam"))
       (setq org-roam-completion-everywhere t)
+      (setq org-roam-node-display-template "${title:*} ${tags:50}")
       (org-roam-db-autosync-enable)
       (setq org-roam-capture-templates
        '(
