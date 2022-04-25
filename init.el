@@ -140,6 +140,7 @@
            (python-mode . (lambda () (when (executable-find "pylsp") (eglot-ensure))))
            (rust-mode . (lambda () (when (executable-find "rls") (eglot-ensure))))
            (haskell-mode . (lambda () (when (executable-find "haskell-language-server") (eglot-ensure))))
+           (java-mode . (lambda () (when (executable-find "jdtls") (eglot-ensure))))
            (eglot-managed-mode . (lambda () (gh/eglot-eldoc-toggle-order+)))) ;; Priortize errors over eldoc
     :bind (:map evil-normal-state-map
                 ("gi" . eglot-find-implementation)
@@ -147,6 +148,12 @@
                 ("C-=" . gh/eglot-eldoc-toggle-order+))
     :config
       (setq eglot-ignored-server-capabilities '(list :documentHighlightProvider))
+      (add-to-list 'eglot-server-programs
+                `(java-mode "jdtls" "-configuration" ,(expand-file-name "~/.cache/jdtls") "-data" ,(expand-file-name "~/eclipse-workspace")))
+      (cl-defmethod eglot-execute-command
+          (_server (_cmd (eql java.apply.workspaceEdit)) arguments)
+          "Eclipse JDT breaks spec and replies with edits as arguments."
+          (mapc #'eglot--apply-workspace-edit arguments))
   )
 
 ;;; Eldoc Mode
@@ -168,7 +175,7 @@
   )
 
   (use-package vertico ;; Fast, lightweight, and improved minibuffer completion system
-    :hook (after-init . vertico-mode)
+    :hook ((after-init . vertico-mode))
     :config
       (setq vertico-cycle t)
   )
@@ -218,8 +225,8 @@
   (use-package project ;; Built-in project managment package
     :ensure nil
     :config
-      (when (file-directory-p "~/Dev")
-        (eval-after-load 'project (project-remember-projects-under "~/Dev" t))
+      (when (file-directory-p "~/dev")
+        (eval-after-load 'project (project-remember-projects-under "~/dev" t))
       )
   )
 
@@ -238,6 +245,9 @@
            (org-mode . org-appear-mode)
            (org-mode . gh/org-add-electric-pairs))
     :bind-keymap ("C-c o o" . org-mode-map)
+    :init
+      (with-eval-after-load "org"
+        (define-abbrev org-mode-abbrev-table "asrc" "" 'org-src-block))
     :config
       (setq org-src-fontify-natively t
         org-startup-with-inline-images t
@@ -252,6 +262,10 @@
         org-startup-indented t
         org-return-follows-link t)
       (plist-put org-format-latex-options :scale 1.5) ;; Increase size of latex previews
+      (org-babel-do-load-languages 'org-babel-load-languages ;; Set the langs. to load for org src blocks
+                                   (append org-babel-load-languages
+                                           '((C . t)
+                                             (haskell . t))))
       (if (executable-find "latexmk") ;; Set the command for org -> latex -> pdf
         (setq-default org-latex-pdf-process '("latexmk -output-directory=%o -pdflatex='pdflatex -interaction nonstopmode' -pdf -bibtex -f %f")))
       (evil-define-key '(normal insert visual) org-mode-map (kbd "C-j") 'org-next-visible-heading)
@@ -266,7 +280,7 @@
     :after org
     :bind-keymap ("C-c o a" . org-agenda-mode-map)
     :config
-      (setq org-agenda-files (directory-files-recursively (expand-file-name "~/Org/Org-Agenda") "\\.org$")) ;; Add all .org files in folder to org agenda list
+      (setq org-agenda-files (directory-files-recursively (expand-file-name "~/org/org-agenda") "\\.org$")) ;; Add all .org files in folder to org agenda list
       (setq org-log-done 'time) ;; Auto mark time when TODO item is marked done
   )
 
@@ -274,7 +288,7 @@
     :init
       (setq org-roam-v2-ack t)
     :config
-      (setq org-roam-directory (file-truename "~/Org/Org-Roam"))
+      (setq org-roam-directory (file-truename "~/org/org-roam"))
       (setq org-roam-completion-everywhere t)
       (setq org-roam-node-display-template "${title:*} ${tags:50}")
       (org-roam-db-autosync-enable)
@@ -524,11 +538,22 @@
       (setq tags-add-tables nil) ;; Don't ask to keep current list of tags tables also
   )
 
-;;; Auto-Insert Configuration
-  (use-package auto-insert ;; Insert skeletons for new files. Run with M-x auto-insert
+;;; Abbrev, and Skeleton Modes
+  (use-package abbrev ;; In buffer snippets
+    :ensure nil
+    :hook ((c-mode . abbrev-mode)
+           (c++-mode . abbrev-mode)
+           (java-mode . abbrev-mode)
+           (org-mode . abbrev-mode))
+    :config
+      (setq save-abbrevs nil)
+  )
+
+  (use-package skeleton ;; Skeletons for new files and code structures
     :ensure nil
     :init
-      (define-auto-insert '(java-mode . "Java Class Skeleton") 'java-class-skeleton)
+      (setq skeleton-end-hook nil)
+      (setq skeleton-further-elements '((abbrev-mode nil)))
   )
 
 ;;; Markdown Configuration
@@ -543,17 +568,36 @@
   (use-package java-mode
     :ensure nil
     :hook (java-mode . gh/java-mode-configuration)
+    :init
+      (define-auto-insert '(java-mode . "Java Class Skeleton") 'java-class-skeleton)
+      (with-eval-after-load "cc-mode"
+        (define-abbrev java-mode-abbrev-table "aif" "" 'java-if-statement)
+        (define-abbrev java-mode-abbrev-table "aelif" "" 'java-elif-statement)
+        (define-abbrev java-mode-abbrev-table "aelse" "" 'java-else-statement)
+        (define-abbrev java-mode-abbrev-table "amain" "" 'java-main-function))
   )
 
 ;;; C Configuration
   (use-package c-mode
     :ensure nil
     :hook (c-mode . gh/c-mode-configuration)
+    :init
+      (with-eval-after-load "cc-mode"
+        (define-abbrev c-mode-abbrev-table "aif" "" 'c-if-statement)
+        (define-abbrev c-mode-abbrev-table "aelif" "" 'c-elif-statement)
+        (define-abbrev c-mode-abbrev-table "aelse" "" 'c-else-statement)
+        (define-abbrev c-mode-abbrev-table "amain" "" 'c-main-function))
   )
 
   (use-package c++-mode
     :ensure nil
     :hook (c++-mode . gh/c-mode-configuration)
+    :init
+      (with-eval-after-load "cc-mode"
+        (define-abbrev c++-mode-abbrev-table "aif" "" 'c-if-statement)
+        (define-abbrev c++-mode-abbrev-table "aelif" "" 'c-elif-statement)
+        (define-abbrev c++-mode-abbrev-table "aelse" "" 'c-else-statement)
+        (define-abbrev c++-mode-abbrev-table "amain" "" 'c-main-function))
   )
 
   (use-package objc-mode

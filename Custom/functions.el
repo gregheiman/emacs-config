@@ -29,6 +29,8 @@
     (font-lock-add-keywords nil
     `(("[-+]?\\b[0-9]*\\.?[0-9]+\\(?:[eE][-+]?[0-9]+\\)?\\b" . font-lock-warning-face) ;; Numbers
       ("\\(?:\\.\\|->\\)\\_<\\([_a-zA-Z]*[a-zA-Z0-9_]+\\)\\([\t]*\\)(" 1 font-lock-function-name-face) ;; Member functions
+      ("\\_<\\([_a-z]*[a-z0-9_]+\\)\\([\t]*\\)(" 1 font-lock-function-name-face) ;; Functions
+      ("\\_<\\([_A-Z]*[a-z0-9_]+\\)\\([\t]*\\)(" 1 font-lock-type-face) ;; Constructors
       ("\\(?:\\.\\|->\\)\\~\\_<\\([_a-zA-Z]*[a-zA-Z0-9_]+\\)\\([\t]*\\)(" 1 font-lock-type-face))) ;; Destructors 
   )
 
