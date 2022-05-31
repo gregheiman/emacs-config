@@ -47,8 +47,8 @@
         ("<leader>bl" . list-buffers)
         ("<leader>bd" . kill-this-buffer)
         ("<leader>bg" . switch-to-buffer)
-        ("]q" . next-error)
-        ("[q" . previous-error)
+        ("]q" . flymake-goto-next-error)
+        ("[q" . flymake-goto-prev-error)
         ("]b" . next-buffer)
         ("[b" . previous-buffer)
         ("<leader>f" . lgrep)
@@ -71,6 +71,7 @@
 
   (use-package evil-collection ;; Extend default evil mode keybindings to more modes
     :after evil
+    :diminish evil-collection-unimpaired-mode
     :init
       (evil-collection-init)
     :config
@@ -79,18 +80,21 @@
 
   (use-package evil-surround ;; Port of vim-surround to Evil
     :after evil
+    :diminish
     :init
       (global-evil-surround-mode 1)
   )
 
   (use-package evil-commentary ;; Port of vim-commentary to Evil
     :after evil
+    :diminish
     :init
       (evil-commentary-mode)
   )
 
   (use-package undo-tree ;; Undo tree to enable redoing with Evil
     :after evil
+    :diminish
     :init
       (global-undo-tree-mode t)
   )
@@ -159,6 +163,7 @@
 
 ;;; Eldoc Mode
   (use-package eldoc ;; Built-in documentation mode
+    :diminish
     :config
       (setq eldoc-echo-area-use-multiline-p nil)
       (setq eldoc-echo-area-display-truncation-message nil)
@@ -196,6 +201,7 @@
 ;;; Which-Key Mode
   (use-package which-key ;; Show possible keybindings when you pause a keycord
     :defer 5
+    :diminish
     :hook ((after-init . which-key-mode))
   )
 
@@ -212,14 +218,6 @@
     :bind (:map evil-normal-state-map
                 ("s" . avy-goto-char-2)
                 ("gl" . avy-goto-line))
-  )
-
-;;; Flycheck Mode
-  (use-package flycheck ;; Improved linting and checking
-    :hook ((prog-mode . flycheck-mode))
-    :bind-keymap ("C-c f" . flycheck-command-map)
-    :config
-      (setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc)) ;; Stop flycheck from treating init.el as package file
   )
 
 ;;; Project Management
@@ -326,6 +324,7 @@
 ;;; Outline-Minor-Mode
   (use-package outline ;; Minor mode that allows for folding code
     :ensure nil
+    :diminish outline-minor-mode
     :hook ((emacs-lisp-mode . outline-minor-mode)
             (outline-minor-mode . outline-hide-body))
     :config
@@ -376,6 +375,7 @@
 ;;; Emacs Configuration
  (use-package emacs
    :ensure nil
+   :diminish isearch-mode
    :hook ((emacs-startup . efs/display-startup-time)
           (auto-save . gh/full-auto-save))
    :config
@@ -383,12 +383,11 @@
      (setq user-mail-address "gregheiman02@gmail.com"
            user-full-name "Greg Heiman")
      ;; Font configuration
-     (set-face-attribute 'default nil :font "JetBrains Mono 11" ) ;; Set font options
-     (set-frame-font "JetBrains Mono 11" nil t)
+     (set-face-attribute 'default nil :font "JetBrains Mono 14" ) ;; Set font options
+     (set-frame-font "JetBrains Mono 14" nil t)
 
      ;; Add to the interface
      (global-hl-line-mode 1) ;; Highlight the current line
-     (column-number-mode t) ;; Show column numbers in modeline
      (show-paren-mode t) ;; Highlight matching delimeter pair
      (setq-default show-paren-style 'parenthesis)
      (add-to-list 'initial-frame-alist '(fullscreen . maximized)) ;; Start emacs fullscreen and maximized
@@ -476,6 +475,7 @@
 ;;; Whitespace Mode
   (use-package whitespace ;; Highlight various whitespaces in files
     :ensure nil
+    :diminish
     :hook ((prog-mode . whitespace-mode))
     :config
       ;; Highlight lines longer than 80 chars. and trailing spaces
@@ -487,27 +487,28 @@
   (use-package modeline ;; The status line at the bottom of the screen
     :ensure nil
     :init
+       (column-number-mode t) ;; Show column numbers in modeline
       (setq-default mode-line-format
           '((:eval (gh/simple-mode-line-render
-                      ;; left
-                      (format-mode-line
-                       (list
-                        " "
-                        '(:eval (propertize (format "<%s>" (upcase (substring (symbol-name evil-state) 0 1))))) ;; Evil mode
-                        '(vc-mode vc-mode)
-                        '(:eval (propertize (format " %s" "%b")))
-                        '(:eval (propertize (format " %s " "[%*]")))
-                        ))
-                      ;; right
-                       (format-mode-line
-                        (list
-                         '(:eval (propertize (format "[%s] " (gh/flycheck-indicator))))
-                         '(:eval (propertize (format "%s" (upcase (symbol-name buffer-file-coding-system)))))
-                         '(:eval (propertize (format " %s " "%m")))
-                         '(:eval (propertize (format "%s/%s:%s " "%l" (line-number-at-pos (point-max)) "%c")))
-                         ))
-                      ))))
-  )
+            ;; left
+            (format-mode-line
+            (list
+                " "
+                '(:eval (propertize (format "<%s>" (upcase (substring (symbol-name evil-state) 0 1))))) ;; Evil mode
+                '(vc-mode vc-mode)
+                '(:eval (propertize (format " %s" "%b")))
+                '(:eval (propertize (format " %s " "[%*]")))
+            ))
+            ;; right
+            (format-mode-line
+            (list
+                '(:eval flymake-mode-line-format)
+                '(:eval (propertize (format " %s" (upcase (symbol-name buffer-file-coding-system)))))
+                '(:eval (propertize (format " %s " "%m")))
+                '(:eval (propertize (format "%s/%s:%s " "%l" (line-number-at-pos (point-max)) "%c")))
+                ))
+            ))))
+      )
 
 ;;; Dired Configuration
   (use-package dired ;; Builtin file manager
@@ -542,6 +543,7 @@
 ;;; Abbrev, and Skeleton Modes
   (use-package abbrev ;; In buffer snippets
     :ensure nil
+    :diminish
     :hook ((c-mode . abbrev-mode)
            (c++-mode . abbrev-mode)
            (java-mode . abbrev-mode)
@@ -614,3 +616,20 @@
 
 ;;; Emacs Keybindings
     (global-set-key (kbd "<escape>") 'keyboard-escape-quit) ;; Make ESC quit prompts
+  (custom-set-variables
+   ;; custom-set-variables was added by Custom.
+   ;; If you edit it by hand, you could mess it up, so be careful.
+   ;; Your init file should contain only one such instance.
+   ;; If there is more than one, they won't work right.
+   '(package-selected-packages
+     '(markdown-mode org-appear org-fragtog org-roam magit flycheck avy which-key orderless marginalia vertico eglot corfu modus-themes undo-tree evil-commentary evil-surround evil-collection evil use-package hydra)))
+    (custom-set-faces
+     ;; custom-set-faces was added by Custom.
+     ;; If you edit it by hand, you could mess it up, so be careful.
+     ;; Your init file should contain only one such instance.
+     ;; If there is more than one, they won't work right.
+     '(completions-common-part ((t (:foreground "#004850" :background "#8eecf4"))))
+     '(completions-first-difference ((t (:foreground "#000000" :background "#d5baff" :inherit bold))))
+     '(corfu-default ((t (:background "#e9e9e9"))))
+     '(font-lock-variable-name-face ((t (:foreground nil :inherit default))))
+     '(hl-line ((t (:background "#cbcbcb")))))
