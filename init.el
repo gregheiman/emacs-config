@@ -493,27 +493,29 @@
   (use-package modeline ;; The status line at the bottom of the screen
     :ensure nil
     :init
-       (column-number-mode t) ;; Show column numbers in modeline
-      (setq-default mode-line-format
-          '((:eval (gh/simple-mode-line-render
-            ;; left
-            (format-mode-line
-            (list
-                " "
-                '(:eval (propertize (format "<%s>" (upcase (substring (symbol-name evil-state) 0 1))))) ;; Evil mode
-                '(vc-mode vc-mode)
-                '(:eval (propertize (format " %s" "%b")))
-                '(:eval (propertize (format " %s " "[%*]")))
-            ))
-            ;; right
-            (format-mode-line
-            (list
-                '(:eval flymake-mode-line-format)
-                '(:eval (propertize (format " %s" (upcase (symbol-name buffer-file-coding-system)))))
-                '(:eval (propertize (format " %s " "%m")))
-                '(:eval (propertize (format "%s/%s:%s " "%l" (line-number-at-pos (point-max)) "%c")))
-                ))
-            ))))
+    (column-number-mode t) ;; Show column numbers in modeline
+    (setq mode-line-percent-position nil)
+    (setq mode-line-position-column-line-format '(" %l:%c "))
+      ;; (setq-default mode-line-format
+      ;;     '((:eval (gh/simple-mode-line-render
+      ;;       ;; left
+      ;;       (format-mode-line
+      ;;       (list
+      ;;           " "
+      ;;           '(:eval (propertize (format "<%s>" (upcase (substring (symbol-name evil-state) 0 1))))) ;; Evil mode
+      ;;           '(vc-mode vc-mode)
+      ;;           '(:eval (propertize (format " %s" "%b")))
+      ;;           '(:eval (propertize (format " %s " "[%*]")))
+      ;;       ))
+      ;;       ;; right
+      ;;       (format-mode-line
+      ;;       (list
+      ;;           '(:eval flymake-mode-line-format)
+      ;;           '(:eval (propertize (format " %s" (upcase (symbol-name buffer-file-coding-system)))))
+      ;;           '(:eval (propertize (format " %s " "%m")))
+      ;;           '(:eval (propertize (format "%s/%s:%s " "%l" (line-number-at-pos (point-max)) "%c")))
+      ;;           ))
+      ;;       ))))
       )
 
 ;;; Dired Configuration
