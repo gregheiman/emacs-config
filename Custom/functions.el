@@ -39,8 +39,7 @@
     "Set C style configuration"
     (setq c-basic-offset 4) ;; Set 4 space tabs
     (c-set-offset 'substatement-open 0)
-    (eldoc-add-command 'c-electric-paren) 
-    (setq c-set-style "k&r") ;; The God style
+    (eldoc-add-command 'c-electric-paren)
   )
 
 ;;; Java Mode Configuration
@@ -67,17 +66,6 @@
     "Retrieve just the git branch name for the current file"
     (let ((backend (vc-backend (buffer-file-name))))
         (substring vc-mode (+ (if (eq backend 'Hg) 2 3) 2)))
-  )
-
-  (defun gh/flycheck-indicator () ;; Results in errors|warnings
-    "Display just the errors and warning from the Flycheck indicator"
-    (if (equal (string-match "\\(FlyC:\\)\\([0-9]+\\)|\\([0-9]+\\)" (flycheck-mode-line-status-text)) nil)
-		    (propertize "✔" 'face '(:inherit success))
-      (concat
-         (propertize (format "%s" (match-string 2 (flycheck-mode-line-status-text))) 'face '(:inherit error))
-         (propertize (format "%s" "|") 'face '(:inherit mode-line))
-         (propertize (format "%s" (match-string 3 (flycheck-mode-line-status-text))) 'face '(:inherit flycheck-error-list-warning))
-      ))
   )
 
   ;; Add the Git diff summary to the end of vc-mode output

@@ -161,6 +161,12 @@
           (mapc #'eglot--apply-workspace-edit arguments))
   )
 
+;;; Flymake Mode
+  (use-package flymake ;; On the fly diagnostic checking
+    :ensure nil
+    :hook (prog-mode . flymake-mode)
+  )
+
 ;;; Eldoc Mode
   (use-package eldoc ;; Built-in documentation mode
     :diminish
@@ -585,6 +591,7 @@
     :ensure nil
     :hook (c-mode . gh/c-mode-configuration)
     :init
+      (setq c-default-style "bsd")
       (with-eval-after-load "cc-mode"
         (define-abbrev c-mode-abbrev-table "aif" "" 'c-if-statement)
         (define-abbrev c-mode-abbrev-table "aelif" "" 'c-elif-statement)
@@ -596,6 +603,7 @@
     :ensure nil
     :hook (c++-mode . gh/c-mode-configuration)
     :init
+      (setq c-default-style "bsd")
       (with-eval-after-load "cc-mode"
         (define-abbrev c++-mode-abbrev-table "aif" "" 'c-if-statement)
         (define-abbrev c++-mode-abbrev-table "aelif" "" 'c-elif-statement)
