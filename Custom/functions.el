@@ -55,19 +55,6 @@
   )
 
 ;;; Modeline
-  (defun gh/simple-mode-line-render (left right) ;; Allows items to be right aligned on modeline
-    "Return a string of `window-width' length containing LEFT, and RIGHT
-    aligned respectively."
-    (let* ((available-width (- (window-width) (length left) 2)))
-      (format (format " %%s %%%ds " available-width) left right))
-  )
-
-  (defun gh/vc-branch () ;; Cut out the Git from vc-mode
-    "Retrieve just the git branch name for the current file"
-    (let ((backend (vc-backend (buffer-file-name))))
-        (substring vc-mode (+ (if (eq backend 'Hg) 2 3) 2)))
-  )
-
   ;; Add the Git diff summary to the end of vc-mode output
   (defadvice vc-git-mode-line-string (after plus-minus (file) compile activate)
   "Show the information of git diff on modeline."
@@ -85,22 +72,22 @@
 		"]"))
   )
 
-;;; Tags  (when (executable-find "ctags")
-  (defun create-tags-ctags (dir-name)
-    "Create tags file using Ctags."
-    (interactive "DDirectory: ")
-    (shell-command
-        (format "ctags -a -e -R %s" (directory-file-name dir-name))
+;;; Tags
+  (when (executable-find "ctags")
+    (defun create-tags-ctags (dir-name)
+      "Create tags file using Ctags."
+      (interactive "DDirectory: ")
+      (shell-command
+          (format "ctags -a -e -R %s" (directory-file-name dir-name))
+      )
     )
   )
-
-  (defun create-tags-etags (dir-name)
-    "Create tags file usig Etags."
-    (interactive "DDirectory: ")
-    (eshell-command
-        (format "find %s -type f -name \"*.[ch]\" | etags -" dir-name))
-  )
-
+    (defun create-tags-etags (dir-name)
+      "Create tags file usig Etags."
+      (interactive "DDirectory: ")
+      (eshell-command
+          (format "find %s -type f -name \"*.[ch]\" | etags -" dir-name))
+    )
 
 ;;; Eshell
  (defun gh/git-prompt-branch-name ()

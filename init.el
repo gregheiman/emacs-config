@@ -97,6 +97,8 @@
     :diminish
     :init
       (global-undo-tree-mode t)
+    :config
+      (setq undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo")))
   )
 
 ;;; Theme
@@ -242,6 +244,7 @@
 
 ;;; Org Mode Et Al.
   (use-package org ;; Powerful plain text note taking and more
+    :diminish org-indent-mode org-cdlatex-mode visual-line-mode
     :hook ((org-mode . visual-line-mode)
            (org-mode . flyspell-mode)
            (org-mode . font-lock-mode)
@@ -496,27 +499,9 @@
     (column-number-mode t) ;; Show column numbers in modeline
     (setq mode-line-percent-position nil)
     (setq mode-line-position-column-line-format '(" %l:%c "))
-      ;; (setq-default mode-line-format
-      ;;     '((:eval (gh/simple-mode-line-render
-      ;;       ;; left
-      ;;       (format-mode-line
-      ;;       (list
-      ;;           " "
-      ;;           '(:eval (propertize (format "<%s>" (upcase (substring (symbol-name evil-state) 0 1))))) ;; Evil mode
-      ;;           '(vc-mode vc-mode)
-      ;;           '(:eval (propertize (format " %s" "%b")))
-      ;;           '(:eval (propertize (format " %s " "[%*]")))
-      ;;       ))
-      ;;       ;; right
-      ;;       (format-mode-line
-      ;;       (list
-      ;;           '(:eval flymake-mode-line-format)
-      ;;           '(:eval (propertize (format " %s" (upcase (symbol-name buffer-file-coding-system)))))
-      ;;           '(:eval (propertize (format " %s " "%m")))
-      ;;           '(:eval (propertize (format "%s/%s:%s " "%l" (line-number-at-pos (point-max)) "%c")))
-      ;;           ))
-      ;;       ))))
-      )
+  )
+
+  (use-package diminish) ;; Remove minor modes from the modeline
 
 ;;; Dired Configuration
   (use-package dired ;; Builtin file manager
