@@ -45,6 +45,7 @@
 ;;; Java Mode Configuration
   (defun gh/java-mode-configuration ()
     "Set Java style configuration."
+    (setq c-basic-offset 4) ;; Set 4 space tabs
     (c-set-offset 'case-label '+) ;; Properly indent case statments
   )
 
@@ -82,11 +83,12 @@
       )
     )
   )
-    (defun create-tags-etags (dir-name)
+
+  (defun create-tags-etags (dir-name)
       "Create tags file usig Etags."
       (interactive "DDirectory: ")
       (eshell-command
-          (format "find %s -type f -name \"*.[ch]\" | etags -" dir-name))
+          (format "find %s -type f -name \"*\" | etags -" dir-name))
     )
 
 ;;; Eshell
@@ -213,7 +215,7 @@
     ("b"   project-switch-to-buffer            "Switch to Buffer")
     ("v"   project-vc-dir                      "Project VC Dir")
     ("p"   project-switch-project              "Switch Project")
-    ("D"   project-dired                       "Project Direc")
+    ("D"   project-dired                       "Project Dired")
     ("k"   project-kill-buffers                "Kill Buffers")
     ("s"   project-shell                       "Project Shell")
     ("!"   project-shell-command               "Project Shell Command")

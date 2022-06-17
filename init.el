@@ -36,7 +36,7 @@
   (load "functions") ;; Load functions
   (load "skeletons") ;; Skeletons
 
-;;; Evil Mode and Evil Mode Extras
+;;; Evil Mode Et al.
   (use-package evil ;; Vim keybindings
     :hook (after-init . evil-mode)
     :init
@@ -147,16 +147,19 @@
            (rust-mode . (lambda () (when (executable-find "rls") (eglot-ensure))))
            (haskell-mode . (lambda () (when (executable-find "haskell-language-server") (eglot-ensure))))
            (java-mode . (lambda () (when (executable-find "jdtls") (eglot-ensure))))
-           (javascript-mode . (lambda () (when (executable-find "typescript-language-server" (eglot-ensure)))))
-           (eglot-managed-mode . (lambda () (gh/eglot-eldoc-toggle-order+)))) ;; Priortize errors over eldoc
+           (javascript-mode . (lambda () (when (executable-find "typescript-language-server" (eglot-ensure))))))
     :bind (:map evil-normal-state-map
                 ("gi" . eglot-find-implementation)
                 ("gy" . eglot-find-typeDefinition)
                 ("C-=" . gh/eglot-eldoc-toggle-order+))
     :config
+      (setq eglot-events-buffer-size 0) ;; disable events logging to speed up eglot
       (setq eglot-ignored-server-capabilities '(list :documentHighlightProvider))
       (add-to-list 'eglot-server-programs
-                `(java-mode "jdtls" "-configuration" ,(expand-file-name "~/.cache/jdtls") "-data" ,(expand-file-name "~/eclipse-workspace")))
+                   `(java-mode "jdtls"
+                               "-configuration" ,(expand-file-name "~/.cache/jdtls")
+                               "-data" ,(expand-file-name "~/eclipse-workspace")
+                               ,(concat "--jvm-arg=-javaagent:" (expand-file-name "~/.m2/repository/org/projectlombok/lombok/1.18.24/lombok-1.18.24.jar"))))
       (cl-defmethod eglot-execute-command
           (_server (_cmd (eql java.apply.workspaceEdit)) arguments)
           "Eclipse JDT breaks spec and replies with edits as arguments."
@@ -178,7 +181,7 @@
       (setq eldoc-echo-area-prefer-doc-buffer t)
   )
 
-;;; Minibuffer Completion etc.
+;;; Minibuffer Completion Et al.
   (use-package minibuffer
     :ensure nil
     :hook (minibuffer-setup-hook . cursor-intangible-mode)
@@ -237,12 +240,18 @@
       )
   )
 
-;;; Version Control
+;;; Version Control Et al.
   (use-package magit ;; Git managment within Emacs (Very slow on Windows)
     :bind-keymap ("C-c m" . magit-mode-map)
   )
 
-;;; Org Mode Et Al.
+  (use-package ediff ;; Built in diff interface
+    :ensure nil
+    :config
+      (setq ediff-split-window-function #'split-window-horizontally) ;; Change windows to by default be displayed side by side
+  )
+
+;;; Org Mode Et al.
   (use-package org ;; Powerful plain text note taking and more
     :diminish org-indent-mode org-cdlatex-mode visual-line-mode
     :hook ((org-mode . visual-line-mode)
@@ -339,6 +348,11 @@
     :config
       (setq outline-blank-line t) ;; Have a blank line before a heading
   )
+
+;;; LaTeX Et al.
+  (use-package auctex) ;; Provides lots of useful tools for editing latex
+
+  (use-package cdlatex) ;; Fast input methods for latex
 
 ;;; Eshell Mode
   (use-package eshell ;; Emacs lisp shell
@@ -533,7 +547,7 @@
       (setq tags-add-tables nil) ;; Don't ask to keep current list of tags tables also
   )
 
-;;; Abbrev, and Skeleton Modes
+;;; Abbrev and Skeleton Modes
   (use-package abbrev ;; In buffer snippets
     :ensure nil
     :diminish

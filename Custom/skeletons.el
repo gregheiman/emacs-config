@@ -51,11 +51,11 @@
 (define-skeleton java-class-skeleton
   "Template for .java class"
   "Package Name: "
-  "package " str \n
-  -4\n
-  -4 "class " (file-name-sans-extension (file-name-nondirectory (buffer-file-name))) " {" \n
-  _ \n
-  -4 "}"
+  "package " str ";\n"
+  "\n"
+  "\n""public class " (file-name-sans-extension (file-name-nondirectory (buffer-file-name))) " {\n"
+  _ "\n"
+  "}"
 )
 
 (define-skeleton java-main-function
