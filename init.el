@@ -45,7 +45,7 @@
     :bind (
       :map evil-normal-state-map
         ("<leader>bl" . list-buffers)
-        ("<leader>bd" . kill-this-buffer)
+        ("<leader>bd" . kill-buffer-and-window)
         ("<leader>bg" . switch-to-buffer)
         ("]q" . flymake-goto-next-error)
         ("[q" . flymake-goto-prev-error)
@@ -192,29 +192,14 @@
         '(read-only t cursor-intangible t face minibuffer-prompt))
   )
 
-  (use-package icomplete
-    :ensure nil
-    :hook ((after-init . icomplete-mode))
-    :bind (
-      :map minibuffer-mode-map
-        ("<return>" . icomplete-force-complete-and-exit)
-        ("C-n" . icomplete-forward-completions)
-        ("<left>" . icomplete-forward-completions)
-        ("C-p" . icomplete-backward-completions))
-        ("<right>" . icomplete-forward-completions)
-  )
-
-  (use-package vertico ;; Fast, lightweight, and improved minibuffer completion system
+  (use-package vertico ;; fast, lightweight minibuffer completion
     :hook ((after-init . vertico-mode))
-    :disabled
     :config
       (setq vertico-cycle t)
   )
 
-  (use-package marginalia ;; Documentation in the minibuffer
-    :disabled
-    :init
-      (marginalia-mode)
+  (use-package marginalia ;; annotate completions with richer information
+    :hook (after-init . marginalia-mode)
   )
 
   (use-package orderless ;; Allow for space delimeted searching
@@ -322,7 +307,7 @@
     :config
       (setq org-roam-directory (file-truename "~/org/org-roam"))
       (setq org-roam-completion-everywhere t)
-      (setq org-roam-node-display-template "${title} ${tags}")
+      (setq org-roam-node-display-template "${title:*} ${tags:50}")
       (org-roam-db-autosync-enable)
       (setq org-roam-capture-templates
        '(
