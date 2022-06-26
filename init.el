@@ -147,8 +147,8 @@
            (rust-mode . (lambda () (when (executable-find "rls") (eglot-ensure))))
            (haskell-mode . (lambda () (when (executable-find "haskell-language-server") (eglot-ensure))))
            (java-mode . (lambda () (when (executable-find "jdtls") (eglot-ensure))))
-           (javascript-mode . (lambda () (when (executable-find "typescript-language-server" (eglot-ensure)))))
-           (eglot-managed-mode . (lambda () (gh/eglot-eldoc-toggle-order+)))) ;; Priortize errors over eldoc
+           (go-mode . (lambda () (when (executable-find "gopls") (eglot-ensure))))
+           (javascript-mode . (lambda () (when (executable-find "typescript-language-server" (eglot-ensure))))))
     :bind (:map evil-normal-state-map
                 ("gi" . eglot-find-implementation)
                 ("gy" . eglot-find-typeDefinition)
@@ -188,13 +188,27 @@
         '(read-only t cursor-intangible t face minibuffer-prompt))
   )
 
+  (use-package icomplete
+    :ensure nil
+    :hook ((after-init . icomplete-mode))
+    :bind (
+      :map minibuffer-mode-map
+        ("<return>" . icomplete-force-complete-and-exit)
+        ("C-n" . icomplete-forward-completions)
+        ("<left>" . icomplete-forward-completions)
+        ("C-p" . icomplete-backward-completions))
+        ("<right>" . icomplete-forward-completions)
+  )
+
   (use-package vertico ;; Fast, lightweight, and improved minibuffer completion system
     :hook ((after-init . vertico-mode))
+    :disabled
     :config
       (setq vertico-cycle t)
   )
 
   (use-package marginalia ;; Documentation in the minibuffer
+    :disabled
     :init
       (marginalia-mode)
   )
@@ -298,7 +312,7 @@
     :config
       (setq org-roam-directory (file-truename "~/org/org-roam"))
       (setq org-roam-completion-everywhere t)
-      (setq org-roam-node-display-template "${title:*} ${tags:50}")
+      (setq org-roam-node-display-template "${title} ${tags}")
       (org-roam-db-autosync-enable)
       (setq org-roam-capture-templates
        '(
@@ -392,8 +406,8 @@
      (setq user-mail-address "gregheiman02@gmail.com"
            user-full-name "Greg Heiman")
      ;; Font configuration
-     (set-face-attribute 'default nil :font "JetBrains Mono 14" ) ;; Set font options
-     (set-frame-font "JetBrains Mono 14" nil t)
+     (set-face-attribute 'default nil :font "JetBrains Mono 11" ) ;; Set font options
+     (set-frame-font "JetBrains Mono 11" nil t)
 
      ;; Add to the interface
      (global-hl-line-mode 1) ;; Highlight the current line
