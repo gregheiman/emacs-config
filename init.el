@@ -145,8 +145,9 @@
     :hook (((c-mode c++-mode objc-mode) . (lambda () (when (executable-find "clangd") (eglot-ensure))))
            (python-mode . (lambda () (when (executable-find "pylsp") (eglot-ensure))))
            (rust-mode . (lambda () (when (executable-find "rls") (eglot-ensure))))
-           (haskell-mode . (lambda () (when (executable-find "haskell-language-server") (eglot-ensure))))
+           (haskell-mode . (lambda () (when (or (executable-find "haskell-language-server") (executable-find "haskell-language-server-wrapper")) (eglot-ensure))))
            (java-mode . (lambda () (when (executable-find "jdtls") (eglot-ensure))))
+           (go-mode . (lambda () (when (executable-find "gopls") (eglot-ensure))))
            (javascript-mode . (lambda () (when (executable-find "typescript-language-server" (eglot-ensure))))))
     :bind (:map evil-normal-state-map
                 ("gi" . eglot-find-implementation)
@@ -532,9 +533,10 @@
 ;;; Grep Configuration
   (use-package grep
     :ensure nil
+    :init
     :config
       (if (executable-find "rg")
-          (setq grep-template "rg -n -H --no-heading -g <F> -e <R> .")
+          (setq grep-template "rg -n -H --no-heading -g **/<F> -e <R> .")
           (setq grep-use-null-device nil)
       )
   )
@@ -624,21 +626,4 @@
   )
 
 ;;; Emacs Keybindings
-    (global-set-key (kbd "<escape>") 'keyboard-escape-quit) ;; Make ESC quit prompts
-  (custom-set-variables
-   ;; custom-set-variables was added by Custom.
-   ;; If you edit it by hand, you could mess it up, so be careful.
-   ;; Your init file should contain only one such instance.
-   ;; If there is more than one, they won't work right.
-   '(package-selected-packages
-     '(markdown-mode org-appear org-fragtog org-roam magit flycheck avy which-key orderless marginalia vertico eglot corfu modus-themes undo-tree evil-commentary evil-surround evil-collection evil use-package hydra)))
-    (custom-set-faces
-     ;; custom-set-faces was added by Custom.
-     ;; If you edit it by hand, you could mess it up, so be careful.
-     ;; Your init file should contain only one such instance.
-     ;; If there is more than one, they won't work right.
-     '(completions-common-part ((t (:foreground "#004850" :background "#8eecf4"))))
-     '(completions-first-difference ((t (:foreground "#000000" :background "#d5baff" :inherit bold))))
-     '(corfu-default ((t (:background "#e9e9e9"))))
-     '(font-lock-variable-name-face ((t (:foreground nil :inherit default))))
-     '(hl-line ((t (:background "#cbcbcb")))))
+  (global-set-key (kbd "<escape>") 'keyboard-escape-quit) ;; Make ESC quit prompts
