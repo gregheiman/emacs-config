@@ -45,7 +45,7 @@
     :bind (
       :map evil-normal-state-map
         ("<leader>bl" . list-buffers)
-        ("<leader>bd" . kill-this-buffer)
+        ("<leader>bd" . kill-buffer-and-window)
         ("<leader>bg" . switch-to-buffer)
         ("]q" . flymake-goto-next-error)
         ("[q" . flymake-goto-prev-error)
@@ -192,15 +192,14 @@
         '(read-only t cursor-intangible t face minibuffer-prompt))
   )
 
-  (use-package vertico ;; Fast, lightweight, and improved minibuffer completion system
+  (use-package vertico ;; fast, lightweight minibuffer completion
     :hook ((after-init . vertico-mode))
     :config
       (setq vertico-cycle t)
   )
 
-  (use-package marginalia ;; Documentation in the minibuffer
-    :init
-      (marginalia-mode)
+  (use-package marginalia ;; annotate completions with richer information
+    :hook (after-init . marginalia-mode)
   )
 
   (use-package orderless ;; Allow for space delimeted searching
@@ -407,8 +406,8 @@
      (setq user-mail-address "gregheiman02@gmail.com"
            user-full-name "Greg Heiman")
      ;; Font configuration
-     (set-face-attribute 'default nil :font "JetBrains Mono 14" ) ;; Set font options
-     (set-frame-font "JetBrains Mono 14" nil t)
+     (set-face-attribute 'default nil :font "JetBrains Mono 11" ) ;; Set font options
+     (set-frame-font "JetBrains Mono 11" nil t)
 
      ;; Add to the interface
      (global-hl-line-mode 1) ;; Highlight the current line
