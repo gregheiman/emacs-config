@@ -1,4 +1,18 @@
-;;; C/C++
+;;; skeletons.el --- Skeleton definitions for major modes -*- lexical-binding: t; -*-
+;; Copyright (C) 2021 Gregory Heiman
+;; Author: Greg Heiman <gregheiman02@gmail.com>
+;; Created: 21 Apr 2021
+;; Keywords: Configuration
+;; URL: https://github.com/Ushrio/Emacs-Config
+;; This file is not part of GNU Emacs.
+;; This file is free software. Distributed under the MIT license.
+
+;;; Commentary:
+;; Uses Outline-Minor-Mode
+;; C-c @ C-c or zo (Evil mode) - Hide entry
+;; C-c @ C-e or zc (Evil mode) - Show entry
+
+;;; Code:
 (define-skeleton header-guard-skeleton
     "Header guard skeleton for .h and .hpp files"
     nil
@@ -47,7 +61,6 @@
   -4"}"
 )
 
-;;; Java
 (define-skeleton java-class-skeleton
   "Template for .java class"
   "Package Name: "
@@ -90,7 +103,6 @@
   -4 "}"
 )
 
-;;; Org
 (define-skeleton org-src-block
   "Source block for org mode"
   nil
@@ -99,3 +111,7 @@
   "#+end_src"
 )
 
+
+(provide 'skeletons)
+
+;;; skeletons.el ends here
