@@ -119,7 +119,7 @@
   ;;  '(completions-common-part ((t (:foreground "#004850" :background "#8eecf4"))))
   ;;  '(completions-first-difference ((t (:foreground "#000000" :background "#d5baff" :inherit bold)))))
 
-(use-package gruber-darker-theme
+(use-package gruber-darker-theme ;; Nice simple dark theme
   :hook (prog-mode . (lambda () (gh/custom-theme-faces)))
   :init
   (load-theme 'gruber-darker t))
@@ -365,8 +365,8 @@
   (setq user-mail-address "gregheiman02@gmail.com"
         user-full-name "Greg Heiman")
   ;; Font configuration
-  (set-face-attribute 'default nil :font "JetBrains Mono 14" ) ;; Set font options
-  (set-frame-font "JetBrains Mono 14" nil t)
+  (set-face-attribute 'default nil :font "JetBrains Mono 11" ) ;; Set font options
+  (set-frame-font "JetBrains Mono 11" nil t)
 
   ;; Add to the interface
   (global-hl-line-mode 1) ;; Highlight the current line
@@ -514,8 +514,9 @@
   (if (executable-find "pandoc") ;; Set pandoc as the program that gets called when you issue a markdown command
       (setq markdown-command "pandoc")))
 
-(use-package hide-ifdef-mode ;; Dim ifdefs if they are disabled
+(use-package hide-ifdef ;; Dim ifdefs if they are disabled
   :ensure nil
+  :diminish Ifdef
   :hook ((c-mode . hide-ifdef-mode)
          (c++-mode . hide-ifdef-mode))
   :init
@@ -536,7 +537,7 @@
 (use-package c-mode ;; C major mode configuration
   :ensure nil
   :hook ((c-mode . gh/c-mode-configuration)
-         (after-save . (lambda () (hide-ifdefs))))
+         (c-mode . (lambda () (add-hook 'after-save-hook (lambda () (hide-ifdefs)) nil t))))
   :init
   (setq c-default-style "bsd")
   (with-eval-after-load "cc-mode"
@@ -548,7 +549,7 @@
 (use-package c++-mode ;; C++ major mode configuration
   :ensure nil
   :hook ((c++-mode . gh/c-mode-configuration)
-         (after-save . (lambda () (hide-ifdefs))))
+         (c++-mode . (lambda () (add-hook 'after-save-hook (lambda () (hide-ifdefs)) nil t))))
   :init
   (setq c-default-style "bsd")
   (with-eval-after-load "cc-mode"
@@ -556,6 +557,7 @@
     (define-abbrev c++-mode-abbrev-table "aelif" "" 'c-elif-statement)
     (define-abbrev c++-mode-abbrev-table "aelse" "" 'c-else-statement)
     (define-abbrev c++-mode-abbrev-table "amain" "" 'c-main-function)))
+
 
 (use-package objc-mode ;; Objective C major mode configuration
   :ensure nil
