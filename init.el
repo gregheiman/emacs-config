@@ -111,17 +111,22 @@
   :hook (prog-mode . (lambda () (gh/custom-theme-faces)))
   :init
   (setq modus-themes-operandi-color-overrides '(list (bg-main . "#d7d7d7")))
-  (custom-set-faces
-   '(hl-line ((t (:background "#cbcbcb"))))
-   '(corfu-default ((t (:background "#e9e9e9"))))
-   '(completions-common-part ((t (:foreground "#004850" :background "#8eecf4"))))
-   '(completions-first-difference ((t (:foreground "#000000" :background "#d5baff" :inherit bold)))))
   (setq modus-themes-paren-match '(bold underline)
         modus-themes-bold-constructs t
         modus-themes-italic-constructs t
         modus-themes-lang-checkers '(straight-underline)
-        modus-themes-subtle-line-numbers t)
-  (load-theme 'modus-operandi t))
+        modus-themes-subtle-line-numbers t))
+  :config
+  ;; (custom-theme-set-faces 'modus-operandi
+  ;;  '(hl-line ((t (:background "#cbcbcb"))))
+  ;;  '(corfu-default ((t (:background "#e9e9e9"))))
+  ;;  '(completions-common-part ((t (:foreground "#004850" :background "#8eecf4"))))
+  ;;  '(completions-first-difference ((t (:foreground "#000000" :background "#d5baff" :inherit bold)))))
+
+(use-package gruber-darker-theme
+  :hook (prog-mode . (lambda () (gh/custom-theme-faces)))
+  :init
+  (load-theme 'gruber-darker t))
 
 (use-package corfu ;; In buffer text completion
   :hook ((prog-mode . corfu-mode)
@@ -513,6 +518,14 @@
   (if (executable-find "pandoc") ;; Set pandoc as the program that gets called when you issue a markdown command
       (setq markdown-command "pandoc")))
 
+(use-package hide-ifdef-mode ;; Dim ifdefs if they are disabled
+  :ensure nil
+  :hook ((c-mode . hide-ifdef-mode)
+         (c++-mode . hide-ifdef-mode))
+  :init
+  (setq hide-ifdef-shadow t)
+  (setq hide-ifdef-initially t))
+
 (use-package java-mode ;; Java major mode configuration
   :ensure nil
   :hook (java-mode . gh/java-mode-configuration)
@@ -526,7 +539,8 @@
 
 (use-package c-mode ;; C major mode configuration
   :ensure nil
-  :hook (c-mode . gh/c-mode-configuration)
+  :hook ((c-mode . gh/c-mode-configuration)
+         (after-save . (lambda () (hide-ifdefs))))
   :init
   (setq c-default-style "bsd")
   (with-eval-after-load "cc-mode"
@@ -537,7 +551,8 @@
 
 (use-package c++-mode ;; C++ major mode configuration
   :ensure nil
-  :hook (c++-mode . gh/c-mode-configuration)
+  :hook ((c++-mode . gh/c-mode-configuration)
+         (after-save . (lambda () (hide-ifdefs))))
   :init
   (setq c-default-style "bsd")
   (with-eval-after-load "cc-mode"
