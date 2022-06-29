@@ -1,14 +1,10 @@
 ;;; init.el --- Main configuartion file for Emacs -*- lexical-binding: t; -*-
-
 ;; Copyright (C) 2021 Gregory Heiman
-
 ;; Author: Greg Heiman <gregheiman02@gmail.com>
 ;; Created: 21 Apr 2021
 ;; Keywords: Configuration
 ;; URL: https://github.com/Ushrio/Emacs-Config
-
 ;; This file is not part of GNU Emacs.
-
 ;; This file is free software. Distributed under the MIT license.
 
 ;;; Commentary:
@@ -369,8 +365,8 @@
   (setq user-mail-address "gregheiman02@gmail.com"
         user-full-name "Greg Heiman")
   ;; Font configuration
-  (set-face-attribute 'default nil :font "JetBrains Mono 11" ) ;; Set font options
-  (set-frame-font "JetBrains Mono 11" nil t)
+  (set-face-attribute 'default nil :font "JetBrains Mono 14" ) ;; Set font options
+  (set-frame-font "JetBrains Mono 14" nil t)
 
   ;; Add to the interface
   (global-hl-line-mode 1) ;; Highlight the current line
@@ -572,4 +568,5 @@
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit) ;; Make ESC quits
 
 (provide 'init)
+
 ;;; init.el ends here
