@@ -105,6 +105,11 @@
 (use-package dracula-theme ;; Emacs port of the popular Dracula theme
   :hook (prog-mode . (lambda () (gh/custom-theme-faces)))
   :init
+  (setq dracula-height-title-1 1.0
+        dracula-height-title-2 1.0
+        dracula-height-title-3 1.0
+        dracula-height-doc-title 1.0
+        dracula-enlarge-headings nil)
   (load-theme 'dracula t))
 
 (use-package corfu ;; In buffer text completion
