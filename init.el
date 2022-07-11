@@ -102,26 +102,10 @@
   :config
   (setq undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo"))))
 
-(use-package modus-themes ;; High contrast themes
+(use-package dracula-theme ;; Emacs port of the popular Dracula theme
   :hook (prog-mode . (lambda () (gh/custom-theme-faces)))
   :init
-  (setq modus-themes-operandi-color-overrides '(list (bg-main . "#d7d7d7")))
-  (setq modus-themes-paren-match '(bold underline)
-        modus-themes-bold-constructs t
-        modus-themes-italic-constructs t
-        modus-themes-lang-checkers '(straight-underline)
-        modus-themes-subtle-line-numbers t))
-  :config
-  ;; (custom-theme-set-faces 'modus-operandi
-  ;;  '(hl-line ((t (:background "#cbcbcb"))))
-  ;;  '(corfu-default ((t (:background "#e9e9e9"))))
-  ;;  '(completions-common-part ((t (:foreground "#004850" :background "#8eecf4"))))
-  ;;  '(completions-first-difference ((t (:foreground "#000000" :background "#d5baff" :inherit bold)))))
-
-(use-package gruber-darker-theme ;; Nice simple dark theme
-  :hook (prog-mode . (lambda () (gh/custom-theme-faces)))
-  :init
-  (load-theme 'gruber-darker t))
+  (load-theme 'dracula t))
 
 (use-package corfu ;; In buffer text completion
   :hook ((prog-mode . corfu-mode)
