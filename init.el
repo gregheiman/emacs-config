@@ -22,28 +22,27 @@
         ("elpa" . "https://elpa.gnu.org/packages/")))
 (package-initialize) ;; Initialize package.el
 (unless package-archive-contents ;; Auto download package archive repository manifest if not present
-(package-refresh-contents))
+    (package-refresh-contents))
 
 (unless (package-installed-p 'use-package) ;; Download use-package if not present
-(package-install 'use-package))
+    (package-install 'use-package))
 (eval-when-compile ;; Use use-package to manage packages
-(require 'use-package))
+    (require 'use-package))
 (require 'use-package)
 (setq use-package-always-ensure t) ;; Always download packages that are marked under use-package if they aren't installed
 (setq use-package-always-defer t) ;; Always defer package loading. If absolutely necessary use :demand to override
 
 (when (and (fboundp 'native-comp-available-p) (native-comp-available-p))
-(progn
-    (setq-default native-comp-async-report-warnings-errors nil)
-    (setq-default comp-deferred-compilation t)
-    (setq-default native-comp-speed 2)
-    (add-to-list 'native-comp-eln-load-path (expand-file-name "eln-cache/" user-emacs-directory))
-    (setq package-native-compile t)))
+    (progn
+        (setq-default native-comp-async-report-warnings-errors nil)
+        (setq-default comp-deferred-compilation t)
+        (setq-default native-comp-speed 2)
+        (add-to-list 'native-comp-eln-load-path (expand-file-name "eln-cache/" user-emacs-directory))
+        (setq package-native-compile t)))
 
 (add-to-list 'load-path (expand-file-name "~/.emacs.d/Custom")) ;; The directory that my custom files are kept in
 (load "functions") ;; Load functions
 (load "skeletons") ;; Skeletons
-
 
 (use-package evil ;; Vim keybindings
   :hook (after-init . evil-mode)
@@ -149,7 +148,8 @@
          (haskell-mode . (lambda () (when (or (executable-find "haskell-language-server") (executable-find "haskell-language-server-wrapper")) (eglot-ensure))))
          (java-mode . (lambda () (when (executable-find "jdtls") (eglot-ensure))))
          (go-mode . (lambda () (when (executable-find "gopls") (eglot-ensure))))
-         (javascript-mode . (lambda () (when (executable-find "typescript-language-server" (eglot-ensure))))))
+         (javascript-mode . (lambda () (when (executable-find "typescript-language-server" (eglot-ensure)))))
+         (eglot-managed-mode . gh/eglot-eldoc-toggle-order+))
   :bind (:map evil-normal-state-map
               ("gi" . eglot-find-implementation)
               ("gy" . eglot-find-typeDefinition)
@@ -196,8 +196,8 @@
 
 (use-package orderless ;; Allow for space delimeted searching
   :init
-  (setq completion-styles '(substring initials flex partial-completion orderless))
-  (setq completion-category-overrides '((file (styles . (partial-completion orderless)))))
+  (setq completion-styles '(orderless basic))
+  (setq completion-category-overrides '((file (styles basic partial-completion))))
   (setq completion-ignore-case t))
 
 (use-package which-key ;; Show possible keybindings when you pause a keycord
@@ -365,8 +365,8 @@
   (setq user-mail-address "gregheiman02@gmail.com"
         user-full-name "Greg Heiman")
   ;; Font configuration
-  (set-face-attribute 'default nil :font "JetBrains Mono 11" ) ;; Set font options
-  (set-frame-font "JetBrains Mono 11" nil t)
+  (set-face-attribute 'default nil :font "JetBrains Mono 14" ) ;; Set font options
+  (set-frame-font "JetBrains Mono 14" nil t)
 
   ;; Add to the interface
   (global-hl-line-mode 1) ;; Highlight the current line
@@ -444,8 +444,7 @@
         kept-new-versions      5 ; how many of the newest versions to keep
         kept-old-versions      2)) ; and how many of the old
 
-(use-package display-line-numbers
-  ;; Display line numbers for some modes
+(use-package display-line-numbers ;; Built-in line numbers minor mode
   :hook ((text-mode . display-line-numbers-mode)
          (prog-mode . display-line-numbers-mode)
          (conf-mode . display-line-numbers-mode)
@@ -566,6 +565,9 @@
 (use-package elisp-mode ;; Elisp major mode configuration
   :ensure nil
   :hook (elisp-mode . gh/elisp-mode-configuration))
+
+(use-package go-mode ;; Major mode for Go
+  :hook (go-mode . (lambda () (setq tab-width 4))))
 
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit) ;; Make ESC quits
 
