@@ -32,6 +32,7 @@
 (defun gh/custom-theme-faces ()
   "Set custom faces for the current theme"
   (custom-set-faces '(font-lock-variable-name-face ((t (:foreground nil :inherit default)))))
+  (custom-set-faces '(font-lock-warning-face ((t (:background nil :inherit warning)))))
   (font-lock-add-keywords nil
                           `(("[-+]?\\b[0-9]*\\.?[0-9]+\\(?:[eE][-+]?[0-9]+\\)?\\b" . font-lock-warning-face) ;; Numbers
                             ("\\(?:\\.\\|->\\)\\_<\\([_a-zA-Z]*[a-zA-Z0-9_]+\\)\\([\t]*\\)(" 1 font-lock-function-name-face) ;; Member functions
@@ -216,26 +217,12 @@
   (evil-local-set-key 'normal (kbd "q") 'quit-window)
   (local-set-key (kbd "q") 'quit-window))
 
-(defun gh/eglot-eldoc-toggle-order+ ()
-  "Toggle the precedence of flymake notifications in eldoc."
+(defun gh/set-exec-path-from-shell-PATH ()
+  "Set up Emacs' `exec-path' and PATH environment variable to match that used by the user's shell."
   (interactive)
-  (unless (bound-and-true-p eglot--managed-mode)
-    (user-error "Must be called from an `eglot' managed buffer"))
-  (let* ((pos (cl-position #'flymake-eldoc-function eldoc-documentation-functions)))
-    (setq eldoc-documentation-functions
-          (if (eq pos 0)
-              (append (cdr eldoc-documentation-functions) (list #'flymake-eldoc-function))
-            (append (list #'flymake-eldoc-function)
-                    (if (zerop pos)
-                        (cdr eldoc-documentation-functions)
-                      (let ((last (nthcdr (1- pos) eldoc-documentation-functions)))
-                        (setcdr last (cddr last))
-                        eldoc-documentation-functions)))))
-    (message "Message priority: %s"
-             (if (eq pos 0)
-                 (propertize "Documentation" 'face 'compilation-info)
-               (propertize "Errors" 'face 'compilation-error)))))
-
+  (let ((path-from-shell (replace-regexp-in-string "[ \t\n]*$" "" (shell-command-to-string "$SHELL --login -i -c 'echo $PATH'"))))
+    (setenv "PATH" path-from-shell)
+    (setq exec-path (split-string path-from-shell path-separator))))
 
 (provide 'functions)
 

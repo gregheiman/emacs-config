@@ -138,13 +138,18 @@
          (java-mode . (lambda () (when (executable-find "jdtls") (eglot-ensure))))
          (go-mode . (lambda () (when (executable-find "gopls") (eglot-ensure))))
          (javascript-mode . (lambda () (when (executable-find "typescript-language-server" (eglot-ensure)))))
-         (eglot-managed-mode . gh/eglot-eldoc-toggle-order+))
+         (eglot-managed-mode . (lambda ()
+                                 (setq eldoc-documentation-functions ;; Show flymake diagnostics first.
+                                       (cons #'flymake-eldoc-function
+                                             (remove #'flymake-eldoc-function eldoc-documentation-functions)))
+                                 (setq eldoc-documentation-function #'eldoc-documentation-compose))))
   :bind (:map evil-normal-state-map
               ("gi" . eglot-find-implementation)
-              ("gy" . eglot-find-typeDefinition)
-              ("C-=" . gh/eglot-eldoc-toggle-order+))
+              ("gy" . eglot-find-typeDefinition))
   :config
   (setq eglot-events-buffer-size 0) ;; disable events logging to speed up eglot
+  (setq eglot-extend-to-xref nil) ;; keep system headers using the same lsp
+  (setq eglot-autoshutdown t) ;; autoshutdown server after last buffer using it is deleted
   (setq eglot-ignored-server-capabilities '(list :documentHighlightProvider))
   (add-to-list 'eglot-server-programs
                `(java-mode "jdtls"
@@ -185,7 +190,7 @@
 
 (use-package orderless ;; Allow for space delimeted searching
   :init
-  (setq completion-styles '(orderless basic))
+  (setq completion-styles '(orderless initials basic))
   (setq completion-category-overrides '((file (styles basic partial-completion))))
   (setq completion-ignore-case t))
 
@@ -354,8 +359,8 @@
   (setq user-mail-address "gregheiman02@gmail.com"
         user-full-name "Greg Heiman")
   ;; Font configuration
-  (set-face-attribute 'default nil :font "JetBrains Mono 14" ) ;; Set font options
-  (set-frame-font "JetBrains Mono 14" nil t)
+  (set-face-attribute 'default nil :font "JetBrains Mono 11" ) ;; Set font options
+  (set-frame-font "JetBrains Mono 11" nil t)
 
   ;; Add to the interface
   (global-hl-line-mode 1) ;; Highlight the current line
@@ -368,8 +373,8 @@
   (delete-selection-mode t) ;; Whatever is highlighted will be replaced with whatever is typed or pasted
   (electric-pair-mode 1) ;; Auto pair delimeters
   (auto-save-visited-mode) ;; Auto save files without the #filename#
-  (when (string-equal system-type "gnu/linux")
-    (setq exec-path (append exec-path '("~/.local/bin") '("~/.cargo/bin"))))
+  (when (or (string-equal system-type "darwin") (string-equal system-type "gnu/linux")) ;; Set up exec-path using PATH
+    (gh/set-exec-path-from-shell-PATH))
 
   ;; Indent configuration
   (setq-default indent-tabs-mode nil) ;; Use spaces for tabs instead of tab characters
@@ -556,7 +561,7 @@
   :hook (elisp-mode . gh/elisp-mode-configuration))
 
 (use-package go-mode ;; Major mode for Go
-  :hook (go-mode . (lambda () (setq tab-width 4))))
+  :hook ((go-mode . (lambda () (setq tab-width 4) (add-hook 'before-save-hook 'gofmt-before-save)))))
 
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit) ;; Make ESC quits
 
