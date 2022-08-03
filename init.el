@@ -43,6 +43,7 @@
 (add-to-list 'load-path (expand-file-name "~/.emacs.d/Custom")) ;; The directory that my custom files are kept in
 (load "functions") ;; Load functions
 (load "skeletons") ;; Skeletons
+(load "hydras")
 
 (use-package evil ;; Vim keybindings
   :hook (after-init . evil-mode)
@@ -51,7 +52,7 @@
   (setq evil-insert-state-message nil) ;; Remove INSERT message from minibuffer
   :bind (
          :map evil-normal-state-map
-         ("<leader>bl" . list-buffers)
+         ("<leader>bl" . ibuffer)
          ("<leader>bd" . kill-buffer-and-window)
          ("<leader>bg" . switch-to-buffer)
          ("]q" . flymake-goto-next-error)
@@ -143,9 +144,11 @@
                                        (cons #'flymake-eldoc-function
                                              (remove #'flymake-eldoc-function eldoc-documentation-functions)))
                                  (setq eldoc-documentation-function #'eldoc-documentation-compose))))
-  :bind (:map evil-normal-state-map
+  :bind ((:map evil-normal-state-map
               ("gi" . eglot-find-implementation)
               ("gy" . eglot-find-typeDefinition))
+         (:map eglot-mode-map
+               ("C-c l" . hydra-eglot/body)))
   :config
   (setq eglot-events-buffer-size 0) ;; disable events logging to speed up eglot
   (setq eglot-extend-to-xref nil) ;; keep system headers using the same lsp
@@ -164,6 +167,11 @@
 (use-package flymake ;; On the fly diagnostic checking
   :ensure nil
   :hook (prog-mode . flymake-mode))
+
+(use-package ibuffer ;; Built-in buffer management
+  :ensure nil
+  :bind (:map ibuffer-mode-map
+              ("C-c b" . hydra-ibuffer-main/body)))
 
 (use-package eldoc ;; Built-in documentation mode
   :diminish
@@ -199,10 +207,7 @@
   :diminish
   :hook ((after-init . which-key-mode)))
 
-(use-package hydra ;; Beautiful, practical custom keybind menus
-  :bind (("C-c o r" . hydra-org-roam/body)
-         ("C-c p" . hydra-project/body)
-         ("C-c l" . hydra-eglot/body)))
+(use-package hydra) ;; Beautiful, practical custom keybind menus
 
 (use-package avy ;; Quickly jump to visible location
   :after evil
@@ -212,6 +217,7 @@
 
 (use-package project ;; Built-in project managment package
   :ensure nil
+  :bind ("C-c p" . hydra-project/body)
   :config
   (when (file-directory-p "~/dev")
     (eval-after-load 'project (project-remember-projects-under "~/dev" t))))
@@ -265,8 +271,8 @@
 
 (use-package org-agenda ;; Powerful TODO list and agenda tracking
   :ensure nil
-  :after org
-  :bind-keymap ("C-c o a" . org-agenda-mode-map)
+  :bind (:map org-agenda-mode-map
+              ("C-c o a" . hydra-org-agenda/body))
   :config
   (setq org-agenda-files (directory-files-recursively (expand-file-name "~/org/org-agenda") "\\.org$")) ;; Add all .org files in folder to org agenda list
   (setq org-log-done 'time)) ;; Auto mark time when TODO item is marked done
@@ -274,6 +280,7 @@
 (use-package org-roam ;; Add powerful non-hierarchical note taking tools to Org
   :init
   (setq org-roam-v2-ack t)
+  :bind ("C-c o r" . hydra-org-roam/body)
   :config
   (setq org-roam-directory (file-truename "~/org/org-roam"))
   (setq org-roam-completion-everywhere t)
@@ -467,9 +474,8 @@
   :hook (dired-mode . (lambda()
                         (auto-revert-mode 1) ;; Automatically update Dired
                         (setq auto-revert-verbose nil))) ;; Be quiet about updating Dired
-  :bind-keymap ("C-c d" . dired-mode-map)
   :bind (:map dired-mode-map
-              ("C-c d v" . 'gh/dired-preview-file)))
+              ("C-c d" . hydra-dired/body)))
 
 (use-package grep ;; Built-in grep
   :ensure nil
