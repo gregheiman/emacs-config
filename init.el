@@ -41,9 +41,9 @@
         (setq package-native-compile t)))
 
 (add-to-list 'load-path (expand-file-name "~/.emacs.d/Custom")) ;; The directory that my custom files are kept in
-(load "functions") ;; Load functions
-(load "skeletons") ;; Skeletons
-(load "hydras")
+(load "functions") ;; Custom functions
+(load "skeletons") ;; Custom skeletons
+(load "hydras") ;; Custom hydras
 
 (use-package evil ;; Vim keybindings
   :hook (after-init . evil-mode)
@@ -219,8 +219,8 @@
   :ensure nil
   :bind ("C-c p" . hydra-project/body)
   :config
-  (when (file-directory-p "~/dev")
-    (eval-after-load 'project (project-remember-projects-under "~/dev" t))))
+  (when (file-directory-p "~/code")
+    (eval-after-load 'project (project-remember-projects-under "~/code" t))))
 
 (use-package magit ;; Git managment within Emacs (Very slow on Windows)
   :bind-keymap ("C-c m" . magit-mode-map))
@@ -366,8 +366,11 @@
   (setq user-mail-address "gregheiman02@gmail.com"
         user-full-name "Greg Heiman")
   ;; Font configuration
-  (set-face-attribute 'default nil :font "JetBrains Mono 11" ) ;; Set font options
-  (set-frame-font "JetBrains Mono 11" nil t)
+  (cond ((string-equal system-type "darwin")
+            (set-face-attribute 'default nil :font "JetBrains Mono 14" ) ;; Set font options
+            (set-frame-font "JetBrains Mono 14" nil t))
+        (t (set-face-attribute 'default nil :font "JetBrains Mono 12" ) ;; Set font options
+        (set-frame-font "JetBrains Mono 12" nil t)))
 
   ;; Add to the interface
   (global-hl-line-mode 1) ;; Highlight the current line
