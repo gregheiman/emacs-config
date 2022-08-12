@@ -230,6 +230,8 @@
   :config
   (setq ediff-split-window-function #'split-window-horizontally)) ;; Change windows to by default be displayed side by side
 
+(use-package verb) ;; Organize and send HTTP requests using Org
+
 (use-package org ;; Powerful plain text note taking and more
   :diminish org-indent-mode org-cdlatex-mode visual-line-mode
   :hook ((org-mode . visual-line-mode)
@@ -239,11 +241,11 @@
          (org-mode . org-fragtog-mode)
          (org-mode . org-appear-mode)
          (org-mode . gh/org-add-electric-pairs))
-  :bind-keymap ("C-c o o" . org-mode-map)
   :init
   (with-eval-after-load "org"
     (define-abbrev org-mode-abbrev-table "asrc" "" 'org-src-block))
   :config
+  (define-key org-mode-map (kbd "C-c C-r") verb-command-map)
   (setq org-src-fontify-natively t
         org-startup-with-inline-images t
         org-hide-emphasis-markers t

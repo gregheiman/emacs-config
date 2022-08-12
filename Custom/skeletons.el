@@ -62,11 +62,21 @@
 )
 
 (define-skeleton java-class-skeleton
-  "Template for .java class"
+  "Template for .java class."
   "Package Name: "
-  "package " str ";\n"
+  "package " (gh/get-java-package-from-dir (buffer-file-name)) ";\n"
   "\n"
   "\n""public class " (file-name-sans-extension (file-name-nondirectory (buffer-file-name))) " {\n"
+  _ "\n"
+  "}"
+)
+
+(define-skeleton java-interface-skeleton
+  "Template for .java interface."
+  "Package Name: "
+  "package " (gh/get-java-package-from-dir (buffer-file-name)) ";\n"
+  "\n"
+  "\n""public interface " (file-name-sans-extension (file-name-nondirectory (buffer-file-name))) " {\n"
   _ "\n"
   "}"
 )

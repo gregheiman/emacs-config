@@ -55,6 +55,11 @@
   "Set Elisp style configuration"
   (setq-local tab-width 2)) ;; 2 space tabs
 
+(defun gh/get-java-package-from-dir (dir)
+  "Retrieve the java package name using the files directory path."
+  (string-match "\\(.*\\)/java/\\(.*\\)/\\(.*\\)" dir)
+  (string-replace "/" "." (match-string 2 dir)))
+
 (defadvice vc-git-mode-line-string (after plus-minus (file) compile activate)
   "Show the information of git diff on modeline."
   (setq ad-return-value

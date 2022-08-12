@@ -72,7 +72,7 @@
   ("!"   project-shell-command               "Project Shell Command")
   ("&"   project-async-shell-command         "Project Async Shell Command")
   ("e"   project-eshell                      "Project Eshell")
-  ("c"   project-compile-project             "Compile Project")
+  ("c"   project-compile                     "Compile Project")
   ("x"   project-execute-extended-command    "Project Execute Extended Command")
   ("q"   nil "Quit" :color blue))
 
