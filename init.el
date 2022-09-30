@@ -50,8 +50,7 @@
   :init
   (setq evil-want-keybinding nil) ;; Needed to use evil-collection
   (setq evil-insert-state-message nil) ;; Remove INSERT message from minibuffer
-  :bind (
-         :map evil-normal-state-map
+  :bind (:map evil-normal-state-map
          ("<leader>bl" . ibuffer)
          ("<leader>bd" . kill-buffer-and-window)
          ("<leader>bg" . switch-to-buffer)
@@ -573,6 +572,8 @@
 
 (use-package go-mode ;; Major mode for Go
   :hook ((go-mode . (lambda () (setq tab-width 4) (add-hook 'before-save-hook 'gofmt-before-save)))))
+
+(use-package rust-mode) ;; Major mode for Rust
 
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit) ;; Make ESC quits
 
