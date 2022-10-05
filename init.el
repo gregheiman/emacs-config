@@ -247,7 +247,6 @@
   :config
   (define-key org-mode-map (kbd "C-c C-r") verb-command-map)
   (setq org-src-fontify-natively t
-        org-startup-with-inline-images t
         org-hide-emphasis-markers t
         org-fontify-quote-and-verse-blocks t
         org-src-tab-acts-natively t
@@ -571,8 +570,14 @@
   :ensure nil
   :hook (elisp-mode . gh/elisp-mode-configuration))
 
+(use-package sql-mode ;; SQL editing and interaction major mode
+  :ensure nil
+  :hook ((sql-mode . (lambda () (sql-set-product 'postgres)))))
+
 (use-package go-mode ;; Major mode for Go
-  :hook ((go-mode . (lambda () (setq tab-width 4) (add-hook 'before-save-hook 'gofmt-before-save)))))
+  :hook ((go-mode . (lambda () (setq tab-width 4)))))
+
+(use-package rust-mode) ;; Major mode for Rust
 
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit) ;; Make ESC quits
 

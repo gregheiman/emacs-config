@@ -114,7 +114,7 @@
 (defun gh/org-export-output-file-name-modified (orig-fun extension &optional subtreep pub-dir)
   "Modifies org-export to place exported files in a different directory"
   (unless pub-dir
-    (setq pub-dir (expand-file-name "~/Org/Org-Exported-Files"))
+    (setq pub-dir (expand-file-name "~/org/org-exported-files"))
     (unless (file-directory-p pub-dir)
       (make-directory pub-dir)))
   (apply orig-fun extension subtreep pub-dir nil))
