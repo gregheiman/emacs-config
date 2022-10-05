@@ -133,7 +133,7 @@
 (use-package eglot ;; Minimal LSP client
   :hook (((c-mode c++-mode objc-mode) . (lambda () (when (executable-find "clangd") (eglot-ensure))))
          (python-mode . (lambda () (when (executable-find "pylsp") (eglot-ensure))))
-         (rust-mode . (lambda () (when (executable-find "rls") (eglot-ensure))))
+         (rust-mode . (lambda () (when (or (executable-find "rls") (executable-find "rust-analyzer")) (eglot-ensure))))
          (haskell-mode . (lambda () (when (or (executable-find "haskell-language-server") (executable-find "haskell-language-server-wrapper")) (eglot-ensure))))
          (java-mode . (lambda () (when (executable-find "jdtls") (eglot-ensure))))
          (go-mode . (lambda () (when (executable-find "gopls") (eglot-ensure))))
@@ -578,7 +578,7 @@
 
 (use-package rust-mode) ;; Major mode for Rust
 
-(use-package rust-mode) ;; Major mode for Rust
+(use-package yaml-mode) ;; Majory mode for YAML
 
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit) ;; Make ESC quits
 
