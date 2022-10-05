@@ -109,7 +109,10 @@
   (split-window-below)
   (other-window 1)
   (shrink-window 10)
-  (ansi-term "/bin/bash"))
+  ;; Use Zsh in MacOS otherwise use Bash
+  (cond ((string-equal system-type "darwin")
+         (ansi-term "/bin/zsh"))
+        (t (ansi-term "/bin/bash"))))
 
 (defun gh/org-export-output-file-name-modified (orig-fun extension &optional subtreep pub-dir)
   "Modifies org-export to place exported files in a different directory"
