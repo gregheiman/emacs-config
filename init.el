@@ -50,8 +50,7 @@
   :init
   (setq evil-want-keybinding nil) ;; Needed to use evil-collection
   (setq evil-insert-state-message nil) ;; Remove INSERT message from minibuffer
-  :bind (
-         :map evil-normal-state-map
+  :bind (:map evil-normal-state-map
          ("<leader>bl" . ibuffer)
          ("<leader>bd" . kill-buffer-and-window)
          ("<leader>bg" . switch-to-buffer)
@@ -247,7 +246,6 @@
   :config
   (define-key org-mode-map (kbd "C-c C-r") verb-command-map)
   (setq org-src-fontify-natively t
-        org-startup-with-inline-images t
         org-hide-emphasis-markers t
         org-fontify-quote-and-verse-blocks t
         org-src-tab-acts-natively t
@@ -573,6 +571,10 @@
 (use-package elisp-mode ;; Elisp major mode configuration
   :ensure nil
   :hook (elisp-mode . gh/elisp-mode-configuration))
+
+(use-package sql-mode ;; SQL editing and interaction major mode
+  :ensure nil
+  :hook ((sql-mode . (lambda () (sql-set-product 'postgres)))))
 
 (use-package go-mode ;; Major mode for Go
   :hook ((go-mode . (lambda () (setq tab-width 4)))))
