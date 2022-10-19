@@ -134,7 +134,7 @@
 (use-package eglot ;; Minimal LSP client
   :hook (((c-mode c++-mode objc-mode) . (lambda () (when (executable-find "clangd") (eglot-ensure))))
          (python-mode . (lambda () (when (executable-find "pylsp") (eglot-ensure))))
-         (rust-mode . (lambda () (when (executable-find "rls") (eglot-ensure))))
+         (rust-mode . (lambda () (when (or (executable-find "rls") (executable-find "rust-analyzer")) (eglot-ensure))))
          (haskell-mode . (lambda () (when (or (executable-find "haskell-language-server") (executable-find "haskell-language-server-wrapper")) (eglot-ensure))))
          (java-mode . (lambda () (when (executable-find "jdtls") (eglot-ensure))))
          (go-mode . (lambda () (when (executable-find "gopls") (eglot-ensure))))
@@ -385,6 +385,9 @@
   (delete-selection-mode t) ;; Whatever is highlighted will be replaced with whatever is typed or pasted
   (electric-pair-mode 1) ;; Auto pair delimeters
   (auto-save-visited-mode) ;; Auto save files without the #filename#
+  (setq auto-save-default nil) ;; Use auto-save-visited-mode instead
+  (setq save-silently t) ;; No messages when saving
+  (setq auto-save-no-message t)
   (when (or (string-equal system-type "darwin") (string-equal system-type "gnu/linux")) ;; Set up exec-path using PATH
     (gh/set-exec-path-from-shell-PATH))
 
@@ -572,7 +575,15 @@
   :hook (elisp-mode . gh/elisp-mode-configuration))
 
 (use-package go-mode ;; Major mode for Go
-  :hook ((go-mode . (lambda () (setq tab-width 4) (add-hook 'before-save-hook 'gofmt-before-save)))))
+  :hook ((go-mode . (lambda () (setq tab-width 4)))))
+
+(use-package rust-mode) ;; Major mode for Rust
+
+(use-package dockerfile-mode) ;; Major mode for editing Dockerfiles
+
+(use-package yaml-mode) ;; Major mode for Yaml
+
+(use-package rjsx-mode) ;; Jsx mode
 
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit) ;; Make ESC quits
 
