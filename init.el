@@ -367,6 +367,7 @@
   ;; Set information about ourselves
   (setq user-mail-address "gregheiman02@gmail.com"
         user-full-name "Greg Heiman")
+
   ;; Font configuration
   (cond ((string-equal system-type "darwin")
             (set-face-attribute 'default nil :font "JetBrains Mono 14" ))
@@ -375,13 +376,14 @@
   ;; Set the default font size for emacsclient
   (when (and (daemonp) (string-equal system-type "gnu/linux"))
     (add-to-list 'default-frame-alist '(font . "JetBrains Mono 12")))
+  (when (and (daemonp) (string-equal system-type "darwin"))
+    (add-to-list 'default-frame-alist '(font . "JetBrains Mono 14")))
 
   ;; Add to the interface
   (global-hl-line-mode 1) ;; Highlight the current line
   (show-paren-mode t) ;; Highlight matching delimeter pair
   (setq-default show-paren-style 'parenthesis)
-  (add-to-list 'initial-frame-alist '(fullscreen . maximized)) ;; Start emacs maximized
-  (add-to-list 'default-frame-alist '(fullscreen . maximized)) ;; Start emacsclient maximized
+  (add-to-list 'default-frame-alist '(fullscreen . maximized)) ;; Start all emacs frames maximized
 
   ;; Bring Emacs into the 21st century
   (recentf-mode 1) ;; Keep a list of recently opened files
@@ -563,7 +565,6 @@
     (define-abbrev c++-mode-abbrev-table "aelif" "" 'c-elif-statement)
     (define-abbrev c++-mode-abbrev-table "aelse" "" 'c-else-statement)
     (define-abbrev c++-mode-abbrev-table "amain" "" 'c-main-function)))
-
 
 (use-package objc-mode ;; Objective C major mode configuration
   :ensure nil
