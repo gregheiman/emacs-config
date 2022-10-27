@@ -137,7 +137,9 @@
          (haskell-mode . (lambda () (when (or (executable-find "haskell-language-server") (executable-find "haskell-language-server-wrapper")) (eglot-ensure))))
          (java-mode . (lambda () (when (executable-find "jdtls") (eglot-ensure))))
          (go-mode . (lambda () (when (executable-find "gopls") (eglot-ensure))))
-         (javascript-mode . (lambda () (when (executable-find "typescript-language-server" (eglot-ensure)))))
+         (js-mode . (lambda () (when (executable-find "typescript-language-server" (eglot-ensure)))))
+         (js2-mode . (lambda () (when (executable-find "typescript-language-server" (eglot-ensure)))))
+         (web-mode . (lambda () (when (executable-find "typescript-language-server" (eglot-ensure)))))
          (eglot-managed-mode . (lambda ()
                                  (setq eldoc-documentation-functions ;; Show flymake diagnostics first.
                                        (cons #'flymake-eldoc-function
@@ -367,16 +369,19 @@
         user-full-name "Greg Heiman")
   ;; Font configuration
   (cond ((string-equal system-type "darwin")
-            (set-face-attribute 'default nil :font "JetBrains Mono 14" ) ;; Set font options
-            (set-frame-font "JetBrains Mono 14" nil t))
-        (t (set-face-attribute 'default nil :font "JetBrains Mono 12" ) ;; Set font options
-        (set-frame-font "JetBrains Mono 12" nil t)))
+            (set-face-attribute 'default nil :font "JetBrains Mono 14" ))
+        (t (set-face-attribute 'default nil :font "JetBrains Mono 12" )))
+
+  ;; Set the default font size for emacsclient
+  (when (and (daemonp) (string-equal system-type "gnu/linux"))
+    (add-to-list 'default-frame-alist '(font . "JetBrains Mono 12")))
 
   ;; Add to the interface
   (global-hl-line-mode 1) ;; Highlight the current line
   (show-paren-mode t) ;; Highlight matching delimeter pair
   (setq-default show-paren-style 'parenthesis)
-  (add-to-list 'initial-frame-alist '(fullscreen . maximized)) ;; Start emacs fullscreen and maximized
+  (add-to-list 'initial-frame-alist '(fullscreen . maximized)) ;; Start emacs maximized
+  (add-to-list 'default-frame-alist '(fullscreen . maximized)) ;; Start emacsclient maximized
 
   ;; Bring Emacs into the 21st century
   (recentf-mode 1) ;; Keep a list of recently opened files
@@ -419,10 +424,6 @@
   ;; Auto revert files
   (global-auto-revert-mode 1) ;; Auto update when files change on disk
   (setq auto-revert-verbose nil) ;; Be quite about updating files when they're changed on disk
-
-  ;; Auto follow vc symlinks and auto-revert vc changes
-  (setq vc-follow-symlinks t) ;; Don't prompt to follow symlinks
-  (setq auto-revert-check-vc-info t) ;; Auto revert vc
 
   ;; Don't show commands that aren't valid with current modes (Only in Emacs > 28)
   (if (not (version< emacs-version "28"))
@@ -585,7 +586,8 @@
 
 (use-package yaml-mode) ;; Major mode for Yaml
 
-(use-package rjsx-mode) ;; Jsx mode
+(use-package js2-mode ;; Extend the built-in js-mode
+  :hook (js-mode . js2-minor-mode))
 
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit) ;; Make ESC quits
 
