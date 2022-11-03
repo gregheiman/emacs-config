@@ -137,9 +137,7 @@
          (haskell-mode . (lambda () (when (or (executable-find "haskell-language-server") (executable-find "haskell-language-server-wrapper")) (eglot-ensure))))
          (java-mode . (lambda () (when (executable-find "jdtls") (eglot-ensure))))
          (go-mode . (lambda () (when (executable-find "gopls") (eglot-ensure))))
-         (js-mode . (lambda () (when (executable-find "typescript-language-server" (eglot-ensure)))))
-         (js2-mode . (lambda () (when (executable-find "typescript-language-server" (eglot-ensure)))))
-         (web-mode . (lambda () (when (executable-find "typescript-language-server" (eglot-ensure)))))
+         ((js-mode js2-mode) . (lambda () (when (executable-find "typescript-language-server" (eglot-ensure)))))
          (eglot-managed-mode . (lambda ()
                                  (setq eldoc-documentation-functions ;; Show flymake diagnostics first.
                                        (cons #'flymake-eldoc-function
