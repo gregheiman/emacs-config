@@ -132,12 +132,12 @@
 
 (use-package eglot ;; Minimal LSP client
   :hook (((c-mode c++-mode objc-mode) . (lambda () (when (executable-find "clangd") (eglot-ensure))))
-         (python-mode . (lambda () (when (executable-find "pylsp") (eglot-ensure))))
+         (python-mode . (lambda () (when (executable-find "pyright") (eglot-ensure))))
          (rust-mode . (lambda () (when (or (executable-find "rls") (executable-find "rust-analyzer")) (eglot-ensure))))
          (haskell-mode . (lambda () (when (or (executable-find "haskell-language-server") (executable-find "haskell-language-server-wrapper")) (eglot-ensure))))
          (java-mode . (lambda () (when (executable-find "jdtls") (eglot-ensure))))
          (go-mode . (lambda () (when (executable-find "gopls") (eglot-ensure))))
-         ((js-mode js2-mode) . (lambda () (when (executable-find "typescript-language-server" (eglot-ensure)))))
+         ((js-mode js2-mode typescript-mode) . (lambda () (when (executable-find "typescript-language-server" (eglot-ensure)))))
          (eglot-managed-mode . (lambda ()
                                  (setq eldoc-documentation-functions ;; Show flymake diagnostics first.
                                        (cons #'flymake-eldoc-function
@@ -162,6 +162,14 @@
     (_server (_cmd (eql java.apply.workspaceEdit)) arguments)
     "Eclipse JDT breaks spec and replies with edits as arguments."
     (mapc #'eglot--apply-workspace-edit arguments)))
+
+
+(use-package tree-sitter ;; Support for Tree Sitter
+  :hook (tree-sitter-after-on . tree-sitter-hl-mode)
+  :init
+  (global-tree-sitter-mode))
+
+(use-package tree-sitter-langs) ;; Tree Sitter language bundle
 
 (use-package flymake ;; On the fly diagnostic checking
   :ensure nil
@@ -216,10 +224,7 @@
 
 (use-package project ;; Built-in project managment package
   :ensure nil
-  :bind ("C-c p" . hydra-project/body)
-  :config
-  (when (file-directory-p "~/code")
-    (eval-after-load 'project (project-remember-projects-under "~/code" t))))
+  :bind ("C-c p" . hydra-project/body))
 
 (use-package magit ;; Git managment within Emacs (Very slow on Windows)
   :bind-keymap ("C-c m" . magit-mode-map))
@@ -587,6 +592,9 @@
 
 (use-package js2-mode ;; Extend the built-in js-mode
   :hook (js-mode . js2-minor-mode))
+
+(use-package typescript-mode ;; Major mode for Typescript
+  :mode ("\\.ts[x]?\\'" . typescript-mode))
 
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit) ;; Make ESC quits
 

@@ -31,8 +31,8 @@
 
 (defun gh/custom-theme-faces ()
   "Set custom faces for the current theme"
-  (custom-set-faces '(font-lock-variable-name-face ((t (:foreground nil :inherit default)))))
-  (custom-set-faces '(font-lock-warning-face ((t (:background nil :inherit warning)))))
+  (custom-set-faces '(font-lock-variable-name-face ((t (:foreground unspecified :inherit default)))))
+  (custom-set-faces '(font-lock-warning-face ((t (:background unspecified :inherit warning)))))
   (font-lock-add-keywords nil
                           `(("[-+]?\\b[0-9]*\\.?[0-9]+\\(?:[eE][-+]?[0-9]+\\)?\\b" . font-lock-warning-face) ;; Numbers
                             ("\\(?:\\.\\|->\\)\\_<\\([_a-zA-Z]*[a-zA-Z0-9_]+\\)\\([\t]*\\)(" 1 font-lock-function-name-face) ;; Member functions
