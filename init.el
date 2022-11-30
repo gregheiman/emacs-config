@@ -169,7 +169,11 @@
   :init
   (global-tree-sitter-mode))
 
-(use-package tree-sitter-langs) ;; Tree Sitter language bundle
+(use-package tree-sitter-langs ;; Tree Sitter language bundle
+  :after tree-sitter)
+
+(use-package apheleia ;; Auto format code automatically
+  :hook ((typescript-mode typescriptreact-mode) . apheleia-mode))
 
 (use-package flymake ;; On the fly diagnostic checking
   :ensure nil
@@ -594,7 +598,11 @@
   :hook (js-mode . js2-minor-mode))
 
 (use-package typescript-mode ;; Major mode for Typescript
-  :mode ("\\.ts[x]?\\'" . typescript-mode))
+  :init
+  ;; Create typescriptreact-mode so that .tsx files startup treesitter tsx parser
+  (define-derived-mode typescriptreact-mode typescript-mode "TypeScript TSX")
+  (add-to-list 'auto-mode-alist '("\\.tsx?\\'" . typescriptreact-mode))
+  (add-to-list 'tree-sitter-major-mode-language-alist '(typescriptreact-mode . tsx)))
 
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit) ;; Make ESC quits
 
