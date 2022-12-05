@@ -3,13 +3,12 @@
 ;; Author: Greg Heiman <gregheiman02@gmail.com>
 ;; Created: 21 Apr 2021
 ;; Keywords: Configuration
-;; URL: https://github.com/Ushrio/Emacs-Config
+;; URL: https://github.com/gregheiman/emacs-config
 ;; This file is not part of GNU Emacs.
 ;; This file is free software. Distributed under the MIT license.
 
 ;;; Commentary:
 ;; Configuration file for GNU Emacs.
-;; Built for general purpose programming and note taking.
 ;; Uses Outline-Minor-Mode
 ;; C-c @ C-c or zo (Evil mode) - Hide entry
 ;; C-c @ C-e or zc (Evil mode) - Show entry
@@ -45,6 +44,8 @@
 (load "skeletons") ;; Custom skeletons
 (load "hydras") ;; Custom hydras
 
+;;; Third-Party
+;;;; Evil
 (use-package evil ;; Vim keybindings
   :hook (after-init . evil-mode)
   :init
@@ -102,6 +103,7 @@
   :config
   (setq undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo"))))
 
+;;;; Color Theme
 (use-package dracula-theme ;; Emacs port of the popular Dracula theme
   :hook (prog-mode . (lambda () (gh/custom-theme-faces)))
   :init
@@ -112,6 +114,7 @@
         dracula-enlarge-headings nil)
   (load-theme 'dracula t))
 
+;;;; In-Buffer Editing
 (use-package corfu ;; In buffer text completion
   :hook ((prog-mode . corfu-mode)
          (shell-mode . corfu-mode)
@@ -172,39 +175,20 @@
 (use-package tree-sitter-langs ;; Tree Sitter language bundle
   :after tree-sitter)
 
-(use-package apheleia ;; Auto format code automatically
-  :hook ((typescript-mode typescriptreact-mode) . apheleia-mode))
+(use-package apheleia ;; Format code automatically
+  :hook (((typescript-mode typescriptreact-mode) . apheleia-mode)
+         (rust-mode . apheleia-mode)
+         ((c-mode c++-mode) . apheleia-mode)
+         ((js-mode js2-mode) . apheleia-mode)
+         (go-mode . apheleia-mode)))
 
-(use-package flymake ;; On the fly diagnostic checking
-  :ensure nil
-  :hook (prog-mode . flymake-mode))
-
-(use-package ibuffer ;; Built-in buffer management
-  :ensure nil
-  :bind (:map ibuffer-mode-map
-              ("C-c b" . hydra-ibuffer-main/body)))
-
-(use-package eldoc ;; Built-in documentation mode
-  :diminish
-  :config
-  (setq eldoc-echo-area-use-multiline-p nil)
-  (setq eldoc-echo-area-display-truncation-message nil)
-  (setq eldoc-echo-area-prefer-doc-buffer t))
-
-(use-package minibuffer ;; Built-in interface used for many utility tasks
-  :ensure nil
-  :hook (minibuffer-setup-hook . cursor-intangible-mode)
-  :config
-  ;; Make cursor intangible in minibuffer
-  (setq minibuffer-prompt-properties
-        '(read-only t cursor-intangible t face minibuffer-prompt)))
-
-(use-package vertico ;; fast, lightweight minibuffer completion
+;;;; Minibuffer
+(use-package vertico ;; Fast, lightweight minibuffer completion
   :hook ((after-init . vertico-mode))
   :config
   (setq vertico-cycle t))
 
-(use-package marginalia ;; annotate completions with richer information
+(use-package marginalia ;; Annotate completions with richer information
   :hook (after-init . marginalia-mode))
 
 (use-package orderless ;; Allow for space delimeted searching
@@ -220,72 +204,7 @@
 
 (use-package hydra) ;; Beautiful, practical custom keybind menus
 
-(use-package avy ;; Quickly jump to visible location
-  :after evil
-  :bind (:map evil-normal-state-map
-              ("s" . avy-goto-char-2)
-              ("gl" . avy-goto-line)))
-
-(use-package project ;; Built-in project managment package
-  :ensure nil
-  :bind ("C-c p" . hydra-project/body))
-
-(use-package magit ;; Git managment within Emacs (Very slow on Windows)
-  :bind-keymap ("C-c m" . magit-mode-map))
-
-(use-package ediff ;; Built in diff interface
-  :ensure nil
-  :config
-  (setq ediff-split-window-function #'split-window-horizontally)) ;; Change windows to by default be displayed side by side
-
-(use-package verb) ;; Organize and send HTTP requests using Org
-
-(use-package org ;; Powerful plain text note taking and more
-  :diminish org-indent-mode org-cdlatex-mode visual-line-mode
-  :hook ((org-mode . visual-line-mode)
-         (org-mode . flyspell-mode)
-         (org-mode . font-lock-mode)
-         (org-mode . org-cdlatex-mode)
-         (org-mode . org-fragtog-mode)
-         (org-mode . org-appear-mode)
-         (org-mode . gh/org-add-electric-pairs))
-  :init
-  (with-eval-after-load "org"
-    (define-abbrev org-mode-abbrev-table "asrc" "" 'org-src-block))
-  :config
-  (define-key org-mode-map (kbd "C-c C-r") verb-command-map)
-  (setq org-src-fontify-natively t
-        org-hide-emphasis-markers t
-        org-fontify-quote-and-verse-blocks t
-        org-src-tab-acts-natively t
-        org-edit-src-content-indentation 2
-        org-hide-block-startup nil
-        org-src-preserve-indentation nil
-        org-cycle-separator-lines 2
-        org-startup-with-latex-preview t
-        org-startup-indented t
-        org-return-follows-link t)
-  (plist-put org-format-latex-options :scale 1.5) ;; Increase size of latex previews
-  (org-babel-do-load-languages 'org-babel-load-languages ;; Set the langs. to load for org src blocks
-                               (append org-babel-load-languages
-                                       '((C . t)
-                                         (haskell . t))))
-  (if (executable-find "latexmk") ;; Set the command for org -> latex -> pdf
-      (setq-default org-latex-pdf-process '("latexmk -output-directory=%o -pdflatex='pdflatex -interaction nonstopmode' -pdf -bibtex -f %f")))
-  (evil-define-key '(normal insert visual) org-mode-map (kbd "C-j") 'org-next-visible-heading)
-  (evil-define-key '(normal insert visual) org-mode-map (kbd "C-k") 'org-previous-visible-heading)
-  (evil-define-key '(normal insert visual) org-mode-map (kbd "M-j") 'org-metadown)
-  (evil-define-key '(normal insert visual) org-mode-map (kbd "M-k") 'org-metaup)
-  (evil-define-key '(normal) org-mode-map (kbd "RET") 'org-return))
-
-(use-package org-agenda ;; Powerful TODO list and agenda tracking
-  :ensure nil
-  :bind (:map org-agenda-mode-map
-              ("C-c o a" . hydra-org-agenda/body))
-  :config
-  (setq org-agenda-files (directory-files-recursively (expand-file-name "~/org/org-agenda") "\\.org$")) ;; Add all .org files in folder to org agenda list
-  (setq org-log-done 'time)) ;; Auto mark time when TODO item is marked done
-
+;;;; Extensions for Built-In Modes
 (use-package org-roam ;; Add powerful non-hierarchical note taking tools to Org
   :init
   (setq org-roam-v2-ack t)
@@ -312,59 +231,52 @@
         org-appear-autoentities t
         org-appear-autokeywords t))
 
-(use-package flyspell ;; Builtin spell checking
-  :ensure nil
-  :config
-  (if (executable-find "aspell") ;; Use aspell if available
-      (setq ispell-program-name "aspell")))
-
-(use-package outline ;; Minor mode that allows for folding code
-  :ensure nil
-  :diminish outline-minor-mode
-  :hook ((emacs-lisp-mode . outline-minor-mode)
-         (outline-minor-mode . outline-hide-body))
-  :config
-  (setq outline-blank-line t)) ;; Have a blank line before a heading
-
 (use-package auctex) ;; Provides lots of useful tools for editing latex
 
 (use-package cdlatex) ;; Fast input methods for latex
 
-(use-package eshell ;; Emacs lisp shell
-  :ensure nil
+;;;; New Major Modes
+(use-package markdown-mode ;; Major mode for markdown files
+  :hook ((markdown-mode . flyspell-mode))
   :config
-  (setq-default eshell-prompt-function 'gh/eshell-prompt)
-  (setq-default eshell-highlight-prompt nil))
+  (if (executable-find "pandoc") ;; Set pandoc as the program that gets called when you issue a markdown command
+      (setq markdown-command "pandoc")))
 
-(use-package gnus ;; Builtin Emacs news reader that can be configured for email
-  :ensure nil
-  :config
-  (setq gnus-select-method '(nnnil nil))
-  (setq gnus-secondary-select-methods
-        '((nnimap "gregheiman02@gmail.com"
-                  (nnimap-address "imap.gmail.com")
-                  (nnimap-server-port 993)
-                  (nnimap-stream ssl)
-                  (nnir-search-engine imap)
-                  (nnmail-expiry-target "nnimap+gregheiman02@gmail.com:[Gmail]/Trash")
-                  (nnmail-expiry-wait 'immediate))
-          (nnimap "w459e964@wichita.edu"
-                  (nnimap-address "outlook.office365.com")
-                  (nnimap-server-port 993)
-                  (nnimap-stream ssl)
-                  (nnir-search-engine imap)
-                  (nnmail-expiry-target "nnimap+w459e964@wichita.edu:Trash")
-                  (nnmail-expiry-wait 'immediate))))
-  (setq gnus-ignored-newsgroups "^to\\.\\|^[0-9. ]+\\( \\|$\\)\\|^[\"]\"[#'()]") ;; Make gnus NOT ignore [Gmail] folders
-  (setq gnus-posting-styles ;; Correct way to set up responding to emails with the correct email
-        '((".*" ;; Matches all groups of messages
-           (address "Greg Heiman <gregheiman02@gmail.com>")
-           ("X-Message-SMTP-Method" "smtp smtp.gmail.com 587 gregheiman02@gmail.com"))
-          ("w459e964@wichita.edu" ;; Matches Gnus group called w459e964@wichita.edu
-           (address "Greg Heiman <w459e964@wichita.edu")
-           (organization "Wichita State University")
-           ("X-Message-SMTP-Method" "smtp smtp.office365.com 587 w459e964@wichita.edu")))))
+(use-package go-mode ;; Major mode for Go
+  :hook ((go-mode . (lambda () (setq tab-width 4)))))
 
+(use-package rust-mode) ;; Major mode for Rust
+
+(use-package dockerfile-mode) ;; Major mode for editing Dockerfile files
+
+(use-package yaml-mode) ;; Major mode for Yaml
+
+(use-package js2-mode ;; Extend the built-in js-mode
+  :hook (js-mode . js2-minor-mode))
+
+(use-package typescript-mode ;; Major mode for Typescript
+  :init
+  ;; Create typescriptreact-mode so that .tsx files startup treesitter tsx parser
+  (define-derived-mode typescriptreact-mode typescript-mode "TypeScript TSX")
+  (add-to-list 'auto-mode-alist '("\\.tsx?\\'" . typescriptreact-mode))
+  (add-to-list 'tree-sitter-major-mode-language-alist '(typescriptreact-mode . tsx)))
+
+;;;; Utilities
+(use-package avy ;; Quickly jump to visible location
+  :after evil
+  :bind (:map evil-normal-state-map
+              ("s" . avy-goto-char-2)
+              ("gl" . avy-goto-line)))
+
+(use-package magit ;; Git managment within Emacs (Very slow on Windows)
+  :bind-keymap ("C-c m" . magit-mode-map))
+
+(use-package verb) ;; Organize and send HTTP requests using Org
+
+(use-package diminish) ;; Remove minor modes from the modeline
+
+;;; Built-in
+;;;; Core Components
 (use-package emacs ;; Emacs configuration section
   :ensure nil
   :diminish isearch-mode
@@ -461,29 +373,18 @@
         kept-new-versions      5 ; how many of the newest versions to keep
         kept-old-versions      2)) ; and how many of the old
 
-(use-package display-line-numbers ;; Built-in line numbers minor mode
-  :hook ((text-mode . display-line-numbers-mode)
-         (prog-mode . display-line-numbers-mode)
-         (conf-mode . display-line-numbers-mode)
-         (org-mode . display-line-numbers-mode)))
-
-(use-package whitespace ;; Highlight various whitespaces in files
+(use-package eshell ;; Emacs lisp shell
   :ensure nil
-  :diminish
-  :hook ((prog-mode . whitespace-mode))
   :config
-  ;; Highlight lines longer than 80 chars. and trailing spaces
-  (setq whitespace-style '(face trailing lines-tail))
-  (setq whitespace-line-column 80))
+  (setq-default eshell-prompt-function 'gh/eshell-prompt)
+  (setq-default eshell-highlight-prompt nil))
 
-(use-package modeline ;; The status line at the bottom of the screen
+(use-package modeline ;; Built-in status line at the bottom of the screen
   :ensure nil
   :init
   (column-number-mode t) ;; Show column numbers in modeline
   (setq mode-line-percent-position nil)
   (setq mode-line-position-column-line-format '(" %l:%c ")))
-
-(use-package diminish) ;; Remove minor modes from the modeline
 
 (use-package dired ;; Built-in file manager
   :ensure nil
@@ -492,6 +393,198 @@
                         (setq auto-revert-verbose nil))) ;; Be quiet about updating Dired
   :bind (:map dired-mode-map
               ("C-c d" . hydra-dired/body)))
+
+(use-package gnus ;; Built-in Emacs news reader that can be configured for email
+  :ensure nil
+  :config
+  (setq gnus-select-method '(nnnil nil))
+  (setq gnus-secondary-select-methods
+        '((nnimap "gregheiman02@gmail.com"
+                  (nnimap-address "imap.gmail.com")
+                  (nnimap-server-port 993)
+                  (nnimap-stream ssl)
+                  (nnir-search-engine imap)
+                  (nnmail-expiry-target "nnimap+gregheiman02@gmail.com:[Gmail]/Trash")
+                  (nnmail-expiry-wait 'immediate))
+          (nnimap "w459e964@wichita.edu"
+                  (nnimap-address "outlook.office365.com")
+                  (nnimap-server-port 993)
+                  (nnimap-stream ssl)
+                  (nnir-search-engine imap)
+                  (nnmail-expiry-target "nnimap+w459e964@wichita.edu:Trash")
+                  (nnmail-expiry-wait 'immediate))))
+  (setq gnus-ignored-newsgroups "^to\\.\\|^[0-9. ]+\\( \\|$\\)\\|^[\"]\"[#'()]") ;; Make gnus NOT ignore [Gmail] folders
+  (setq gnus-posting-styles ;; Correct way to set up responding to emails with the correct email
+        '((".*" ;; Matches all groups of messages
+           (address "Greg Heiman <gregheiman02@gmail.com>")
+           ("X-Message-SMTP-Method" "smtp smtp.gmail.com 587 gregheiman02@gmail.com"))
+          ("w459e964@wichita.edu" ;; Matches Gnus group called w459e964@wichita.edu
+           (address "Greg Heiman <w459e964@wichita.edu")
+           (organization "Wichita State University")
+           ("X-Message-SMTP-Method" "smtp smtp.office365.com 587 w459e964@wichita.edu")))))
+
+(use-package minibuffer ;; Built-in interface used for many utility tasks
+  :ensure nil
+  :hook (minibuffer-setup-hook . cursor-intangible-mode)
+  :config
+  ;; Make cursor intangible in minibuffer
+  (setq minibuffer-prompt-properties
+        '(read-only t cursor-intangible t face minibuffer-prompt)))
+
+;;;; Editing
+(use-package abbrev ;; Built-in in buffer snippets
+  :ensure nil
+  :diminish
+  :hook ((c-mode . abbrev-mode)
+         (c++-mode . abbrev-mode)
+         (java-mode . abbrev-mode)
+         (org-mode . abbrev-mode))
+  :config
+  (setq save-abbrevs nil))
+
+(use-package skeleton ;; Built-in skeletons for new files and code structures
+  :ensure nil
+  :init
+  (setq skeleton-end-hook nil)
+  (setq skeleton-further-elements '((abbrev-mode nil))))
+
+(use-package flymake ;; On the fly diagnostic checking
+  :ensure nil
+  :hook (prog-mode . flymake-mode))
+
+(use-package flyspell ;; Built-in spell checking
+  :ensure nil
+  :config
+  (if (executable-find "aspell") ;; Use aspell if available
+      (setq ispell-program-name "aspell")))
+
+(use-package outline ;; Built-in minor mode that allows for folding code
+  :ensure nil
+  :diminish outline-minor-mode
+  :hook ((emacs-lisp-mode . outline-minor-mode)
+         (outline-minor-mode . outline-hide-body))
+  :config
+  (setq outline-blank-line t)) ;; Have a blank line before a heading
+
+(use-package eldoc ;; Built-in documentation mode
+  :diminish
+  :config
+  (setq eldoc-echo-area-use-multiline-p nil)
+  (setq eldoc-echo-area-display-truncation-message nil)
+  (setq eldoc-echo-area-prefer-doc-buffer t))
+
+(use-package whitespace ;; Built-in highlighting of various whitespaces in files
+  :ensure nil
+  :diminish
+  :hook ((prog-mode . whitespace-mode))
+  :config
+  ;; Highlight lines longer than 100 chars. and trailing spaces
+  (setq whitespace-style '(face trailing lines-tail))
+  (setq whitespace-line-column 100))
+
+;;;; Major Modes
+(use-package java-mode ;; Built-in Java major mode configuration
+  :ensure nil
+  :hook (java-mode . gh/java-mode-configuration)
+  :init
+  (define-auto-insert '(java-mode . "Java Class Skeleton") 'java-class-skeleton)
+  (with-eval-after-load "cc-mode"
+    (define-abbrev java-mode-abbrev-table "aif" "" 'java-if-statement)
+    (define-abbrev java-mode-abbrev-table "aelif" "" 'java-elif-statement)
+    (define-abbrev java-mode-abbrev-table "aelse" "" 'java-else-statement)
+    (define-abbrev java-mode-abbrev-table "amain" "" 'java-main-function)))
+
+(use-package c-mode ;; Built-in C major mode configuration
+  :ensure nil
+  :hook ((c-mode . gh/c-mode-configuration)
+         (c-mode . (lambda () (add-hook 'after-save-hook (lambda () (hide-ifdefs)) nil t))))
+  :init
+  (setq c-default-style "bsd")
+  (with-eval-after-load "cc-mode"
+    (define-abbrev c-mode-abbrev-table "aif" "" 'c-if-statement)
+    (define-abbrev c-mode-abbrev-table "aelif" "" 'c-elif-statement)
+    (define-abbrev c-mode-abbrev-table "aelse" "" 'c-else-statement)
+    (define-abbrev c-mode-abbrev-table "amain" "" 'c-main-function)))
+
+(use-package c++-mode ;; Built-in C++ major mode configuration
+  :ensure nil
+  :hook ((c++-mode . gh/c-mode-configuration)
+         (c++-mode . (lambda () (add-hook 'after-save-hook (lambda () (hide-ifdefs)) nil t))))
+  :init
+  (setq c-default-style "bsd")
+  (with-eval-after-load "cc-mode"
+    (define-abbrev c++-mode-abbrev-table "aif" "" 'c-if-statement)
+    (define-abbrev c++-mode-abbrev-table "aelif" "" 'c-elif-statement)
+    (define-abbrev c++-mode-abbrev-table "aelse" "" 'c-else-statement)
+    (define-abbrev c++-mode-abbrev-table "amain" "" 'c-main-function)))
+
+(use-package objc-mode ;; Built-in Objective C major mode configuration
+  :ensure nil
+  :hook (objc-mode . gh/c-mode-configuration))
+
+(use-package elisp-mode ;; Built-in Elisp major mode configuration
+  :ensure nil
+  :hook (elisp-mode . gh/elisp-mode-configuration))
+
+(use-package sql-mode ;; Built-in SQL editing and interaction major mode
+  :ensure nil
+  :hook ((sql-mode . (lambda () (sql-set-product 'postgres)))))
+
+(use-package org ;; Built-in powerful plain text note taking and more
+  :diminish org-indent-mode org-cdlatex-mode visual-line-mode
+  :hook ((org-mode . visual-line-mode)
+         (org-mode . flyspell-mode)
+         (org-mode . font-lock-mode)
+         (org-mode . org-cdlatex-mode)
+         (org-mode . org-fragtog-mode)
+         (org-mode . org-appear-mode)
+         (org-mode . gh/org-add-electric-pairs))
+  :init
+  (with-eval-after-load "org"
+    (define-abbrev org-mode-abbrev-table "asrc" "" 'org-src-block))
+  :config
+  (define-key org-mode-map (kbd "C-c C-r") verb-command-map)
+  (setq org-src-fontify-natively t
+        org-hide-emphasis-markers t
+        org-fontify-quote-and-verse-blocks t
+        org-src-tab-acts-natively t
+        org-edit-src-content-indentation 2
+        org-hide-block-startup nil
+        org-src-preserve-indentation nil
+        org-cycle-separator-lines 2
+        org-startup-with-latex-preview t
+        org-startup-indented t
+        org-return-follows-link t)
+  (plist-put org-format-latex-options :scale 1.5) ;; Increase size of latex previews
+  (org-babel-do-load-languages 'org-babel-load-languages ;; Set the langs. to load for org src blocks
+                               (append org-babel-load-languages
+                                       '((C . t)
+                                         (haskell . t))))
+  (if (executable-find "latexmk") ;; Set the command for org -> latex -> pdf
+      (setq-default org-latex-pdf-process '("latexmk -output-directory=%o -pdflatex='pdflatex -interaction nonstopmode' -pdf -bibtex -f %f")))
+  (evil-define-key '(normal insert visual) org-mode-map (kbd "C-j") 'org-next-visible-heading)
+  (evil-define-key '(normal insert visual) org-mode-map (kbd "C-k") 'org-previous-visible-heading)
+  (evil-define-key '(normal insert visual) org-mode-map (kbd "M-j") 'org-metadown)
+  (evil-define-key '(normal insert visual) org-mode-map (kbd "M-k") 'org-metaup)
+  (evil-define-key '(normal) org-mode-map (kbd "RET") 'org-return))
+
+(use-package org-agenda ;; Built-in powerful TODO list and agenda tracking
+  :ensure nil
+  :bind (:map org-agenda-mode-map
+              ("C-c o a" . hydra-org-agenda/body))
+  :config
+  (setq org-agenda-files (directory-files-recursively (expand-file-name "~/org/org-agenda") "\\.org$")) ;; Add all .org files in folder to org agenda list
+  (setq org-log-done 'time)) ;; Auto mark time when TODO item is marked done
+
+;;;; Utilities
+(use-package project ;; Built-in project managment package
+  :ensure nil
+  :bind ("C-c p" . hydra-project/body))
+
+(use-package ediff ;; Built-in diff interface
+  :ensure nil
+  :config
+  (setq ediff-split-window-function #'split-window-horizontally)) ;; Change windows to by default be displayed side by side
 
 (use-package grep ;; Built-in grep
   :ensure nil
@@ -507,29 +600,14 @@
   (setq tags-revert-without-query t) ;; Don't ask before rereading the TAGS files if they have changed
   (setq tags-add-tables nil)) ;; Don't ask to keep current list of tags tables also)
 
-(use-package abbrev ;; In buffer snippets
+
+
+(use-package ibuffer ;; Built-in buffer management
   :ensure nil
-  :diminish
-  :hook ((c-mode . abbrev-mode)
-         (c++-mode . abbrev-mode)
-         (java-mode . abbrev-mode)
-         (org-mode . abbrev-mode))
-  :config
-  (setq save-abbrevs nil))
+  :bind (:map ibuffer-mode-map
+              ("C-c b" . hydra-ibuffer-main/body)))
 
-(use-package skeleton ;; Skeletons for new files and code structures
-  :ensure nil
-  :init
-  (setq skeleton-end-hook nil)
-  (setq skeleton-further-elements '((abbrev-mode nil))))
-
-(use-package markdown-mode ;; Major mode for markdown files
-  :hook ((markdown-mode . flyspell-mode))
-  :config
-  (if (executable-find "pandoc") ;; Set pandoc as the program that gets called when you issue a markdown command
-      (setq markdown-command "pandoc")))
-
-(use-package hide-ifdef ;; Dim ifdefs if they are disabled
+(use-package hide-ifdef ;; Built-in dim ifdefs if they are disabled
   :ensure nil
   :diminish Ifdef
   :hook ((c-mode . hide-ifdef-mode)
@@ -538,71 +616,11 @@
   (setq hide-ifdef-shadow t)
   (setq hide-ifdef-initially t))
 
-(use-package java-mode ;; Java major mode configuration
-  :ensure nil
-  :hook (java-mode . gh/java-mode-configuration)
-  :init
-  (define-auto-insert '(java-mode . "Java Class Skeleton") 'java-class-skeleton)
-  (with-eval-after-load "cc-mode"
-    (define-abbrev java-mode-abbrev-table "aif" "" 'java-if-statement)
-    (define-abbrev java-mode-abbrev-table "aelif" "" 'java-elif-statement)
-    (define-abbrev java-mode-abbrev-table "aelse" "" 'java-else-statement)
-    (define-abbrev java-mode-abbrev-table "amain" "" 'java-main-function)))
-
-(use-package c-mode ;; C major mode configuration
-  :ensure nil
-  :hook ((c-mode . gh/c-mode-configuration)
-         (c-mode . (lambda () (add-hook 'after-save-hook (lambda () (hide-ifdefs)) nil t))))
-  :init
-  (setq c-default-style "bsd")
-  (with-eval-after-load "cc-mode"
-    (define-abbrev c-mode-abbrev-table "aif" "" 'c-if-statement)
-    (define-abbrev c-mode-abbrev-table "aelif" "" 'c-elif-statement)
-    (define-abbrev c-mode-abbrev-table "aelse" "" 'c-else-statement)
-    (define-abbrev c-mode-abbrev-table "amain" "" 'c-main-function)))
-
-(use-package c++-mode ;; C++ major mode configuration
-  :ensure nil
-  :hook ((c++-mode . gh/c-mode-configuration)
-         (c++-mode . (lambda () (add-hook 'after-save-hook (lambda () (hide-ifdefs)) nil t))))
-  :init
-  (setq c-default-style "bsd")
-  (with-eval-after-load "cc-mode"
-    (define-abbrev c++-mode-abbrev-table "aif" "" 'c-if-statement)
-    (define-abbrev c++-mode-abbrev-table "aelif" "" 'c-elif-statement)
-    (define-abbrev c++-mode-abbrev-table "aelse" "" 'c-else-statement)
-    (define-abbrev c++-mode-abbrev-table "amain" "" 'c-main-function)))
-
-(use-package objc-mode ;; Objective C major mode configuration
-  :ensure nil
-  :hook (objc-mode . gh/c-mode-configuration))
-
-(use-package elisp-mode ;; Elisp major mode configuration
-  :ensure nil
-  :hook (elisp-mode . gh/elisp-mode-configuration))
-
-(use-package sql-mode ;; SQL editing and interaction major mode
-  :ensure nil
-  :hook ((sql-mode . (lambda () (sql-set-product 'postgres)))))
-
-(use-package go-mode ;; Major mode for Go
-  :hook ((go-mode . (lambda () (setq tab-width 4)))))
-
-(use-package rust-mode) ;; Major mode for Rust
-
-(use-package dockerfile-mode) ;; Major mode for editing Dockerfiles
-
-(use-package yaml-mode) ;; Major mode for Yaml
-
-(use-package js2-mode ;; Extend the built-in js-mode
-  :hook (js-mode . js2-minor-mode))
-
-(use-package typescript-mode ;; Major mode for Typescript
-  :init
-  ;; Create typescriptreact-mode so that .tsx files startup treesitter tsx parser
-  (define-derived-mode typescriptreact-mode typescript-mode "TypeScript TSX")
-  (add-to-list 'auto-mode-alist '("\\.tsx?\\'" . typescriptreact-mode))
-  (add-to-list 'tree-sitter-major-mode-language-alist '(typescriptreact-mode . tsx)))
+(use-package display-line-numbers ;; Built-in line numbers minor mode
+  :hook ((text-mode . display-line-numbers-mode)
+         (prog-mode . display-line-numbers-mode)
+         (conf-mode . display-line-numbers-mode)
+         (org-mode . display-line-numbers-mode)))
 
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit) ;; Make ESC quits
 
