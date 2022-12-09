@@ -104,15 +104,10 @@
   (setq undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo"))))
 
 ;;;; Color Theme
-(use-package dracula-theme ;; Emacs port of the popular Dracula theme
+(use-package doom-themes ;; High quality collection of themes
   :hook (prog-mode . (lambda () (gh/custom-theme-faces)))
   :init
-  (setq dracula-height-title-1 1.0
-        dracula-height-title-2 1.0
-        dracula-height-title-3 1.0
-        dracula-height-doc-title 1.0
-        dracula-enlarge-headings nil)
-  (load-theme 'dracula t))
+  (load-theme 'doom-tokyo-night t))
 
 ;;;; In-Buffer Editing
 (use-package corfu ;; In buffer text completion
@@ -235,6 +230,9 @@
 
 (use-package cdlatex) ;; Fast input methods for latex
 
+(use-package js2-mode ;; Extend the built-in js-mode
+  :hook (js-mode . js2-minor-mode))
+
 ;;;; New Major Modes
 (use-package markdown-mode ;; Major mode for markdown files
   :hook ((markdown-mode . flyspell-mode))
@@ -250,9 +248,6 @@
 (use-package dockerfile-mode) ;; Major mode for editing Dockerfile files
 
 (use-package yaml-mode) ;; Major mode for Yaml
-
-(use-package js2-mode ;; Extend the built-in js-mode
-  :hook (js-mode . js2-minor-mode))
 
 (use-package typescript-mode ;; Major mode for Typescript
   :init
@@ -419,7 +414,7 @@
            (address "Greg Heiman <gregheiman02@gmail.com>")
            ("X-Message-SMTP-Method" "smtp smtp.gmail.com 587 gregheiman02@gmail.com"))
           ("w459e964@wichita.edu" ;; Matches Gnus group called w459e964@wichita.edu
-           (address "Greg Heiman <w459e964@wichita.edu")
+           (address "Greg Heiman <w459e964@wichita.edu>")
            (organization "Wichita State University")
            ("X-Message-SMTP-Method" "smtp smtp.office365.com 587 w459e964@wichita.edu")))))
 
@@ -430,6 +425,10 @@
   ;; Make cursor intangible in minibuffer
   (setq minibuffer-prompt-properties
         '(read-only t cursor-intangible t face minibuffer-prompt)))
+
+(use-package project ;; Built-in project managment package
+  :ensure nil
+  :bind ("C-c p" . hydra-project/body))
 
 ;;;; Editing
 (use-package abbrev ;; Built-in in buffer snippets
@@ -577,14 +576,11 @@
   (setq org-log-done 'time)) ;; Auto mark time when TODO item is marked done
 
 ;;;; Utilities
-(use-package project ;; Built-in project managment package
-  :ensure nil
-  :bind ("C-c p" . hydra-project/body))
-
 (use-package ediff ;; Built-in diff interface
   :ensure nil
   :config
-  (setq ediff-split-window-function #'split-window-horizontally)) ;; Change windows to by default be displayed side by side
+  ;; Default to side-by-side frame placement
+  (setq ediff-split-window-function #'split-window-horizontally))
 
 (use-package grep ;; Built-in grep
   :ensure nil

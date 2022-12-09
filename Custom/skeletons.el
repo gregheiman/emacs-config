@@ -14,7 +14,7 @@
 
 ;;; Code:
 (define-skeleton header-guard-skeleton
-    "Header guard skeleton for .h and .hpp files"
+    "Header guard skeleton for .h and .hpp files."
     nil
     "#ifndef _" (upcase (file-name-sans-extension (file-name-nondirectory (buffer-file-name)))) "_H\n"
     "#define _" (upcase (file-name-sans-extension (file-name-nondirectory (buffer-file-name)))) "_H\n"
@@ -25,7 +25,7 @@
 )
 
 (define-skeleton c-if-statement
-  "If statement for C/C++ languages"
+  "If statement for C/C++ languages."
   nil
   "if (" @ - ")" \n
   -4 "{" \n
@@ -34,7 +34,7 @@
 )
 
 (define-skeleton c-elif-statement
-  "Else if statement for C/C++ languages"
+  "Else if statement for C/C++ languages."
   nil
   "else if (" _ ")" \n
   -4 "{" \n
@@ -43,7 +43,7 @@
 )
 
 (define-skeleton c-else-statement
-  "Else statement for C/C++ languages"
+  "Else statement for C/C++ languages."
   nil
   "else" \n
   -4 "{" \n
@@ -52,7 +52,7 @@
 )
 
 (define-skeleton c-main-function
-  "Main function for C/C++ languages"
+  "Main function for C/C++ languages."
   nil
   "int main(int argc, char *argv[])" \n
   -4 "{" \n
@@ -82,7 +82,7 @@
 )
 
 (define-skeleton java-main-function
-  "Main function for the Java language"
+  "Main function for the Java language."
   nil
   "public static void main(String[] args) {" \n
   @ - \n
@@ -90,7 +90,7 @@
 )
 
 (define-skeleton java-if-statement
-  "If statment for the Java language"
+  "If statment for the Java language."
   nil
   "if (" @ - ") {" \n
   \n
@@ -98,7 +98,7 @@
 )
 
 (define-skeleton java-elif-statement
-  "Else if statement for the Java lanaguage"
+  "Else if statement for the Java lanaguage."
   nil
   "else if (" @ - ") {" \n
   \n
@@ -106,7 +106,7 @@
 )
 
 (define-skeleton java-else-statement
-  "Else statement for the Java language"
+  "Else statement for the Java language."
   nil
   "else {" \n
   @ - \n
@@ -114,7 +114,7 @@
 )
 
 (define-skeleton org-src-block
-  "Source block for org mode"
+  "Source block for org mode."
   nil
   "#+begin_src " @ - \n
   \n
