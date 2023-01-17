@@ -14,7 +14,7 @@
 ;; C-c @ C-e or zc (Evil mode) - Show entry
 
 ;;; Code:
-(defun efs/display-startup-time ()
+(defun gh/display-startup-time ()
   "Log startup time and garbage collections to echo area."
   (message "Emacs loaded in %s with %d garbage collections."
            (format "%.2f seconds" (float-time (time-subtract after-init-time before-init-time)))
@@ -83,7 +83,7 @@
      (format "ctags -a -e -R %s" (directory-file-name dir-name)))))
 
 (defun create-tags-etags (dir-name)
-  "Create tags file usig Etags in DIR-NAME."
+  "Create tags file using `etags` in DIR-NAME."
   (interactive "DDirectory: ")
   (eshell-command
    (format "find %s -type f -name \"*\" | etags -" dir-name)))
@@ -98,7 +98,7 @@
         (buffer-substring-no-properties (point) (line-end-position))))))
 
 (defun gh/eshell-prompt ()
-  "Set custom eshell prompt."
+  "Set custom `eshell` prompt."
   (concat
    (propertize (or (ignore-errors (format "(%s) " (gh/git-prompt-branch-name))) ""))
    (propertize (concat (if (string= (eshell/pwd) (getenv "HOME")) "~" (eshell/basename (eshell/pwd))) " λ "))))
@@ -115,7 +115,7 @@
         (t (ansi-term "/bin/bash"))))
 
 (defun gh/org-export-output-file-name-modified (orig-fun extension &optional subtreep pub-dir)
-  "Modifies org-export to place exported files in a different directory."
+  "Modifies `org-export` to place exported files in a different directory."
   (unless pub-dir
     (setq pub-dir (expand-file-name "~/org/org-exported-files"))
     (unless (file-directory-p pub-dir)
@@ -127,7 +127,7 @@
 (defvar org-electric-pairs '((?$ . ?$)) "Electric pairs for `org-mode`.")
 
 (defun gh/org-add-electric-pairs ()
-  "Add pairs to electric pair mode for org mode"
+  "Add pairs to electric pair mode for org mode."
   (interactive)
   (setq-local electric-pair-pairs (append electric-pair-pairs org-electric-pairs))
   (setq-local electric-pair-text-pairs electric-pair-pairs)
@@ -142,6 +142,23 @@
   (let ((path-from-shell (replace-regexp-in-string "[ \t\n]*$" "" (shell-command-to-string "$SHELL --login -i -c 'echo $PATH'"))))
     (setenv "PATH" path-from-shell)
     (setq exec-path (split-string path-from-shell path-separator))))
+
+(defun gh/flyspell-on-for-buffer-type ()
+  "Enable Flyspell appropriately for the major mode of the current buffer.
+Use `flyspell-prog-mode' for modes derived from `prog-mode', so only strings
+and comments get checked.  All other buffers get `flyspell-mode' to check all
+text.  If flyspell is already enabled, does nothing."
+    (interactive)
+    (if (not (symbol-value flyspell-mode)) ; if not already on
+    (progn
+        (if (derived-mode-p 'prog-mode)
+        (progn
+            (message "Flyspell on (code)")
+            (flyspell-prog-mode))
+        ;; else
+        (progn
+            (message "Flyspell on (text)")
+            (flyspell-mode 1))))))
 
 (provide 'functions)
 

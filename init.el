@@ -235,7 +235,6 @@
 
 ;;;; New Major Modes
 (use-package markdown-mode ;; Major mode for markdown files
-  :hook ((markdown-mode . flyspell-mode))
   :config
   (if (executable-find "pandoc") ;; Set pandoc as the program that gets called when you issue a markdown command
       (setq markdown-command "pandoc")))
@@ -275,7 +274,7 @@
 (use-package emacs ;; Emacs configuration section
   :ensure nil
   :diminish isearch-mode
-  :hook ((emacs-startup . efs/display-startup-time)
+  :hook ((emacs-startup . gh/display-startup-time)
          (auto-save . gh/full-auto-save))
   :config
   ;; Set information about ourselves
@@ -453,6 +452,8 @@
 
 (use-package flyspell ;; Built-in spell checking
   :ensure nil
+  ;; Should turn on the proper flyspell mode for any buffer associated with a file
+  :hook (find-file . gh/flyspell-on-for-buffer-type)
   :config
   (if (executable-find "aspell") ;; Use aspell if available
       (setq ispell-program-name "aspell")))
@@ -532,7 +533,6 @@
 (use-package org ;; Built-in powerful plain text note taking and more
   :diminish org-indent-mode org-cdlatex-mode visual-line-mode
   :hook ((org-mode . visual-line-mode)
-         (org-mode . flyspell-mode)
          (org-mode . font-lock-mode)
          (org-mode . org-cdlatex-mode)
          (org-mode . org-fragtog-mode)
