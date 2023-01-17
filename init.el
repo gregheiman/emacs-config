@@ -246,7 +246,7 @@
 
 (use-package dockerfile-mode) ;; Major mode for editing Dockerfile files
 
-(use-package yaml-mode) ;; Major mode for Yaml
+(use-package yaml-mode) ;; Major mode for YAML
 
 (use-package typescript-mode ;; Major mode for Typescript
   :init
