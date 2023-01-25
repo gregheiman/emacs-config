@@ -109,7 +109,7 @@
 (use-package gruber-darker-theme
   :hook (prog-mode . (lambda () (gh/custom-theme-faces)))
   :init
-  (load-theme 'gruber-darker-theme t))
+  (load-theme 'gruber-darker t))
 
 ;;;; In-Buffer Editing
 (use-package corfu ;; In buffer text completion
@@ -640,17 +640,3 @@
 (provide 'init)
 
 ;;; init.el ends here
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(package-selected-packages
-   '(diminish verb magit avy typescript-mode markdown-mode cdlatex auctex org-appear org-fragtog org-roam which-key orderless marginalia vertico apheleia tree-sitter-langs tree-sitter corfu ef-themes undo-tree evil-commentary evil-surround evil-collection evil hydra)))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(font-lock-variable-name-face ((t (:foreground unspecified :inherit default))))
- '(font-lock-warning-face ((t (:background unspecified :inherit warning)))))
