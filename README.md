@@ -25,6 +25,7 @@ Installation for this configuration is very straight forward.
     init.el -> ~/.emacs.d/init.el
     early-init.el -> ~/.emacs.d/early-init.el
     /Custom/ -> ~/.emacs.d/Custom
+    /include/ -> ~/.emacs.d/include
     ```
     
 5. Start up Emacs.

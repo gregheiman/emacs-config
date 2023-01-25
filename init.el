@@ -106,10 +106,10 @@
   (setq undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo"))))
 
 ;;;; Color Theme
-(use-package ef-themes ;; Like Modus themes but with less contrast
+(use-package gruber-darker-theme
   :hook (prog-mode . (lambda () (gh/custom-theme-faces)))
   :init
-  (load-theme 'ef-trio-dark t))
+  (load-theme 'gruber-darker-theme t))
 
 ;;;; In-Buffer Editing
 (use-package corfu ;; In buffer text completion
