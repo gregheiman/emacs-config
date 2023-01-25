@@ -585,7 +585,7 @@
 (use-package dockerfile-ts-mode ;; Built-in Dockerfile mode using tree-sitter
   :ensure nil
   :init
-  (when (treesit-available-p) (add-to-list 'auto-mode-alist '(("[/\\]\\(?:Containerfile\\|Dockerfile\\)\\(?:\\.[^/\\]*\\)?\\'" . dockerfile-ts-mode)))))
+  (when (treesit-available-p) (add-to-list 'auto-mode-alist '("[/\\]\\(?:Containerfile\\|Dockerfile\\)\\(?:\\.[^/\\]*\\)?\\'" . dockerfile-ts-mode))))
 
 (use-package yaml-ts-mode ;; Built-in YAML mode using tree-sitter
   :ensure nil
