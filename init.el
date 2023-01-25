@@ -39,10 +39,12 @@
         (add-to-list 'native-comp-eln-load-path (expand-file-name "eln-cache/" user-emacs-directory))
         (setq package-native-compile t)))
 
-(add-to-list 'load-path (expand-file-name "~/.emacs.d/Custom")) ;; The directory that my custom files are kept in
+(add-to-list 'load-path (expand-file-name (concat user-emacs-directory "Custom"))) ;; The directory that my custom files are kept in
 (load "functions") ;; Custom functions
 (load "skeletons") ;; Custom skeletons
-(load "hydras") ;; Custom hydras
+;; Custom hydras
+(when (package-installed-p 'hydra) ;; Custom Hydras
+  (load "hydras"))
 
 ;;; Third-Party
 ;;;; Evil
@@ -131,11 +133,11 @@
 (use-package eglot ;; Minimal LSP client
   :hook (((c-mode c++-mode objc-mode) . (lambda () (when (executable-find "clangd") (eglot-ensure))))
          (python-mode . (lambda () (when (executable-find "pyright") (eglot-ensure))))
-         (rust-mode . (lambda () (when (or (executable-find "rls") (executable-find "rust-analyzer")) (eglot-ensure))))
+         ((rust-mode rust-ts-mode)  . (lambda () (when (executable-find "rust-analyzer") (eglot-ensure))))
          (haskell-mode . (lambda () (when (or (executable-find "haskell-language-server") (executable-find "haskell-language-server-wrapper")) (eglot-ensure))))
          (java-mode . (lambda () (when (executable-find "jdtls") (eglot-ensure))))
-         (go-mode . (lambda () (when (executable-find "gopls") (eglot-ensure))))
-         ((js-mode js2-mode typescript-mode) . (lambda () (when (executable-find "typescript-language-server" (eglot-ensure)))))
+         ((go-mode go-ts-mode) . (lambda () (when (executable-find "gopls") (eglot-ensure))))
+         ((js-mode js-ts-mode typescript-ts-mode) . (lambda () (when (executable-find "typescript-language-server" (eglot-ensure)))))
          (eglot-managed-mode . (lambda ()
                                  (setq eldoc-documentation-functions ;; Show flymake diagnostics first.
                                        (cons #'flymake-eldoc-function
@@ -161,21 +163,12 @@
     "Eclipse JDT breaks spec and replies with edits as arguments."
     (mapc #'eglot--apply-workspace-edit arguments)))
 
-
-(use-package tree-sitter ;; Support for Tree Sitter
-  :hook (tree-sitter-after-on . tree-sitter-hl-mode)
-  :init
-  (global-tree-sitter-mode))
-
-(use-package tree-sitter-langs ;; Tree Sitter language bundle
-  :after tree-sitter)
-
 (use-package apheleia ;; Format code automatically
-  :hook (((typescript-mode typescriptreact-mode) . apheleia-mode)
-         (rust-mode . apheleia-mode)
+  :hook ((typescript-ts-mode . apheleia-mode)
+         ((rust-mode rust-ts-mode) . apheleia-mode)
          ((c-mode c++-mode) . apheleia-mode)
-         ((js-mode js2-mode) . apheleia-mode)
-         (go-mode . apheleia-mode)))
+         ((js-mode js-ts-mode) . apheleia-mode)
+         ((go-mode go-ts-mode) . apheleia-mode)))
 
 ;;;; Minibuffer
 (use-package vertico ;; Fast, lightweight minibuffer completion
@@ -230,30 +223,11 @@
 
 (use-package cdlatex) ;; Fast input methods for latex
 
-(use-package js2-mode ;; Extend the built-in js-mode
-  :hook (js-mode . js2-minor-mode))
-
 ;;;; New Major Modes
 (use-package markdown-mode ;; Major mode for markdown files
   :config
   (if (executable-find "pandoc") ;; Set pandoc as the program that gets called when you issue a markdown command
       (setq markdown-command "pandoc")))
-
-(use-package go-mode ;; Major mode for Go
-  :hook ((go-mode . (lambda () (setq tab-width 4)))))
-
-(use-package rust-mode) ;; Major mode for Rust
-
-(use-package dockerfile-mode) ;; Major mode for editing Dockerfile files
-
-(use-package yaml-mode) ;; Major mode for YAML
-
-(use-package typescript-mode ;; Major mode for Typescript
-  :init
-  ;; Create typescriptreact-mode so that .tsx files startup treesitter tsx parser
-  (define-derived-mode typescriptreact-mode typescript-mode "TypeScript TSX")
-  (add-to-list 'auto-mode-alist '("\\.tsx?\\'" . typescriptreact-mode))
-  (add-to-list 'tree-sitter-major-mode-language-alist '(typescriptreact-mode . tsx)))
 
 ;;;; Utilities
 (use-package avy ;; Quickly jump to visible location
@@ -282,15 +256,21 @@
         user-full-name "Greg Heiman")
 
   ;; Font configuration
+  (defvar custom-font "Courier New") ;; Default font likely to be installed on most OS
+  ;; If preferred font is installed use it
+  (cond ((find-font (font-spec :name "JetBrains Mono"))
+     (setq custom-font "JetBrains Mono")))
+
+  ;; Set the default font size for Emacs
   (cond ((string-equal system-type "darwin")
-            (set-face-attribute 'default nil :font "JetBrains Mono 14" ))
-        (t (set-face-attribute 'default nil :font "JetBrains Mono 12" )))
+            (set-face-attribute 'default nil :font (concat custom-font " 14")))
+        (t (set-face-attribute 'default nil :font (concat custom-font " 12"))))
 
   ;; Set the default font size for emacsclient
   (when (and (daemonp) (string-equal system-type "gnu/linux"))
-    (add-to-list 'default-frame-alist '(font . "JetBrains Mono 12")))
+    (add-to-list 'default-frame-alist '(font . (concat custom-font " 12"))))
   (when (and (daemonp) (string-equal system-type "darwin"))
-    (add-to-list 'default-frame-alist '(font . "JetBrains Mono 14")))
+    (add-to-list 'default-frame-alist '(font . (concat custom-font " 14"))))
 
   ;; Add to the interface
   (global-hl-line-mode 1) ;; Highlight the current line
@@ -311,8 +291,8 @@
 
   ;; Indent configuration
   (setq-default indent-tabs-mode nil) ;; Use spaces for tabs instead of tab characters
-  (setq tab-width 4) ;; Set the tab width to 4 characters
-  (setq electric-indent-inhibit t) ;; Make return key indent to current indent level
+  (setq-default tab-width 4) ;; Set the default tab width to 4 characters
+  (setq-default electric-indent-inhibit t) ;; Turn off on-the-fly re-indentation
   (setq backward-delete-char-untabify-method 'hungry) ;; Have Emacs backspace the entire tab at a time
 
   ;; Personal preference
@@ -482,6 +462,11 @@
   (setq whitespace-style '(face trailing lines-tail))
   (setq whitespace-line-column 100))
 
+(use-package treesit ;; Built-in tree-sitter package
+  :ensure nil
+  :config
+  (add-to-list 'treesit-extra-load-path (concat user-emacs-directory "include/tree-sitter-modules/")))
+
 ;;;; Major Modes
 (use-package java-mode ;; Built-in Java major mode configuration
   :ensure nil
@@ -575,6 +560,38 @@
   (setq org-agenda-files (directory-files-recursively (expand-file-name "~/org/org-agenda") "\\.org$")) ;; Add all .org files in folder to org agenda list
   (setq org-log-done 'time)) ;; Auto mark time when TODO item is marked done
 
+;;;;; Tree-Sitter Modes
+(use-package typescript-ts-mode ;; Built-in TypeScript mode using tree-sitter
+  :ensure nil
+  :hook (typescript-ts-mode . gh/typescript-ts-mode-configuration)
+  :init
+  (when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\.ts[x]?\\'" . typescript-ts-mode))))
+
+(use-package js-ts-mode ;; Built-in JavaScript mode using tree-sitter
+  :ensure nil
+  :init
+  (when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\.js[mx]?\\'" . js-ts-mode))))
+
+(use-package rust-ts-mode ;; Built-in Rust mode using tree-sitter
+  :ensure nil
+  :init
+  (when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-ts-mode))))
+
+(use-package go-ts-mode ;; Built-in Go mode using tree-sitter
+  :ensure nil
+  :init
+  (when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode))))
+
+(use-package dockerfile-ts-mode ;; Built-in Dockerfile mode using tree-sitter
+  :ensure nil
+  :init
+  (when (treesit-available-p) (add-to-list 'auto-mode-alist '(("[/\\]\\(?:Containerfile\\|Dockerfile\\)\\(?:\\.[^/\\]*\\)?\\'" . dockerfile-ts-mode)))))
+
+(use-package yaml-ts-mode ;; Built-in YAML mode using tree-sitter
+  :ensure nil
+  :init
+  (when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\.\\(e?ya?\\|ra\\)ml\\'" . yaml-ts-mode))))
+
 ;;;; Utilities
 (use-package ediff ;; Built-in diff interface
   :ensure nil
@@ -623,3 +640,17 @@
 (provide 'init)
 
 ;;; init.el ends here
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages
+   '(diminish verb magit avy typescript-mode markdown-mode cdlatex auctex org-appear org-fragtog org-roam which-key orderless marginalia vertico apheleia tree-sitter-langs tree-sitter corfu ef-themes undo-tree evil-commentary evil-surround evil-collection evil hydra)))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(font-lock-variable-name-face ((t (:foreground unspecified :inherit default))))
+ '(font-lock-warning-face ((t (:background unspecified :inherit warning)))))

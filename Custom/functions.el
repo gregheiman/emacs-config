@@ -55,6 +55,10 @@
   "Set Elisp style configuration."
   (setq-local tab-width 2)) ;; 2 space tabs
 
+(defun gh/typescript-ts-mode-configuration ()
+  "Set TypeScript style configuration."
+  (setq-local typescript-ts-mode-indent-offset 4))
+
 (defun gh/get-java-package-from-dir (dir)
   "Retrieve the java package name using the files directory path, DIR."
   (string-match "\\(.*\\)/java/\\(.*\\)/\\(.*\\)" dir)
