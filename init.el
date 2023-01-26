@@ -131,11 +131,11 @@
               ([backtab] . corfu-previous)))
 
 (use-package eglot ;; Minimal LSP client
-  :hook (((c-mode c++-mode objc-mode) . (lambda () (when (executable-find "clangd") (eglot-ensure))))
-         (python-mode . (lambda () (when (executable-find "pyright") (eglot-ensure))))
+  :hook (((c-mode c++-mode objc-mode c-ts-mode c++-ts-mode c-or-c++-ts-mode) . (lambda () (when (executable-find "clangd") (eglot-ensure))))
+         ((python-mode python-ts-mode) . (lambda () (when (executable-find "pyright") (eglot-ensure))))
          ((rust-mode rust-ts-mode)  . (lambda () (when (executable-find "rust-analyzer") (eglot-ensure))))
          (haskell-mode . (lambda () (when (or (executable-find "haskell-language-server") (executable-find "haskell-language-server-wrapper")) (eglot-ensure))))
-         (java-mode . (lambda () (when (executable-find "jdtls") (eglot-ensure))))
+         ((java-mode java-ts-mode) . (lambda () (when (executable-find "jdtls") (eglot-ensure))))
          ((go-mode go-ts-mode) . (lambda () (when (executable-find "gopls") (eglot-ensure))))
          ((js-mode js-ts-mode typescript-ts-mode) . (lambda () (when (executable-find "typescript-language-server" (eglot-ensure)))))
          (eglot-managed-mode . (lambda ()
@@ -164,11 +164,13 @@
     (mapc #'eglot--apply-workspace-edit arguments)))
 
 (use-package apheleia ;; Format code automatically
-  :hook ((typescript-ts-mode . apheleia-mode)
-         ((rust-mode rust-ts-mode) . apheleia-mode)
-         ((c-mode c++-mode) . apheleia-mode)
+  :hook (((c-mode c++-mode c-ts-mode c++-ts-mode c-or-c++-ts-mode) . apheleia-mode)
+         (go-ts-mode . apheleia-mode)
+         ((java-mode java-ts-mode) . apheleia-mode)
          ((js-mode js-ts-mode) . apheleia-mode)
-         ((go-mode go-ts-mode) . apheleia-mode)))
+         ((python-mode python-ts-mode) . apheleia-mode)
+         (rust-ts-mode . apheleia-mode)
+         (typescript-ts-mode . apheleia-mode)))
 
 ;;;; Minibuffer
 (use-package vertico ;; Fast, lightweight minibuffer completion
@@ -468,41 +470,6 @@
   (add-to-list 'treesit-extra-load-path (concat user-emacs-directory "include/tree-sitter-modules/")))
 
 ;;;; Major Modes
-(use-package java-mode ;; Built-in Java major mode configuration
-  :ensure nil
-  :hook (java-mode . gh/java-mode-configuration)
-  :init
-  (define-auto-insert '(java-mode . "Java Class Skeleton") 'java-class-skeleton)
-  (with-eval-after-load "cc-mode"
-    (define-abbrev java-mode-abbrev-table "aif" "" 'java-if-statement)
-    (define-abbrev java-mode-abbrev-table "aelif" "" 'java-elif-statement)
-    (define-abbrev java-mode-abbrev-table "aelse" "" 'java-else-statement)
-    (define-abbrev java-mode-abbrev-table "amain" "" 'java-main-function)))
-
-(use-package c-mode ;; Built-in C major mode configuration
-  :ensure nil
-  :hook ((c-mode . gh/c-mode-configuration)
-         (c-mode . (lambda () (add-hook 'after-save-hook (lambda () (hide-ifdefs)) nil t))))
-  :init
-  (setq c-default-style "bsd")
-  (with-eval-after-load "cc-mode"
-    (define-abbrev c-mode-abbrev-table "aif" "" 'c-if-statement)
-    (define-abbrev c-mode-abbrev-table "aelif" "" 'c-elif-statement)
-    (define-abbrev c-mode-abbrev-table "aelse" "" 'c-else-statement)
-    (define-abbrev c-mode-abbrev-table "amain" "" 'c-main-function)))
-
-(use-package c++-mode ;; Built-in C++ major mode configuration
-  :ensure nil
-  :hook ((c++-mode . gh/c-mode-configuration)
-         (c++-mode . (lambda () (add-hook 'after-save-hook (lambda () (hide-ifdefs)) nil t))))
-  :init
-  (setq c-default-style "bsd")
-  (with-eval-after-load "cc-mode"
-    (define-abbrev c++-mode-abbrev-table "aif" "" 'c-if-statement)
-    (define-abbrev c++-mode-abbrev-table "aelif" "" 'c-elif-statement)
-    (define-abbrev c++-mode-abbrev-table "aelse" "" 'c-else-statement)
-    (define-abbrev c++-mode-abbrev-table "amain" "" 'c-main-function)))
-
 (use-package objc-mode ;; Built-in Objective C major mode configuration
   :ensure nil
   :hook (objc-mode . gh/c-mode-configuration))
@@ -561,31 +528,92 @@
   (setq org-log-done 'time)) ;; Auto mark time when TODO item is marked done
 
 ;;;;; Tree-Sitter Modes
-(use-package typescript-ts-mode ;; Built-in TypeScript mode using tree-sitter
+(use-package bash-ts-mode ;; Built-in Bash major mode using tree-sitter
   :ensure nil
-  :hook (typescript-ts-mode . gh/typescript-ts-mode-configuration)
   :init
-  (when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\.ts[x]?\\'" . typescript-ts-mode))))
+  (when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\.bash\\'" . bash-ts-mode)))
+  (when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\(/\\|\\`\\)\\.\\(bash_\\(profile\\|history\\|log\\(in\\|out\\)\\)\\|z?log\\(in\\|out\\)\\)\\'" . bash-ts-mode)))
+  (when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\(/\\|\\`\\)\\.\\(bashrc\\)\\'" . bash-ts-mode))))
 
-(use-package js-ts-mode ;; Built-in JavaScript mode using tree-sitter
+(use-package c-ts-mode ;; Built-in C major mode using tree-sitter
   :ensure nil
+  :hook ((c-ts-mode . gh/c-mode-configuration)
+         (c-ts-mode . (lambda () (add-hook 'after-save-hook (lambda () (hide-ifdefs)) nil t))))
   :init
-  (when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\.js[mx]?\\'" . js-ts-mode))))
+  (setq c-default-style "bsd")
+  (with-eval-after-load "cc-mode"
+    (define-abbrev c-mode-abbrev-table "aif" "" 'c-if-statement)
+    (define-abbrev c-mode-abbrev-table "aelif" "" 'c-elif-statement)
+    (define-abbrev c-mode-abbrev-table "aelse" "" 'c-else-statement)
+    (define-abbrev c-mode-abbrev-table "amain" "" 'c-main-function))
+  (when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\.c\\'" . c-ts-mode)))
+  (when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\.i\\'" . c-ts-mode)))
+  (when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\.lex\\'" . c-ts-mode)))
+  (when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\.xs\\'" . c-ts-mode)))
+  (when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\.y\\(acc\\)?\\'" . c-ts-mode))))
 
-(use-package rust-ts-mode ;; Built-in Rust mode using tree-sitter
+(use-package c++-ts-mode ;; Built-in C++ major mode using tree-sitter
+  :ensure nil
+  :hook ((c++-ts-mode . gh/c-mode-configuration)
+         (c++-ts-mode . (lambda () (add-hook 'after-save-hook (lambda () (hide-ifdefs)) nil t))))
+  :init
+  (setq c-default-style "bsd")
+  (with-eval-after-load "cc-mode"
+    (define-abbrev c++-mode-abbrev-table "aif" "" 'c-if-statement)
+    (define-abbrev c++-mode-abbrev-table "aelif" "" 'c-elif-statement)
+    (define-abbrev c++-mode-abbrev-table "aelse" "" 'c-else-statement)
+    (define-abbrev c++-mode-abbrev-table "amain" "" 'c-main-function))
+  (when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\.ii\\'" . c++-ts-mode)))
+  (when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\.\\(CC?\\|HH?\\)\\'" . c++-ts-mode)))
+  (when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\.\\(cc\\|hh\\)\\'" . c++-ts-mode))))
+
+(use-package c-or-c++-ts-mode ;; Build-in C/C++ major mode using tree-sitter
   :ensure nil
   :init
-  (when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-ts-mode))))
+  (when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\.h\\'" . c-or-c++-ts-mode))))
+
+(use-package dockerfile-ts-mode ;; Built-in Dockerfile mode using tree-sitter
+  :ensure nil
+  :init
+  (when (treesit-available-p) (add-to-list 'auto-mode-alist '("[/\\]\\(?:Containerfile\\|Dockerfile\\)\\(?:\\.[^/\\]*\\)?\\'" . dockerfile-ts-mode))))
 
 (use-package go-ts-mode ;; Built-in Go mode using tree-sitter
   :ensure nil
   :init
   (when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode))))
 
-(use-package dockerfile-ts-mode ;; Built-in Dockerfile mode using tree-sitter
+(use-package java-ts-mode ;; Built-in Java mode using tree-sitter
+  :ensure nil
+  :hook (java-ts-mode . gh/java-mode-configuration)
+  :init
+  (when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\.java\\'", java-ts-mode)))
+  (define-auto-insert '(java-mode . "Java Class Skeleton") 'java-class-skeleton)
+  (with-eval-after-load "cc-mode"
+    (define-abbrev java-mode-abbrev-table "aif" "" 'java-if-statement)
+    (define-abbrev java-mode-abbrev-table "aelif" "" 'java-elif-statement)
+    (define-abbrev java-mode-abbrev-table "aelse" "" 'java-else-statement)
+    (define-abbrev java-mode-abbrev-table "amain" "" 'java-main-function)))
+
+(use-package js-ts-mode ;; Built-in JavaScript mode using tree-sitter
   :ensure nil
   :init
-  (when (treesit-available-p) (add-to-list 'auto-mode-alist '("[/\\]\\(?:Containerfile\\|Dockerfile\\)\\(?:\\.[^/\\]*\\)?\\'" . dockerfile-ts-mode))))
+  (when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\.js[mx]?\\'" . js-ts-mode))))
+
+(use-package python-ts-mode ;; Built-in Python mode using tree-sitter
+  :ensure nil
+  :init
+  (when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\.py[iw]?\\'" . python-ts-mode))))
+
+(use-package typescript-ts-mode ;; Built-in TypeScript mode using tree-sitter
+  :ensure nil
+  :hook (typescript-ts-mode . gh/typescript-ts-mode-configuration)
+  :init
+  (when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\.ts[x]?\\'" . typescript-ts-mode))))
+
+(use-package rust-ts-mode ;; Built-in Rust mode using tree-sitter
+  :ensure nil
+  :init
+  (when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-ts-mode))))
 
 (use-package yaml-ts-mode ;; Built-in YAML mode using tree-sitter
   :ensure nil
