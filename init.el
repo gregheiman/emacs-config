@@ -491,16 +491,16 @@
       (elisp "https://github.com/Wilfred/tree-sitter-elisp")
       (go "https://github.com/tree-sitter/tree-sitter-go")
       (html "https://github.com/tree-sitter/tree-sitter-html")
-      (js . "https://github.com/tree-sitter/tree-sitter-javascript")
+      (js "https://github.com/tree-sitter/tree-sitter-javascript")
       (json "https://github.com/tree-sitter/tree-sitter-json")
       (lua "https://github.com/Azganoth/tree-sitter-lua")
       (make "https://github.com/alemuller/tree-sitter-make")
       (markdown "https://github.com/ikatyang/tree-sitter-markdown")
       (python "https://github.com/tree-sitter/tree-sitter-python")
-      (php . "https://github.com/tree-sitter/tree-sitter-php")
+      (php "https://github.com/tree-sitter/tree-sitter-php")
       (rust "https://github.com/tree-sitter/tree-sitter-rust")
-      (ruby . "https://github.com/tree-sitter/tree-sitter-ruby")
-      (sql . "https://github.com/m-novikov/tree-sitter-sql")
+      (ruby "https://github.com/tree-sitter/tree-sitter-ruby")
+      (sql "https://github.com/m-novikov/tree-sitter-sql")
       (toml "https://github.com/tree-sitter/tree-sitter-toml")
       (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src"))
       (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src"))
@@ -643,8 +643,7 @@
         (c-or-c++-ts-mode)
       (c-or-c++-mode)))
   (add-to-list 'major-mode-remap-alist '(c-or-c++-mode . c-or-c++-auto-mode))
-  (with-eval-after-load 'c-or-c++-mode-hook
-    (setq c-or-c++-ts-mode-hook c-or-c++-mode-hook)))
+  (setq c-or-c++-ts-mode-hook c-or-c++-mode-hook))
 
 (use-package dockerfile-ts-mode ;; Built-in Dockerfile mode using tree-sitter
   :ensure nil
@@ -665,8 +664,7 @@
         (go-ts-mode)
       (go-mode)))
   (add-to-list 'major-mode-remap-alist '(go-mode . go-auto-mode))
-  (with-eval-after-load 'go-mode-hook
-    (setq go-ts-mode-hook go-mode-hook)))
+  (setq go-ts-mode-hook go-mode-hook))
 
 (use-package java-ts-mode ;; Built-in Java mode using tree-sitter
   :ensure nil
