@@ -164,6 +164,15 @@ text.  If flyspell is already enabled, does nothing."
             (message "Flyspell on (text)")
             (flyspell-mode 1))))))
 
+(defun gh/treesit-install-all-languages ()
+  "Install all languages specified by `treesit-language-source-alist'."
+    (interactive)
+    (let ((languages (mapcar 'car treesit-language-source-alist)))
+      (dolist (lang languages)
+	      (treesit-install-language-grammar lang)
+	      (message "`%s' parser was installed." lang)
+	      (sit-for 0.75))))
+
 (provide 'functions)
 
 ;;; functions.el ends here
