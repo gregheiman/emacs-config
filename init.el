@@ -106,10 +106,10 @@
   (setq undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo"))))
 
 ;;;; Color Theme
-(use-package gruber-darker-theme
+(use-package ef-themes
   :hook (prog-mode . (lambda () (gh/custom-theme-faces)))
   :init
-  (load-theme 'gruber-darker t))
+  (load-theme 'ef-dark t))
 
 ;;;; In-Buffer Editing
 (use-package corfu ;; In buffer text completion
@@ -136,8 +136,8 @@
          (rust-mode . (lambda () (when (executable-find "rust-analyzer") (eglot-ensure))))
          (haskell-mode . (lambda () (when (or (executable-find "haskell-language-server") (executable-find "haskell-language-server-wrapper")) (eglot-ensure))))
          (java-mode . (lambda () (when (executable-find "jdtls") (eglot-ensure))))
-         (go-ts-mode . (lambda () (when (executable-find "gopls") (eglot-ensure))))
-         ((js-mode typescript-ts-mode) . (lambda () (when (executable-find "typescript-language-server" (eglot-ensure)))))
+         (go-mode . (lambda () (when (executable-find "gopls") (eglot-ensure))))
+         ((js-mode typescript-ts-mode tsx-ts-mode) . (lambda () (when (executable-find "typescript-language-server" (eglot-ensure)))))
          (eglot-managed-mode . (lambda ()
                                  (setq eldoc-documentation-functions ;; Show flymake diagnostics first.
                                        (cons #'flymake-eldoc-function
@@ -167,15 +167,6 @@
     (_server (_cmd (eql java.apply.workspaceEdit)) arguments)
     "Eclipse JDT breaks spec and replies with edits as arguments."
     (mapc #'eglot--apply-workspace-edit arguments)))
-
-(use-package apheleia ;; Format code automatically
-  :hook (((c-mode c++-mode c-or-c++-mode) . apheleia-mode)
-         (go-mode . apheleia-mode)
-         (java-mode . apheleia-mode)
-         (js-mode . apheleia-mode)
-         (python-mode . apheleia-mode)
-         (rust-mode . apheleia-mode)
-         (typescript-ts-mode . apheleia-mode)))
 
 ;;;; Minibuffer
 (use-package vertico ;; Fast, lightweight minibuffer completion
@@ -278,14 +269,14 @@
 
   ;; Set the default font size for Emacs
   (cond ((string-equal system-type "darwin")
-            (set-face-attribute 'default nil :font (concat custom-font " 14")))
+            (set-face-attribute 'default nil :font (concat custom-font " 13")))
         (t (set-face-attribute 'default nil :font (concat custom-font " 12"))))
 
   ;; Set the default font size for emacsclient
   (when (and (daemonp) (string-equal system-type "gnu/linux"))
     (add-to-list 'default-frame-alist '(font . (concat custom-font " 12"))))
   (when (and (daemonp) (string-equal system-type "darwin"))
-    (add-to-list 'default-frame-alist '(font . (concat custom-font " 14"))))
+    (add-to-list 'default-frame-alist '(font . (concat custom-font " 13"))))
 
   ;; Add to the interface
   (global-hl-line-mode 1) ;; Highlight the current line
@@ -657,6 +648,7 @@
 
 (use-package go-ts-mode ;; Built-in Go mode using tree-sitter
   :ensure nil
+  :disabled
   :init
   (define-derived-mode go-auto-mode prog-mode "Go Auto"
     "Automatically decide which Go mode to use."
@@ -703,7 +695,13 @@
   :ensure nil
   :hook (typescript-ts-mode . gh/typescript-ts-mode-configuration)
   :init
-  (when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\.ts[x]?\\'" . typescript-ts-mode))))
+  (when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\.ts?\\'" . typescript-ts-mode))))
+
+(use-package tsx-ts-mode ;; Built-in TSX mode using tree-sitter
+  :ensure nil
+  :hook (tsx-ts-mode . gh/typescript-ts-mode-configuration)
+  :init
+  (when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\.tsx?\\'" . tsx-ts-mode))))
 
 (use-package rust-ts-mode ;; Built-in Rust mode using tree-sitter
   :ensure nil
@@ -738,7 +736,7 @@
   :init
   :config
   (if (executable-find "rg")
-      (setq grep-template "rg -n -H --no-heading -g **/<F> -e <R> .")
+      (setq grep-template "rg -n -H --no-heading -g '<F>' -e <R> .")
     (setq grep-use-null-device nil)))
 
 (use-package etags ;; Built-in tagging similar to ctags

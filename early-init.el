@@ -19,7 +19,7 @@
 (defvar file-name-handler-alist-original file-name-handler-alist)
 
 (setq gc-cons-threshold (* 1024 1024 1024)) ;; 1 GB
-(setq gc-cons-percentage 0.8)
+(setq gc-cons-percentage 3.0)
 (setq-default file-name-handler-alist nil)
 (setq-default inhibit-compacting-font-caches)
 
@@ -32,8 +32,9 @@
  5 nil
  (lambda ()
    (setq file-name-handler-alist file-name-handler-alist-original)
-   (setq gc-cons-threshold 2000000) ;; 2 MB
-   (setq gc-cons-percentage 0.5)
+   ;; (setq gc-cons-threshold 2000000) ;; 2 MB
+   (setq gc-cons-threshold 800000)
+   (setq gc-cons-percentage 1.0)
    (message "gc-cons-threshold and file-name-handler-alist restored")))
 
 (provide 'early-init)
