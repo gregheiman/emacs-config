@@ -106,17 +106,23 @@
   (setq undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo"))))
 
 ;;;; Color Theme
-(use-package doom-themes
+(use-package ef-themes
   :hook (prog-mode . (lambda () (gh/custom-theme-faces)))
   :init
-  (load-theme 'doom-horizon t))
+  (load-theme 'ef-dark t))
 
 ;;;; In-Buffer Editing
 (use-package corfu ;; In buffer text completion
   :hook ((prog-mode . corfu-mode)
          (shell-mode . corfu-mode)
          (eshell-mode . corfu-mode)
-         (term-mode . corfu-mode))
+         (term-mode . corfu-mode)
+         (corfu-mode . corfu-popupinfo-mode))
+  :bind (:map corfu-map
+              ("TAB" . corfu-next)
+              ([tab] . corfu-next)
+              ("S-TAB" . corfu-previous)
+              ([backtab] . corfu-previous))
   :custom
   (corfu-cycle t)
   (corfu-auto t)
@@ -124,11 +130,7 @@
   (corfu-quit-no-match t)
   (corfu-echo-documentation t)
   (corfu-preselect-first nil)
-  :bind (:map corfu-map
-              ("TAB" . corfu-next)
-              ([tab] . corfu-next)
-              ("S-TAB" . corfu-previous)
-              ([backtab] . corfu-previous)))
+  (corfu-popuinfo-delay (cons 1.0 1.0)))
 
 (use-package eglot ;; Minimal LSP client
   :hook (((c-mode c++-mode c-or-c++-mode objc-mode) . eglot-ensure)
@@ -136,8 +138,8 @@
          (rust-mode . eglot-ensure)
          (haskell-mode . eglot-ensure)
          (java-mode . eglot-ensure)
-         (go-ts-mode . eglot-ensure)
-         ((js-mode typescript-ts-mode) . eglot-ensure)
+         (go-mode . eglot-ensure)
+         ((js-mode typescript-ts-mode tsx-ts-mode) . eglot-ensure)
          (eglot-managed-mode . (lambda ()
                                  (setq eldoc-documentation-functions ;; Show flymake diagnostics first.
                                        (cons #'flymake-eldoc-function
@@ -167,15 +169,6 @@
     (_server (_cmd (eql java.apply.workspaceEdit)) arguments)
     "Eclipse JDT breaks spec and replies with edits as arguments."
     (mapc #'eglot--apply-workspace-edit arguments)))
-
-(use-package apheleia ;; Format code automatically
-  :hook (((c-mode c++-mode c-or-c++-mode) . apheleia-mode)
-         (go-mode . apheleia-mode)
-         (java-mode . apheleia-mode)
-         (js-mode . apheleia-mode)
-         (python-mode . apheleia-mode)
-         (rust-mode . apheleia-mode)
-         (typescript-ts-mode . apheleia-mode)))
 
 ;;;; Minibuffer
 (use-package vertico ;; The minibuffer package with it all
@@ -276,14 +269,14 @@
 
   ;; Set the default font size for Emacs
   (cond ((string-equal system-type "darwin")
-            (set-face-attribute 'default nil :font (concat custom-font " 14")))
+            (set-face-attribute 'default nil :font (concat custom-font " 13")))
         (t (set-face-attribute 'default nil :font (concat custom-font " 12"))))
 
   ;; Set the default font size for emacsclient
   (when (and (daemonp) (string-equal system-type "gnu/linux"))
     (add-to-list 'default-frame-alist '(font . (concat custom-font " 12"))))
   (when (and (daemonp) (string-equal system-type "darwin"))
-    (add-to-list 'default-frame-alist '(font . (concat custom-font " 14"))))
+    (add-to-list 'default-frame-alist '(font . (concat custom-font " 13"))))
 
   ;; Add to the interface
   (global-hl-line-mode 1) ;; Highlight the current line
@@ -655,10 +648,11 @@
 
 (use-package go-ts-mode ;; Built-in Go mode using tree-sitter
   :ensure nil
+  :disabled
   :init
   (define-derived-mode go-auto-mode prog-mode "Go Auto"
     "Automatically decide which Go mode to use."
-    (if (treesit-ready-p 'go t)
+    (if(treesit-ready-p 'go t)
         (go-ts-mode)
       (go-mode)))
   (add-to-list 'major-mode-remap-alist '(go-mode . go-auto-mode))
@@ -701,7 +695,13 @@
   :ensure nil
   :hook (typescript-ts-mode . gh/typescript-ts-mode-configuration)
   :init
-  (when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\.ts[x]?\\'" . typescript-ts-mode))))
+  (when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\.ts?\\'" . typescript-ts-mode))))
+
+(use-package tsx-ts-mode ;; Built-in TSX mode using tree-sitter
+  :ensure nil
+  :hook (tsx-ts-mode . gh/typescript-ts-mode-configuration)
+  :init
+  (when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\.tsx?\\'" . tsx-ts-mode))))
 
 (use-package rust-ts-mode ;; Built-in Rust mode using tree-sitter
   :ensure nil
@@ -736,7 +736,7 @@
   :init
   :config
   (if (executable-find "rg")
-      (setq grep-template "rg -n -H --no-heading -g **/<F> -e <R> .")
+      (setq grep-template "rg -n -H --no-heading -g '<F>' -e <R> .")
     (setq grep-use-null-device nil)))
 
 (use-package etags ;; Built-in tagging similar to ctags
