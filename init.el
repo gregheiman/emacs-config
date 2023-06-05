@@ -107,28 +107,36 @@
 
 ;;;; Color Theme
 (use-package ef-themes
+  :disabled
   :hook (prog-mode . (lambda () (gh/custom-theme-faces)))
   :init
   (load-theme 'ef-dark t))
+
+(use-package doom-themes
+  :hook (prog-mode . (lambda () (gh/custom-theme-faces)))
+  :init
+  (load-theme 'doom-gruvbox t))
 
 ;;;; In-Buffer Editing
 (use-package corfu ;; In buffer text completion
   :hook ((prog-mode . corfu-mode)
          (shell-mode . corfu-mode)
          (eshell-mode . corfu-mode)
-         (term-mode . corfu-mode))
-  :custom
-  (corfu-cycle t)
-  (corfu-auto t)
-  (corfu-quit-at-boundary t)
-  (corfu-quit-no-match t)
-  (corfu-echo-documentation t)
-  (corfu-preselect-first nil)
+         (term-mode . corfu-mode)
+         (corfu-mode . corfu-popupinfo-mode))
   :bind (:map corfu-map
               ("TAB" . corfu-next)
               ([tab] . corfu-next)
               ("S-TAB" . corfu-previous)
-              ([backtab] . corfu-previous)))
+              ([backtab] . corfu-previous))
+  :config
+  (setq corfu-cycle t)
+  (setq corfu-auto t)
+  (setq corfu-quit-at-boundary t)
+  (setq corfu-quit-no-match t)
+  (setq corfu-echo-documentation t)
+  (setq corfu-preselect-first nil)
+  (setq corfu-popupinfo-mode (cons 1.0 1.0)))
 
 (use-package eglot ;; Minimal LSP client
   :hook (((c-mode c++-mode c-or-c++-mode objc-mode) . (lambda () (when (executable-find "clangd") (eglot-ensure))))
@@ -226,7 +234,7 @@
 
 (use-package go-mode) ;; Major mode for Go
 
-(use-package markdown-mode ;; Major mode for markdown files
+(use-package markdown-mode ;; Major mode for Markdown
   :config
   (if (executable-find "pandoc") ;; Set pandoc as the program that gets called when you issue a markdown command
       (setq markdown-command "pandoc")))
@@ -269,7 +277,7 @@
 
   ;; Set the default font size for Emacs
   (cond ((string-equal system-type "darwin")
-            (set-face-attribute 'default nil :font (concat custom-font " 13")))
+            (set-face-attribute 'default nil :font (concat custom-font " 12")))
         (t (set-face-attribute 'default nil :font (concat custom-font " 12"))))
 
   ;; Set the default font size for emacsclient
@@ -294,6 +302,10 @@
   (setq auto-save-no-message t)
   (when (or (string-equal system-type "darwin") (string-equal system-type "gnu/linux")) ;; Set up exec-path using PATH
     (gh/set-exec-path-from-shell-PATH))
+
+  ;; Removes *messages* from the buffer.
+  (setq-default message-log-max nil)
+  (kill-buffer "*Messages*")
 
   ;; Indent configuration
   (setq-default indent-tabs-mode nil) ;; Use spaces for tabs instead of tab characters
@@ -733,10 +745,9 @@
 
 (use-package grep ;; Built-in grep
   :ensure nil
-  :init
   :config
   (if (executable-find "rg")
-      (setq grep-template "rg -n -H --no-heading -g '<F>' -e <R> .")
+      (setq grep-template "rg -n -H --no-heading -g '<F>' -e <R> ./**")
     (setq grep-use-null-device nil)))
 
 (use-package etags ;; Built-in tagging similar to ctags
