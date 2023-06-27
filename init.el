@@ -139,13 +139,13 @@
   (setq corfu-popupinfo-mode (cons 1.0 1.0)))
 
 (use-package eglot ;; Minimal LSP client
-  :hook (((c-mode c++-mode c-or-c++-mode objc-mode) . (lambda () (when (executable-find "clangd") (eglot-ensure))))
-         (python-mode . (lambda () (when (executable-find "pyright") (eglot-ensure))))
-         (rust-mode . (lambda () (when (executable-find "rust-analyzer") (eglot-ensure))))
-         (haskell-mode . (lambda () (when (or (executable-find "haskell-language-server") (executable-find "haskell-language-server-wrapper")) (eglot-ensure))))
-         (java-mode . (lambda () (when (executable-find "jdtls") (eglot-ensure))))
-         (go-mode . (lambda () (when (executable-find "gopls") (eglot-ensure))))
-         ((js-mode typescript-ts-mode tsx-ts-mode) . (lambda () (when (executable-find "typescript-language-server" (eglot-ensure)))))
+  :hook (((c-mode c++-mode c-or-c++-mode objc-mode) . eglot-ensure)
+         (python-mode . eglot-ensure)
+         (rust-mode . eglot-ensure)
+         (haskell-mode . eglot-ensure)
+         (java-mode . eglot-ensure)
+         (go-mode . eglot-ensure)
+         ((js-mode typescript-ts-mode tsx-ts-mode) . eglot-ensure)
          (eglot-managed-mode . (lambda ()
                                  (setq eldoc-documentation-functions ;; Show flymake diagnostics first.
                                        (cons #'flymake-eldoc-function
@@ -177,8 +177,8 @@
     (mapc #'eglot--apply-workspace-edit arguments)))
 
 ;;;; Minibuffer
-(use-package vertico ;; Fast, lightweight minibuffer completion
-  :hook ((after-init . vertico-mode))
+(use-package vertico ;; The minibuffer package with it all
+  :hook (after-init . vertico-mode)
   :config
   (setq vertico-cycle t))
 
@@ -252,8 +252,6 @@
 
 (use-package magit ;; Git managment within Emacs (Very slow on Windows)
   :bind-keymap ("C-c m" . magit-mode-map))
-
-(use-package verb) ;; Organize and send HTTP requests using Org
 
 (use-package diminish) ;; Remove minor modes from the modeline
 
@@ -561,11 +559,21 @@
          (org-mode . org-fragtog-mode)
          (org-mode . org-appear-mode)
          (org-mode . gh/org-add-electric-pairs))
+  :bind (:map org-mode-map
+              ("C-j" . org-next-visible-heading)
+              ("C-k" . org-previous-visible-heading)
+              ("M-j" . org-metadown)
+              ("M-k" . org-metaup)
+              ("RET" . org-return))
   :init
   (with-eval-after-load "org"
     (define-abbrev org-mode-abbrev-table "asrc" "" 'org-src-block))
+  (org-babel-do-load-languages 'org-babel-load-languages ;; Set the langs. to load for org src blocks
+                               (append org-babel-load-languages
+                                       '((C . t)
+                                         (haskell . t))))
   :config
-  (define-key org-mode-map (kbd "C-c C-r") verb-command-map)
+  (setq org-format-latex-options (plist-put org-format-latex-options :scale 1.5)) ;; Increase size of latex previews
   (setq org-src-fontify-natively t
         org-hide-emphasis-markers t
         org-fontify-quote-and-verse-blocks t
@@ -577,18 +585,8 @@
         org-startup-with-latex-preview t
         org-startup-indented t
         org-return-follows-link t)
-  (plist-put org-format-latex-options :scale 1.5) ;; Increase size of latex previews
-  (org-babel-do-load-languages 'org-babel-load-languages ;; Set the langs. to load for org src blocks
-                               (append org-babel-load-languages
-                                       '((C . t)
-                                         (haskell . t))))
   (if (executable-find "latexmk") ;; Set the command for org -> latex -> pdf
-      (setq-default org-latex-pdf-process '("latexmk -output-directory=%o -pdflatex='pdflatex -interaction nonstopmode' -pdf -bibtex -f %f")))
-  (evil-define-key '(normal insert visual) org-mode-map (kbd "C-j") 'org-next-visible-heading)
-  (evil-define-key '(normal insert visual) org-mode-map (kbd "C-k") 'org-previous-visible-heading)
-  (evil-define-key '(normal insert visual) org-mode-map (kbd "M-j") 'org-metadown)
-  (evil-define-key '(normal insert visual) org-mode-map (kbd "M-k") 'org-metaup)
-  (evil-define-key '(normal) org-mode-map (kbd "RET") 'org-return))
+      (setq-default org-latex-pdf-process '("latexmk -output-directory=%o -pdflatex='pdflatex -interaction nonstopmode' -pdf -bibtex -f %f"))))
 
 (use-package org-agenda ;; Built-in powerful TODO list and agenda tracking
   :ensure nil
@@ -664,7 +662,7 @@
   :init
   (define-derived-mode go-auto-mode prog-mode "Go Auto"
     "Automatically decide which Go mode to use."
-    (if (treesit-ready-p 'go t)
+    (if(treesit-ready-p 'go t)
         (go-ts-mode)
       (go-mode)))
   (add-to-list 'major-mode-remap-alist '(go-mode . go-auto-mode))
