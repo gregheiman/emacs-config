@@ -128,14 +128,14 @@
               ([tab] . corfu-next)
               ("S-TAB" . corfu-previous)
               ([backtab] . corfu-previous))
-  :custom
-  (corfu-cycle t)
-  (corfu-auto t)
-  (corfu-quit-at-boundary t)
-  (corfu-quit-no-match t)
-  (corfu-echo-documentation t)
-  (corfu-preselect-first nil)
-  (corfu-popuinfo-delay (cons 1.0 1.0)))
+  :config
+  (setq corfu-cycle t)
+  (setq corfu-auto t)
+  (setq corfu-quit-at-boundary t)
+  (setq corfu-quit-no-match t)
+  (setq corfu-echo-documentation t)
+  (setq corfu-preselect-first nil)
+  (setq corfu-popupinfo-mode (cons 1.0 1.0)))
 
 (use-package eglot ;; Minimal LSP client
   :hook (((c-mode c++-mode c-or-c++-mode objc-mode) . eglot-ensure)
@@ -233,7 +233,7 @@
 
 (use-package go-mode) ;; Major mode for Go
 
-(use-package markdown-mode ;; Major mode for markdown files
+(use-package markdown-mode ;; Major mode for Markdown
   :config
   (if (executable-find "pandoc") ;; Set pandoc as the program that gets called when you issue a markdown command
       (setq markdown-command "pandoc")))
@@ -299,6 +299,10 @@
   (setq auto-save-no-message t)
   (when (or (string-equal system-type "darwin") (string-equal system-type "gnu/linux")) ;; Set up exec-path using PATH
     (gh/set-exec-path-from-shell-PATH))
+
+  ;; Removes *messages* from the buffer.
+  (setq-default message-log-max nil)
+  (kill-buffer "*Messages*")
 
   ;; Indent configuration
   (setq-default indent-tabs-mode nil) ;; Use spaces for tabs instead of tab characters
@@ -743,10 +747,9 @@
 
 (use-package grep ;; Built-in grep
   :ensure nil
-  :init
   :config
   (if (executable-find "rg")
-      (setq grep-template "rg -n -H --no-heading -g '<F>' -e <R> .")
+      (setq grep-template "rg -n -H --no-heading -g '<F>' -e <R> ./**")
     (setq grep-use-null-device nil)))
 
 (use-package etags ;; Built-in tagging similar to ctags
