@@ -106,10 +106,15 @@
   (setq undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo"))))
 
 ;;;; Color Theme
-(use-package ef-themes
+(use-package dracula-theme
   :hook (prog-mode . (lambda () (gh/custom-theme-faces)))
   :init
-  (load-theme 'ef-dark t))
+  (load-theme 'dracula t)
+  :config
+  (setq dracula-height-title-1 1.0)
+  (setq dracula-height-title-2 1.0)
+  (setq dracula-height-title-3 1.0)
+  (setq dracula-height-doc-title 1.0))
 
 ;;;; In-Buffer Editing
 (use-package corfu ;; In buffer text completion
@@ -270,7 +275,7 @@
   ;; Set the default font size for Emacs
   (cond ((string-equal system-type "darwin")
             (set-face-attribute 'default nil :font (concat custom-font " 13")))
-        (t (set-face-attribute 'default nil :font (concat custom-font " 12"))))
+        (t (set-face-attribute 'default nil :font (concat custom-font " 11"))))
 
   ;; Set the default font size for emacsclient
   (when (and (daemonp) (string-equal system-type "gnu/linux"))
@@ -351,7 +356,12 @@
         version-control        t  ; Use version numbers on backups
         delete-old-versions    t  ; Automatically delete excess backups:
         kept-new-versions      5 ; how many of the newest versions to keep
-        kept-old-versions      2)) ; and how many of the old
+        kept-old-versions      2) ; and how many of the old
+
+  ;; Scratch configuration
+  (setq initial-major-mode 'org-mode) ;; Scratch buffer should be in org mode
+  (setq initial-scratch-message "")) ;; Scratch buffer message should be blank
+
 
 (use-package eshell ;; Emacs lisp shell
   :ensure nil
@@ -561,7 +571,7 @@
   (org-babel-do-load-languages 'org-babel-load-languages ;; Set the langs. to load for org src blocks
                                (append org-babel-load-languages
                                        '((C . t)
-                                         (haskell . t))))
+                                         (python . t))))
   :config
   (setq org-format-latex-options (plist-put org-format-latex-options :scale 1.5)) ;; Increase size of latex previews
   (setq org-src-fontify-natively t
