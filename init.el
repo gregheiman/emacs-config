@@ -18,7 +18,8 @@
 (setq package-archives
     '(("melpa" . "https://melpa.org/packages/")
         ("nongnu-elpa" . "https://elpa.nongnu.org/nongnu/")
-        ("elpa" . "https://elpa.gnu.org/packages/")))
+        ("elpa" . "https://elpa.gnu.org/packages/")
+        ("elpa-devel" . "https://elpa.gun.org/devel/")))
 (package-initialize) ;; Initialize package.el
 (unless package-archive-contents ;; Auto download package archive repository manifest if not present
     (package-refresh-contents))
@@ -166,7 +167,7 @@
     (add-to-list 'eglot-server-programs '((c-ts-mode c++-ts-mode) "clangd"))
     (add-to-list 'eglot-server-programs '(python-ts-mode "pyright-langserver" "--stdio")))
   :config
-  (setq eglot-events-buffer-size 0) ;; disable events logging to speed up eglot
+  ;; (setq eglot-events-buffer-size 0) ;; disable events logging to speed up eglot
   (setq eglot-extend-to-xref nil) ;; keep system headers using the same lsp
   (setq eglot-autoshutdown t) ;; autoshutdown server after last buffer using it is deleted
   (setq eglot-ignored-server-capabilities '(list :documentHighlightProvider))
@@ -239,6 +240,8 @@
       (setq markdown-command "pandoc")))
 
 (use-package rust-mode) ;; Major mode for Rust
+
+(use-package terraform-mode) ;; Major mode for Terraform
 
 (use-package yaml-mode) ;; Major mode for YAML
 
