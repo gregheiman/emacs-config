@@ -72,7 +72,7 @@
   (eval-after-load 'evil-ex
     '(evil-ex-define-cmd "find" 'find-file))
   (eval-after-load 'evil-ex
-    '(evil-ex-define-cmd "browse-old" 'recentf-open-files))
+    '(evil-ex-define-cmd "oldfiles" 'recentf))
   (eval-after-load 'evil-ex
     '(evil-ex-define-cmd "Files" 'project-find-file))
   (eval-after-load 'evil-ex
