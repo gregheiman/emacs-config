@@ -168,6 +168,7 @@
     (add-to-list 'eglot-server-programs '(python-ts-mode "pyright-langserver" "--stdio")))
   :config
   ;; (setq eglot-events-buffer-size 0) ;; disable events logging to speed up eglot
+  (setq eglot-send-changes-idle-time 1.5)
   (setq eglot-extend-to-xref nil) ;; keep system headers using the same lsp
   (setq eglot-autoshutdown t) ;; autoshutdown server after last buffer using it is deleted
   (setq eglot-ignored-server-capabilities '(list :documentHighlightProvider))
@@ -236,6 +237,7 @@
 
 (use-package markdown-mode ;; Major mode for Markdown
   :config
+  (setq markdown-enable-math t)
   (if (executable-find "pandoc") ;; Set pandoc as the program that gets called when you issue a markdown command
       (setq markdown-command "pandoc")))
 
@@ -335,7 +337,7 @@
   (setq auto-revert-check-vc-info t) ;; Auto revert vc
 
   ;; Auto revert files
-  (global-auto-revert-mode 1) ;; Auto update when files change on disk
+  (global-auto-revert-mode 0) ;; Auto update when files change on disk
   (setq auto-revert-verbose nil) ;; Be quite about updating files when they're changed on disk
 
   ;; Don't show commands that aren't valid with current modes (Only in Emacs > 28)
@@ -451,15 +453,24 @@
 
 (use-package flymake ;; On the fly diagnostic checking
   :ensure nil
-  :hook (prog-mode . flymake-mode))
+  :hook (prog-mode . flymake-mode)
+  :config
+  (setq flymake-no-changes-timeout 1.5))
 
 (use-package flyspell ;; Built-in spell checking
   :ensure nil
-  ;; Should turn on the proper flyspell mode for any buffer associated with a file
-  :hook (find-file . gh/flyspell-on-for-buffer-type)
+  :hook ((markdown-mode . gh/flyspell-on-for-buffer-type)
+         (org-mode . gh/flyspell-on-for-buffer-type)
+         (git-commit-setup . git-commit-turn-on-flyspell)
+         (text-mode . gh/flyspell-on-for-buffer-type)
+         (LaTeX-mode . gh/flyspell-on-for-buffer-type)
+         (latex-mode . gh/flyspell-on-for-buffer-type))
   :config
+  (setq flyspell-issue-message-flag nil) ;; Do not print messages for every word
+  (add-to-list 'ispell-skip-region-alist '("^#+BEGIN_SRC" . "^#+END_SRC")) ;; Skip src block in org mode files
   (if (executable-find "aspell") ;; Use aspell if available
-      (setq ispell-program-name "aspell")))
+      (setq ispell-program-name "aspell")
+      (setq ispell-list-command "--list")))
 
 (use-package outline ;; Built-in minor mode that allows for folding code
   :ensure nil
