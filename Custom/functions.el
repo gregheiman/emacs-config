@@ -42,7 +42,8 @@
 
 (defun gh/c-mode-configuration ()
   "Set C style configuration."
-  (setq c-basic-offset 4) ;; Set 4 space tabs
+  (setq c-basic-offset 4)
+  (setq c-file-style "bsd")
   (c-set-offset 'substatement-open 0)
   (eldoc-add-command 'c-electric-paren))
 

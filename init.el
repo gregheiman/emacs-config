@@ -129,14 +129,14 @@
               ([tab] . corfu-next)
               ("S-TAB" . corfu-previous)
               ([backtab] . corfu-previous))
-  :config
-  (setq corfu-cycle t)
-  (setq corfu-auto t)
-  (setq corfu-quit-at-boundary t)
-  (setq corfu-quit-no-match t)
-  (setq corfu-echo-documentation t)
-  (setq corfu-preselect-first nil)
-  (setq corfu-popupinfo-mode (cons 1.0 1.0)))
+  :custom
+  (corfu-cycle t)
+  (corfu-auto t)
+  (corfu-quit-at-boundary t)
+  (corfu-quit-no-match t)
+  (corfu-echo-documentation t)
+  (corfu-preselect-first nil)
+  (corfu-popupinfo-mode (cons 1.0 1.0)))
 
 (use-package eglot ;; Minimal LSP client
   :hook (((c-mode c++-mode c-or-c++-mode objc-mode) . eglot-ensure)
@@ -156,22 +156,12 @@
          ("gy" . eglot-find-typeDefinition)
          :map eglot-mode-map
          ("C-c l" . hydra-eglot/body))
-  :init
-  (with-eval-after-load 'eglot
-    (add-to-list 'eglot-server-programs
-               '(java-mode "jdtls"
-                           "-configuration" ,(expand-file-name "~/.cache/jdtls")
-                           "-data" ,(expand-file-name "~/eclipse-workspace")
-                           ,(concat "--jvm-arg=-javaagent:" (expand-file-name "~/.m2/repository/org/projectlombok/lombok/1.18.24/lombok-1.18.24.jar"))))
-    (add-to-list 'eglot-server-programs '(rust-ts-mode "rust-analyzer"))
-    (add-to-list 'eglot-server-programs '((c-ts-mode c++-ts-mode) "clangd"))
-    (add-to-list 'eglot-server-programs '(python-ts-mode "pyright-langserver" "--stdio")))
+  :custom
+  (eglot-events-buffer-size 0 "Disable events logging to speed up Eglot")
+  (eglot-extend-to-xref nil "Ensure that system headers/libs use the same LSP instance")
+  (eglot-autoshutdown t "Auto-shutdown servers aftre the last buffer using it is deleted")
+  (eglot-ignored-server-capabilities '(list :documentHighlightProvider) "Ignore certain server capabilities.")
   :config
-  ;; (setq eglot-events-buffer-size 0) ;; disable events logging to speed up eglot
-  (setq eglot-send-changes-idle-time 1.5)
-  (setq eglot-extend-to-xref nil) ;; keep system headers using the same lsp
-  (setq eglot-autoshutdown t) ;; autoshutdown server after last buffer using it is deleted
-  (setq eglot-ignored-server-capabilities '(list :documentHighlightProvider))
   (cl-defmethod eglot-execute-command
     (_server (_cmd (eql java.apply.workspaceEdit)) arguments)
     "Eclipse JDT breaks spec and replies with edits as arguments."
@@ -307,7 +297,8 @@
 
   ;; Removes *messages* from the buffer.
   (setq-default message-log-max nil)
-  (kill-buffer "*Messages*")
+  (when (get-buffer "*Messages*")
+    (kill-buffer "*Messages*"))
 
   ;; Indent configuration
   (setq-default indent-tabs-mode nil) ;; Use spaces for tabs instead of tab characters
@@ -531,7 +522,6 @@
   :hook ((c-mode . gh/c-mode-configuration)
          (c-mode . (lambda () (add-hook 'after-save-hook (lambda () (hide-ifdefs)) nil t))))
   :init
-  (setq c-default-style "bsd")
   (with-eval-after-load "cc-mode"
     (define-abbrev c-mode-abbrev-table "aif" "" 'c-if-statement)
     (define-abbrev c-mode-abbrev-table "aelif" "" 'c-elif-statement)
@@ -543,7 +533,6 @@
   :hook ((c++-mode . gh/c-mode-configuration)
          (c++-mode . (lambda () (add-hook 'after-save-hook (lambda () (hide-ifdefs)) nil t))))
   :init
-  (setq c-default-style "bsd")
   (with-eval-after-load "cc-mode"
     (define-abbrev c++-mode-abbrev-table "aif" "" 'c-if-statement)
     (define-abbrev c++-mode-abbrev-table "aelif" "" 'c-elif-statement)
@@ -621,136 +610,104 @@
 ;;;;; Tree-Sitter Modes
 (use-package bash-ts-mode ;; Built-in Bash major mode using tree-sitter
   :ensure nil
+  :if (treesit-language-available-p 'bash)
   :init
-  (define-derived-mode bash-auto-mode prog-mode "Bash Auto"
-    "Automatically decide which Bash mode to use."
-    (if (treesit-ready-p 'bash t)
-        (bash-ts-mode)
-      (sh-mode)))
-  (add-to-list 'major-mode-remap-alist '(sh-mode . bash-auto-mode))
+  (add-to-list 'major-mode-remap-alist '(sh-mode . bash-ts-mode))
   (with-eval-after-load 'sh-mode-hook
     (setq bash-ts-mode-hook sh-mode-hook)))
 
 (use-package c-ts-mode ;; Built-in C major mode using tree-sitter
   :ensure nil
+  :if (treesit-language-available-p 'c)
+  :custom
+  (c-ts-mode-indent-offset 4)
+  (c-ts-mode-indent-style 'bsd)
   :init
-  (define-derived-mode c-auto-mode prog-mode "C Auto"
-    "Automatically decide which C mode to use."
-    (if (treesit-ready-p 'c t)
-        (c-ts-mode)
-      (c-mode)))
-  (add-to-list 'major-mode-remap-alist '(c-mode . c-auto-mode))
+  (add-to-list 'major-mode-remap-alist '(c-mode . c-ts-mode))
   (setq c-ts-mode-hook c-mode-hook))
 
 (use-package c++-ts-mode ;; Built-in C++ major mode using tree-sitter
   :ensure nil
+  :if (treesit-language-available-p 'cpp)
+  :custom
+  (c-ts-mode-indent-offset 4)
+  (c-ts-mode-indent-style 'bsd)
+  (c++-ts-mode-hook c++-mode-hook)
   :init
-  (define-derived-mode c++-auto-mode prog-mode "C++ Auto"
-    "Automatically decide which C++ mode to use."
-    (if (treesit-ready-p 'cpp t)
-        (c++-ts-mode)
-      (c++-mode)))
-  (add-to-list 'major-mode-remap-alist '(c++-mode . c++-auto-mode))
-  (setq c++-ts-mode-hook c++-mode-hook))
+  (add-to-list 'major-mode-remap-alist '(c++-mode . c++-ts-mode)))
 
 (use-package c-or-c++-ts-mode ;; Build-in C/C++ major mode using tree-sitter
   :ensure nil
+  :if (treesit-language-available-p 'c-or-c++)
+  :custom
+  (c-ts-mode-indent-offset 4)
+  (c-ts-mode-indent-style 'bsd)
+  (c-or-c++-ts-mode-hook c-or-c++-mode-hook)
   :init
-  (define-derived-mode c-or-c++-auto-mode prog-mode "C or C++ Auto"
-    "Automatically decide which C or C++ mode to use."
-    (if (treesit-ready-p 'c-or-c++ t)
-        (c-or-c++-ts-mode)
-      (c-or-c++-mode)))
-  (add-to-list 'major-mode-remap-alist '(c-or-c++-mode . c-or-c++-auto-mode))
-  (setq c-or-c++-ts-mode-hook c-or-c++-mode-hook))
+  (add-to-list 'major-mode-remap-alist '(c-or-c++-mode . c-or-c++-ts-mode)))
 
 (use-package dockerfile-ts-mode ;; Built-in Dockerfile mode using tree-sitter
   :ensure nil
+  :if (treesit-language-available-p 'dockerfile)
   :init
-  (define-derived-mode dockerfile-auto-mode prog-mode "Dockerfile Auto"
-    "Automatically decide which Dockerfile mode to use."
-    (if (treesit-ready-p 'dockerfile t)
-        (dockerfile-ts-mode)
-      (dockerfile-mode)))
-  (add-to-list 'major-mode-remap-alist '(dockerfile-mode . dockerfile-auto-mode)))
+  (add-to-list 'major-mode-remap-alist '(dockerfile-mode . dockerfile-ts-mode)))
 
 (use-package go-ts-mode ;; Built-in Go mode using tree-sitter
   :ensure nil
-  :disabled
+  :if (treesit-language-available-p 'go)
   :init
-  (define-derived-mode go-auto-mode prog-mode "Go Auto"
-    "Automatically decide which Go mode to use."
-    (if(treesit-ready-p 'go t)
-        (go-ts-mode)
-      (go-mode)))
-  (add-to-list 'major-mode-remap-alist '(go-mode . go-auto-mode))
+  (add-to-list 'major-mode-remap-alist '(go-mode . go-ts-mode))
   (setq go-ts-mode-hook go-mode-hook))
 
 (use-package java-ts-mode ;; Built-in Java mode using tree-sitter
   :ensure nil
+  :if (treesit-language-available-p 'java)
   :init
-  (define-derived-mode java-auto-mode prog-mode "Java Auto"
-    "Automatically decide which Java mode to use."
-    (if (treesit-ready-p 'java t)
-        (java-ts-mode)
-      (java-mode)))
-  (add-to-list 'major-mode-remap-alist '(java-mode . java-auto-mode))
+  (add-to-list 'major-mode-remap-alist '(java-mode . java-ts-mode))
   (setq java-ts-mode-hook java-mode-hook))
 
 (use-package js-ts-mode ;; Built-in JavaScript mode using tree-sitter
   :ensure nil
+  :if (treesit-language-available-p 'js)
   :init
-  (define-derived-mode js-auto-mode prog-mode "JavaScript Auto"
-    "Automatically decide which JavaScript mode to use."
-    (if (treesit-ready-p 'js t)
-        (js-ts-mode)
-      (js-mode)))
-  (add-to-list 'major-mode-remap-alist '(js-mode . js-auto-mode))
+  (add-to-list 'major-mode-remap-alist '(js-mode . js-ts-mode))
   (setq js-ts-mode-hook js-mode-hook))
 
 (use-package python-ts-mode ;; Built-in Python mode using tree-sitter
   :ensure nil
+  :if (treesit-language-available-p 'python)
   :init
-  (define-derived-mode python-auto-mode prog-mode "Python Auto"
-    "Automatically decide which Python mode to use."
-    (if (treesit-ready-p 'python t)
-        (python-ts-mode)
-      (python-mode)))
-  (add-to-list 'major-mode-remap-alist '(python-mode . python-auto-mode))
+  (add-to-list 'major-mode-remap-alist '(python-mode . python-ts-mode))
   (setq python-ts-mode-hook python-mode-hook))
 
 (use-package typescript-ts-mode ;; Built-in TypeScript mode using tree-sitter
   :ensure nil
+  :if (treesit-language-available-p 'typescript)
   :hook (typescript-ts-mode . gh/typescript-ts-mode-configuration)
   :init
-  (when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\.ts?\\'" . typescript-ts-mode))))
+  (add-to-list 'auto-mode-alist '("\\.ts?\\'" . typescript-ts-mode)))
 
 (use-package tsx-ts-mode ;; Built-in TSX mode using tree-sitter
   :ensure nil
+  :if (treesit-language-available-p 'typescript)
   :hook (tsx-ts-mode . gh/typescript-ts-mode-configuration)
   :init
-  (when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\.tsx?\\'" . tsx-ts-mode))))
+  (add-to-list 'auto-mode-alist '("\\.tsx?\\'" . tsx-ts-mode)))
 
 (use-package rust-ts-mode ;; Built-in Rust mode using tree-sitter
   :ensure nil
+  :if (treesit-language-available-p 'rust)
   :init
-  (define-derived-mode rust-auto-mode prog-mode "Rust Auto"
-    "Automatically decide which Rust mode to use."
-    (if (treesit-ready-p 'rust t)
-        (rust-ts-mode)
-      (rust-mode)))
   (add-to-list 'major-mode-remap-alist '(rust-mode . rust-auto-mode))
   (setq rust-ts-mode-hook rust-mode-hook))
 
 (use-package yaml-ts-mode ;; Built-in YAML mode using tree-sitter
   :ensure nil
+  :if (treesit-language-available-p 'yaml)
   :init
-  (define-derived-mode yaml-auto-mode prog-mode "Yaml Auto"
-    "Automatically decide which Yaml mode to use."
-    (if (treesit-ready-p 'yaml t)
-        (yaml-ts-mode)
-      (yaml-mode)))
-  (add-to-list 'major-mode-remap-alist '(yaml-mode . yaml-auto-mode)))
+  (add-to-list 'major-mode-remap-alist '(yaml-mode . yaml-auto-mode))
+  (with-eval-after-load 'yaml-mode-hook
+    (setq yaml-ts-mode-hook yaml-mode-hook)))
 
 ;;;; Utilities
 (use-package ediff ;; Built-in diff interface
