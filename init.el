@@ -177,10 +177,10 @@
   :hook (after-init . marginalia-mode))
 
 (use-package orderless ;; Allow for space delimeted searching
-  :init
-  (setq completion-styles '(orderless initials basic))
-  (setq completion-category-overrides '((file (styles basic partial-completion))))
-  (setq completion-ignore-case t))
+   :custom
+   (completion-styles '(orderless initials basic))
+   (completion-category-overrides '((file (styles basic partial-completion))))
+   (completion-ignore-case t))
 
 (use-package which-key ;; Show possible keybindings when you pause a keycord
   :defer 5
@@ -221,9 +221,15 @@
 (use-package cdlatex) ;; Fast input methods for latex
 
 ;;;; New Major Modes
+(use-package cmake-mode) ;; Major mode for CMake
+
 (use-package dockerfile-mode) ;; Major mode for Dockerfiles
 
 (use-package go-mode) ;; Major mode for Go
+
+(use-package jinja2-mode ;; Major mode for Jinja templates
+  :init
+  (add-to-list 'auto-mode-alist '("\\.jinja\\'" . jinja2-mode)))
 
 (use-package markdown-mode ;; Major mode for Markdown
   :config
@@ -281,7 +287,7 @@
   ;; Add to the interface
   (global-hl-line-mode 1) ;; Highlight the current line
   (show-paren-mode t) ;; Highlight matching delimeter pair
-  (setq-default show-paren-style 'parenthesis)
+  (setq-default show-paren-style 'mixed)
   (add-to-list 'default-frame-alist '(fullscreen . maximized)) ;; Start all emacs frames maximized
 
   ;; Bring Emacs into the 21st century
@@ -311,7 +317,6 @@
   (setq read-process-output-max (* 1024 1024)) ;; 1MB
   (defalias 'yes-or-no-p 'y-or-n-p) ;; Mad efficiency gains
   (setq custom-file (make-temp-file "emacs-custom-")) ;; Closest thing to disabling custom
-  (setq compilation-scroll-output t) ;; Auto scroll to bottom of compilation buffer
 
   ;; Set default line endings and encoding
   (set-default-coding-systems 'utf-8-unix)
@@ -326,10 +331,6 @@
   ;; Version control settings
   (setq vc-follow-symlinks t) ;; Don't prompt to follow symlinks
   (setq auto-revert-check-vc-info t) ;; Auto revert vc
-
-  ;; Auto revert files
-  (global-auto-revert-mode 0) ;; Auto update when files change on disk
-  (setq auto-revert-verbose nil) ;; Be quite about updating files when they're changed on disk
 
   ;; Don't show commands that aren't valid with current modes (Only in Emacs > 28)
   (if (not (version< emacs-version "28"))
@@ -368,6 +369,12 @@
   :config
   (setq-default eshell-prompt-function 'gh/eshell-prompt)
   (setq-default eshell-highlight-prompt nil))
+
+(use-package compilation ;; Built-in compilation mode
+  :ensure nil
+  :custom
+  (compilation-scroll-output t "Auto scroll to bottom of compilation buffer")
+  :hook (compilation-filter . 'ansi-color-compilation-filter))
 
 (use-package modeline ;; Built-in status line at the bottom of the screen
   :ensure nil
@@ -673,7 +680,7 @@
   (add-to-list 'major-mode-remap-alist '(js-mode . js-ts-mode))
   (setq js-ts-mode-hook js-mode-hook))
 
-(use-package python-ts-mode ;; Built-in Python mode using tree-sitter
+(use-package python-ts-mode ;; Built-in Python Mode using tree-sitter
   :ensure nil
   :if (treesit-language-available-p 'python)
   :init
