@@ -108,6 +108,7 @@
 
 ;;;; Color Theme
 (use-package dracula-theme
+  :disabled
   :hook (prog-mode . (lambda () (gh/custom-theme-faces)))
   :init
   (load-theme 'dracula t)
@@ -116,6 +117,26 @@
   (setq dracula-height-title-2 1.0)
   (setq dracula-height-title-3 1.0)
   (setq dracula-height-doc-title 1.0))
+
+(use-package tao-theme
+  :init
+  (load-theme 'tao-yin t)
+  :config
+  (custom-set-faces
+    '(mode-line ((t (:foregroud "#C3C3C3"))))
+    '(error ((t (:foreground unspecified :background unspecified :underline (:style wave :color "#FF0000")))))
+    '(success ((t (:foreground "#B6FDB8"))))
+    '(warning ((t (:foreground "#FDFBB6" :background unspecified))))
+    '(show-paren-match ((t (:foreground "#B6D6FD" :box (:color "#9E9E9E" :line-width -1)))))
+    '(show-paren-mismatch ((t (:foreground "#FFCBB5" :background unspecified :box (:color "#9E9E9E" :line-width -1)))))
+    '(whitespace-line ((t (:foreground "#FFB5B5"))))
+    '(compilation-error ((t (:foreground unspecified :underline unspecified :inherit error))))
+    '(flymake-error ((t (:foreground unspecified :underline unspecified :inherit error))))
+    '(flymake-warning ((t (:foreground unspecified :underline unspecified :inherit warning))))
+    '(font-lock-string-face ((t (:foreground "#B6D6FD"))))
+    '(font-lock-number-face ((t (:foreground "#B6D6FD"))))
+    '(font-lock-comment-face ((t (:foreground "#676767"))))
+    '(font-lock-doc-face ((t (:foreground "#676767"))))))
 
 ;;;; In-Buffer Editing
 (use-package corfu ;; In buffer text completion
@@ -162,6 +183,7 @@
   (eglot-autoshutdown t "Auto-shutdown servers aftre the last buffer using it is deleted")
   (eglot-ignored-server-capabilities '(list :documentHighlightProvider) "Ignore certain server capabilities.")
   :config
+  (add-to-list 'eglot-server-programs '(python-mode . ("pyright" "--stdio")))
   (cl-defmethod eglot-execute-command
     (_server (_cmd (eql java.apply.workspaceEdit)) arguments)
     "Eclipse JDT breaks spec and replies with edits as arguments."
@@ -372,9 +394,9 @@
 
 (use-package compilation ;; Built-in compilation mode
   :ensure nil
+  :hook (compilation-filter . ansi-color-compilation-filter)
   :custom
-  (compilation-scroll-output t "Auto scroll to bottom of compilation buffer")
-  :hook (compilation-filter . 'ansi-color-compilation-filter))
+  (compilation-scroll-output t "Auto scroll to bottom of compilation buffer"))
 
 (use-package modeline ;; Built-in status line at the bottom of the screen
   :ensure nil
@@ -653,6 +675,12 @@
   :init
   (add-to-list 'major-mode-remap-alist '(c-or-c++-mode . c-or-c++-ts-mode)))
 
+(use-package cmake-ts-mode ;; Built-in CMake major mode using tree-sitter
+  :ensure nil
+  :if (treesit-language-available-p 'cmake)
+  :init
+  (add-to-list 'major-mode-remap-alist '(cmake-mode . cmake-ts-mode)))
+
 (use-package dockerfile-ts-mode ;; Built-in Dockerfile mode using tree-sitter
   :ensure nil
   :if (treesit-language-available-p 'dockerfile)
@@ -727,7 +755,7 @@
   :ensure nil
   :config
   (if (executable-find "rg")
-      (setq grep-template "rg -n -H --no-heading -g '<F>' -e <R> ./**")
+      (setq grep-template "rg --color=never -n -H --no-heading -g '<F>' -e <R> ./**")
     (setq grep-use-null-device nil)))
 
 (use-package etags ;; Built-in tagging similar to ctags
