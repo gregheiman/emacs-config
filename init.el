@@ -107,26 +107,18 @@
   (setq undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo"))))
 
 ;;;; Color Theme
-(use-package dracula-theme
-  :disabled
-  :hook (prog-mode . (lambda () (gh/custom-theme-faces)))
-  :init
-  (load-theme 'dracula t)
-  :config
-  (setq dracula-height-title-1 1.0)
-  (setq dracula-height-title-2 1.0)
-  (setq dracula-height-title-3 1.0)
-  (setq dracula-height-doc-title 1.0))
-
 (use-package tao-theme
   :init
   (load-theme 'tao-yin t)
   :config
   (custom-set-faces
+    '(line-number ((t (:inherit font-lock-comment-face))))
     '(mode-line ((t (:foregroud "#C3C3C3"))))
+    '(minibuffer-prompt ((t (:foreground "#C3C3C3" :background unspecified :inherit unspecified))))
     '(error ((t (:foreground unspecified :background unspecified :underline (:style wave :color "#FF0000")))))
     '(success ((t (:foreground "#B6FDB8"))))
     '(warning ((t (:foreground "#FDFBB6" :background unspecified))))
+    '(dired-directory ((t (:foreground "#B6D6FD"))))
     '(vertico-current ((t (:background "#676767" :foreground "#FFFFFF"))))
     '(completions-annotations ((t (:foreground "#B6D6FD"))))
     '(completions-common-part ((t (:foreground "#B6D6FD" :inherit unspecified))))
@@ -135,6 +127,9 @@
     '(orderless-match-face-1 ((t :foreground "#B6FDB8")))
     '(orderless-match-face-2 ((t :foreground "#FDFBB6")))
     '(orderless-match-face-3 ((t :foreground "#FFB5B5")))
+    '(markdown-markup-face ((t :foreground "#C3C3C3")))
+    '(markdown-header-delimiter-face ((t :foreground "#C3C3C3")))
+    '(eglot-diagnostic-tag-unnecessary-face ((t :foreground unspecified :underline (:style wave :color "#FDFBB6"))))
     '(show-paren-match ((t (:foreground "#B6D6FD" :box (:color "#9E9E9E" :line-width -1)))))
     '(show-paren-mismatch ((t (:foreground "#FFCBB5" :background unspecified :box (:color "#9E9E9E" :line-width -1)))))
     '(whitespace-line ((t (:foreground "#FFB5B5"))))
@@ -361,7 +356,6 @@
 
   ;; Version control settings
   (setq vc-follow-symlinks t) ;; Don't prompt to follow symlinks
-  (setq auto-revert-check-vc-info t) ;; Auto revert vc
 
   ;; Don't show commands that aren't valid with current modes (Only in Emacs > 28)
   (if (not (version< emacs-version "28"))
@@ -394,6 +388,14 @@
   (setq initial-major-mode 'org-mode) ;; Scratch buffer should be in org mode
   (setq initial-scratch-message "")) ;; Scratch buffer message should be blank
 
+(use-package auto-revert ;; Built-in updating of buffers when file(s) on disk change
+  :ensure nil
+  :init
+  (global-auto-revert-mode 1)
+  :custom
+  (auto-revert-avoid-polling t "Avoid polling on systems where file notifications are available.")
+  (auto-revert-verbose nil "Don't show message when auto-reverting a buffer.")
+  (auto-revert-check-vc-info t "Auto revert version control info."))
 
 (use-package eshell ;; Emacs lisp shell
   :ensure nil
@@ -416,9 +418,7 @@
 
 (use-package dired ;; Built-in file manager
   :ensure nil
-  :hook (dired-mode . (lambda()
-                        (auto-revert-mode 1) ;; Automatically update Dired
-                        (setq auto-revert-verbose nil))) ;; Be quiet about updating Dired
+  :hook (dired-mode . (lambda () (auto-revert-mode 1) (setq auto-revert-verbose nil)))
   :bind (:map dired-mode-map
               ("C-c d" . hydra-dired/body)))
 
@@ -433,23 +433,12 @@
                   (nnimap-stream ssl)
                   (nnir-search-engine imap)
                   (nnmail-expiry-target "nnimap+gregheiman02@gmail.com:[Gmail]/Trash")
-                  (nnmail-expiry-wait 'immediate))
-          (nnimap "w459e964@wichita.edu"
-                  (nnimap-address "outlook.office365.com")
-                  (nnimap-server-port 993)
-                  (nnimap-stream ssl)
-                  (nnir-search-engine imap)
-                  (nnmail-expiry-target "nnimap+w459e964@wichita.edu:Trash")
                   (nnmail-expiry-wait 'immediate))))
   (setq gnus-ignored-newsgroups "^to\\.\\|^[0-9. ]+\\( \\|$\\)\\|^[\"]\"[#'()]") ;; Make gnus NOT ignore [Gmail] folders
   (setq gnus-posting-styles ;; Correct way to set up responding to emails with the correct email
         '((".*" ;; Matches all groups of messages
            (address "Greg Heiman <gregheiman02@gmail.com>")
-           ("X-Message-SMTP-Method" "smtp smtp.gmail.com 587 gregheiman02@gmail.com"))
-          ("w459e964@wichita.edu" ;; Matches Gnus group called w459e964@wichita.edu
-           (address "Greg Heiman <w459e964@wichita.edu>")
-           (organization "Wichita State University")
-           ("X-Message-SMTP-Method" "smtp smtp.office365.com 587 w459e964@wichita.edu")))))
+           ("X-Message-SMTP-Method" "smtp smtp.gmail.com 587 gregheiman02@gmail.com")))))
 
 (use-package minibuffer ;; Built-in interface used for many utility tasks
   :ensure nil
@@ -772,8 +761,6 @@
   :config
   (setq tags-revert-without-query t) ;; Don't ask before rereading the TAGS files if they have changed
   (setq tags-add-tables nil)) ;; Don't ask to keep current list of tags tables also)
-
-
 
 (use-package ibuffer ;; Built-in buffer management
   :ensure nil
