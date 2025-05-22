@@ -24,11 +24,19 @@
 (unless package-archive-contents ;; Auto download package archive repository manifest if not present
     (package-refresh-contents))
 
+(unless (package-installed-p 'exec-path-from-shell)
+  (package-install 'exec-path-from-shell))
+(eval-when-compile
+  (require 'exec-path-from-shell))
+(when (memq window-system '(mac ns x)) ;; Take PATH vars from shell when Emacs is launched from GUI window on MacOS or Linux
+  (exec-path-from-shell-initialize))
+(when (daemonp) ;; Take PATH vars from shell when Emacs is launched from daemon
+  (exec-path-from-shell-initialize))
+
 (unless (package-installed-p 'use-package) ;; Download use-package if not present
     (package-install 'use-package))
 (eval-when-compile ;; Use use-package to manage packages
     (require 'use-package))
-(require 'use-package)
 (setq use-package-always-ensure t) ;; Always download packages that are marked under use-package if they aren't installed
 (setq use-package-always-defer t) ;; Always defer package loading. If absolutely necessary use :demand to override
 
@@ -65,7 +73,8 @@
          ("<leader>f" . lgrep)
          ("K" . eldoc)
          ("gd" . xref-find-definitions)
-         ("gr" . xref-find-references))
+         ("gr" . xref-find-references)
+         ("gf" . project-find-file))
   :config
   (evil-set-undo-system 'undo-tree)
   (evil-set-leader 'normal (kbd "\\"))
@@ -129,6 +138,7 @@
     '(orderless-match-face-3 ((t :foreground "#FFB5B5")))
     '(markdown-markup-face ((t :foreground "#C3C3C3")))
     '(markdown-header-delimiter-face ((t :foreground "#C3C3C3")))
+    '(markdown-language-keyword-face ((t :foreground "#C3C3C3" :background unspecified )))
     '(eglot-diagnostic-tag-unnecessary-face ((t :foreground unspecified :underline (:style wave :color "#FDFBB6"))))
     '(show-paren-match ((t (:foreground "#B6D6FD" :box (:color "#9E9E9E" :line-width -1)))))
     '(show-paren-mismatch ((t (:foreground "#FFCBB5" :background unspecified :box (:color "#9E9E9E" :line-width -1)))))
@@ -165,7 +175,7 @@
 
 (use-package eglot ;; Minimal LSP client
   :hook (((c-mode c++-mode c-or-c++-mode objc-mode) . eglot-ensure)
-         (python-mode . eglot-ensure)
+         (python-base-mode . eglot-ensure)
          (rust-mode . eglot-ensure)
          (haskell-mode . eglot-ensure)
          (java-mode . eglot-ensure)
@@ -182,12 +192,11 @@
          :map eglot-mode-map
          ("C-c l" . hydra-eglot/body))
   :custom
-  (eglot-events-buffer-size 0 "Disable events logging to speed up Eglot")
+  ;; (eglot-events-buffer-size 0 "Disable events logging to speed up Eglot")
   (eglot-extend-to-xref nil "Ensure that system headers/libs use the same LSP instance")
   (eglot-autoshutdown t "Auto-shutdown servers aftre the last buffer using it is deleted")
   (eglot-ignored-server-capabilities '(list :documentHighlightProvider) "Ignore certain server capabilities.")
   :config
-  (add-to-list 'eglot-server-programs '(python-mode . ("pyright" "--stdio")))
   (cl-defmethod eglot-execute-command
     (_server (_cmd (eql java.apply.workspaceEdit)) arguments)
     "Eclipse JDT breaks spec and replies with edits as arguments."
@@ -215,8 +224,29 @@
 
 (use-package hydra) ;; Beautiful, practical custom keybind menus
 
+;;;; AI
+(use-package aider
+  :config
+  (setq aider-args '("--model ollama_chat/deepseek-coder-v2:6.7b"))
+  (global-set-key (kbd "C-c a") 'aider-transient-menu))
+
 ;;;; Extensions for Built-In Modes
+(use-package auctex) ;; Provides lots of useful tools for editing latex
+
+(use-package cdlatex) ;; Fast input methods for latex
+
+(use-package org-appear ;; Auto toggle all auto hidden org elements
+  :after org
+  :config
+  (setq org-appear-autosubmarkers t
+        org-appear-autoentities t
+        org-appear-autokeywords t))
+
+(use-package org-fragtog ;; Auto toggle org latex previews
+  :after org)
+
 (use-package org-roam ;; Add powerful non-hierarchical note taking tools to Org
+  :ensure-system-package (gcc clang)
   :init
   (setq org-roam-v2-ack t)
   :bind ("C-c o r" . hydra-org-roam/body)
@@ -231,20 +261,6 @@
            "%?"
            :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+author: Greg Heiman\n#+date: %U\n#+filetags: ")
            :unnarrowed t))))
-
-(use-package org-fragtog ;; Auto toggle org latex previews
-  :after org)
-
-(use-package org-appear ;; Auto toggle all auto hidden org elements
-  :after org
-  :config
-  (setq org-appear-autosubmarkers t
-        org-appear-autoentities t
-        org-appear-autokeywords t))
-
-(use-package auctex) ;; Provides lots of useful tools for editing latex
-
-(use-package cdlatex) ;; Fast input methods for latex
 
 ;;;; New Major Modes
 (use-package cmake-mode) ;; Major mode for CMake
@@ -265,9 +281,13 @@
 
 (use-package rust-mode) ;; Major mode for Rust
 
-(use-package terraform-mode) ;; Major mode for Terraform
+(use-package terraform-mode ;; Major mode for Terraform
+  :init
+  (add-to-list 'auto-mode-alist '("\\.tftpl\\'" . terraform-mode)))
 
-(use-package yaml-mode) ;; Major mode for YAML
+(use-package yaml-mode;; Major mode for YAML
+  :init
+  (add-to-list 'auto-mode-alist '("\\.yml\\'" . yaml-mode)))
 
 ;;;; Utilities
 (use-package avy ;; Quickly jump to visible location
@@ -276,10 +296,14 @@
               ("s" . avy-goto-char-2)
               ("gl" . avy-goto-line)))
 
+(use-package docker) ;; Manage and run Docker containers from Emacs
+
 (use-package magit ;; Git managment within Emacs (Very slow on Windows)
   :bind-keymap ("C-c m" . magit-mode-map))
 
 (use-package diminish) ;; Remove minor modes from the modeline
+
+(use-package use-package-ensure-system-package) ;; Use package extension to ensure that system packages are installed
 
 ;;; Built-in
 ;;;; Core Components
@@ -324,8 +348,6 @@
   (setq auto-save-default nil) ;; Use auto-save-visited-mode instead
   (setq save-silently t) ;; No messages when saving
   (setq auto-save-no-message t)
-  (when (or (string-equal system-type "darwin") (string-equal system-type "gnu/linux")) ;; Set up exec-path using PATH
-    (gh/set-exec-path-from-shell-PATH))
 
   ;; Removes *messages* from the buffer.
   (setq-default message-log-max nil)
@@ -384,6 +406,8 @@
         kept-new-versions      5 ; how many of the newest versions to keep
         kept-old-versions      2) ; and how many of the old
 
+  (setq delete-by-moving-to-trash t) ;; Use the system's trashcan
+
   ;; Scratch configuration
   (setq initial-major-mode 'org-mode) ;; Scratch buffer should be in org mode
   (setq initial-scratch-message "")) ;; Scratch buffer message should be blank
@@ -393,9 +417,9 @@
   :init
   (global-auto-revert-mode 1)
   :custom
+  ;; (auto-revert-check-vc-info t "Auto revert version control info.") ;; This is too slow on MacOS
   (auto-revert-avoid-polling t "Avoid polling on systems where file notifications are available.")
-  (auto-revert-verbose nil "Don't show message when auto-reverting a buffer.")
-  (auto-revert-check-vc-info t "Auto revert version control info."))
+  (auto-revert-verbose nil "Don't show message when auto-reverting a buffer."))
 
 (use-package eshell ;; Emacs lisp shell
   :ensure nil
@@ -450,7 +474,10 @@
 
 (use-package project ;; Built-in project managment package
   :ensure nil
-  :bind ("C-c p" . hydra-project/body))
+  :bind ("C-c p" . hydra-project/body)
+  :config
+  (setq project-vc-extra-root-markers '("package.json" "pyproject.toml" "requirements.txt" ".dir-locals.el" ".project.el"))
+  (setq project-vc-ignores '(".venv/" "node_modules/" "__*/" ".*/")))
 
 ;;;; Editing
 (use-package abbrev ;; Built-in in buffer snippets
@@ -581,6 +608,11 @@
     (define-abbrev java-mode-abbrev-table "aelse" "" 'java-else-statement)
     (define-abbrev java-mode-abbrev-table "amain" "" 'java-main-function)))
 
+(use-package js-mode ;; Built-in Javascript major mode configuration
+  :ensure nil
+  :init
+  (add-to-list 'auto-mode-alist '("\\.[cm]js?\\'" . js-mode)))
+
 (use-package objc-mode ;; Built-in Objective C major mode configuration
   :ensure nil
   :hook (objc-mode . gh/c-mode-configuration))
@@ -702,22 +734,31 @@
 (use-package js-ts-mode ;; Built-in JavaScript mode using tree-sitter
   :ensure nil
   :if (treesit-language-available-p 'js)
+  :custom
+  (js-ts-mode-hook js-mode-hook)
   :init
-  (add-to-list 'major-mode-remap-alist '(js-mode . js-ts-mode))
-  (setq js-ts-mode-hook js-mode-hook))
+  (add-to-list 'major-mode-remap-alist '(js-mode . js-ts-mode)))
 
 (use-package python-ts-mode ;; Built-in Python Mode using tree-sitter
   :ensure nil
   :if (treesit-language-available-p 'python)
   :init
-  (add-to-list 'major-mode-remap-alist '(python-mode . python-ts-mode))
   (setq python-ts-mode-hook python-mode-hook))
+
+(use-package toml-ts-mode ;; Built-in TOML Mode using tree-sitter
+  :ensure nil
+  :if (treesit-language-available-p 'toml)
+  :custom
+  (toml-ts-mode-hook conf-toml-mode-hook)
+  :init
+  (add-to-list 'major-mode-remap-alist '(conf-toml-mode . toml-ts-mode)))
 
 (use-package typescript-ts-mode ;; Built-in TypeScript mode using tree-sitter
   :ensure nil
   :if (treesit-language-available-p 'typescript)
   :hook (typescript-ts-mode . gh/typescript-ts-mode-configuration)
   :init
+  (add-to-list 'auto-mode-alist '("\\.mts?\\'" . typescript-ts-mode))
   (add-to-list 'auto-mode-alist '("\\.ts?\\'" . typescript-ts-mode)))
 
 (use-package tsx-ts-mode ;; Built-in TSX mode using tree-sitter
@@ -730,17 +771,18 @@
 (use-package rust-ts-mode ;; Built-in Rust mode using tree-sitter
   :ensure nil
   :if (treesit-language-available-p 'rust)
+  :custom
+  (rust-ts-mode-hook rust-mode-hook)
   :init
-  (add-to-list 'major-mode-remap-alist '(rust-mode . rust-auto-mode))
-  (setq rust-ts-mode-hook rust-mode-hook))
+  (add-to-list 'major-mode-remap-alist '(rust-mode . rust-ts-mode)))
 
 (use-package yaml-ts-mode ;; Built-in YAML mode using tree-sitter
   :ensure nil
   :if (treesit-language-available-p 'yaml)
+  :custom
+  (yaml-ts-mode-hook yaml-mode-hook)
   :init
-  (add-to-list 'major-mode-remap-alist '(yaml-mode . yaml-auto-mode))
-  (with-eval-after-load 'yaml-mode-hook
-    (setq yaml-ts-mode-hook yaml-mode-hook)))
+  (add-to-list 'major-mode-remap-alist '(yaml-mode . yaml-ts-mode)))
 
 ;;;; Utilities
 (use-package ediff ;; Built-in diff interface
